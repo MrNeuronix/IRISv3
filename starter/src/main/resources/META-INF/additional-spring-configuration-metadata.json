@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "iris.zwaveDebug",
+      "type": "java.lang.String",
+      "description": "Description for iris.zwaveDebug."
+    }
+  ]
+}

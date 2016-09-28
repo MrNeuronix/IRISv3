@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>core</artifactId>
+        <groupId>ru.iris</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>device-zwave</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>ru.iris</groupId>
+            <artifactId>commons</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.zgmnkv</groupId>
+            <artifactId>zwave4j</artifactId>
+            <version>0.3-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/../commons/lib/zwave4j-0.3-SNAPSHOT.jar</systemPath>
+        </dependency>
+    </dependencies>
+
+</project>
