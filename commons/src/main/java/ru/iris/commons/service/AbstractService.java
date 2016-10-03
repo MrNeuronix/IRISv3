@@ -17,7 +17,7 @@ public abstract class AbstractService implements Service {
 
 	@Override
 	@PostConstruct
-	public abstract void onStartup();
+	public abstract void onStartup() throws InterruptedException;
 
 	@Override
 	@PreDestroy

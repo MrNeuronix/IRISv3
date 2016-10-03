@@ -9,7 +9,7 @@ import reactor.fn.Consumer;
 
 public interface Service {
 
-	void onStartup();
+	void onStartup() throws InterruptedException;
 	void onShutdown();
 
 	Consumer<Event<?>> handleMessage();

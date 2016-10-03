@@ -3,6 +3,8 @@ package ru.iris.protocol.zwave;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.zwave4j.*;
 import reactor.bus.Event;
@@ -16,23 +18,22 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
 @Component
+@Profile("zwave")
+@Qualifier("zwave")
 public class ZWaveController extends AbstractService implements Protocol {
 
-	private final EventBus r;
-	private final ConfigLoader config;
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	@Autowired
+	private EventBus r;
 
 	@Autowired
-	public ZWaveController(EventBus r, ConfigLoader config) throws InterruptedException {
-		this.r = r;
-		this.config = config;
+	private ConfigLoader config;
 
-		init();
-	}
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
 	@PostConstruct
-	public void onStartup() {
+	public void onStartup() throws InterruptedException {
+		init();
 		logger.info("ZWaveController started");
 	}
 
@@ -333,10 +334,10 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 		// Ждем окончания инициализации
 		boolean ready = false;
-		while (!ready) {
-			Thread.sleep(1000);
-			logger.info("Still waiting");
-		}
+//		while (!ready) {
+//			Thread.sleep(1000);
+//			logger.info("Still waiting");
+//		}
 	}
 
 }
