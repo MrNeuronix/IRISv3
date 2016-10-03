@@ -23,7 +23,6 @@ import javax.annotation.PreDestroy;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.*;
@@ -148,13 +147,13 @@ public class YandexController extends AbstractService implements Speak {
 	}
 
 	@Override
-	public Consumer<Event<?>> handleMessage() throws Exception
+	public Consumer<Event<?>> handleMessage()
 	{
 		return event -> {
 			try {
 				queue.put((String) event.getData());
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				logger.error("Error: ", e.getLocalizedMessage());
 			}
 		};
 	}
@@ -167,14 +166,14 @@ public class YandexController extends AbstractService implements Speak {
 			player.play();
 			player.close();
 		} catch (FileNotFoundException | JavaLayerException e) {
-			e.printStackTrace();
+			logger.error("Error: ", e.getLocalizedMessage());
 		}
 		finally {
 			try {
 				if(result != null)
 					result.close();
 			} catch (IOException e) {
-				e.printStackTrace();
+				logger.error("Error: ", e.getLocalizedMessage());
 			}
 		}
 	}
@@ -206,7 +205,7 @@ public class YandexController extends AbstractService implements Speak {
 			return urlConn.getInputStream();
 		}
 		else {
-			logger.error("Error while downloading MP3: " + responseCode);
+			logger.error("Error while downloading: " + responseCode);
 			return null;
 		}
 	}
