@@ -12,10 +12,10 @@ import ru.iris.commons.service.Speak;
 @SpringBootApplication
 public class CoreApplication {
 
-	@Autowired
+	@Autowired(required = false)
 	private Speak speak;
 
-	@Autowired
+	@Autowired(required = false)
 	@Qualifier("zwave")
 	private Service zwave;
 

@@ -50,7 +50,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 	}
 
 	@Override
-	public void subscribe() {
+	public void subscribe() throws Exception  {
 		addSubscription("device.*");
 	}
 
@@ -334,10 +334,10 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 		// Ждем окончания инициализации
 		boolean ready = false;
-//		while (!ready) {
-//			Thread.sleep(1000);
-//			logger.info("Still waiting");
-//		}
+		while (!ready) {
+			Thread.sleep(1000);
+			logger.info("Still waiting");
+		}
 	}
 
 }

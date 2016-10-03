@@ -13,6 +13,8 @@ import ru.iris.commons.service.Speak;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.io.IOException;
+import java.io.InputStream;
 
 @Component
 @Profile("google")
@@ -37,12 +39,22 @@ public class GoogleController extends AbstractService implements Speak {
 
 	@Override
 	@PostConstruct
-	public void subscribe() {
+	public void subscribe() throws Exception {
 		addSubscription("speak.say");
 	}
 
 	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return log -> logger.info("Saying (Google): {}", log.getData());
+	}
+
+	@Override
+	public void setLanguage(String language) {
+
+	}
+
+	@Override
+	public InputStream getMP3Data(String text) throws IOException {
+		return null;
 	}
 }

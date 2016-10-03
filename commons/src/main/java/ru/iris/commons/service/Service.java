@@ -12,8 +12,8 @@ public interface Service {
 	void onStartup() throws InterruptedException;
 	void onShutdown();
 
-	Consumer<Event<?>> handleMessage();
-	void subscribe();
+	Consumer<Event<?>> handleMessage() throws Exception;
+	void subscribe() throws Exception;
 	void broadcast(String queue, Object object);
 
 }

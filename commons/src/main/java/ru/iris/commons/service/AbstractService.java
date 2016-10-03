@@ -24,17 +24,17 @@ public abstract class AbstractService implements Service {
 	public abstract void onShutdown();
 
 	@Override
-	public abstract Consumer<Event<?>> handleMessage();
+	public abstract Consumer<Event<?>> handleMessage() throws Exception;
 
 	@Override
-	public abstract void subscribe();
+	public abstract void subscribe() throws Exception;
 
 	@Override
 	public void broadcast(String queue, Object object) {
 		r.notify(queue, Event.wrap(object));
 	}
 
-	protected void addSubscription(String regex) {
+	protected void addSubscription(String regex) throws Exception {
 		r.on(R(regex), handleMessage());
 	}
 }
