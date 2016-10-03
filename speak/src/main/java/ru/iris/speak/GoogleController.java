@@ -44,6 +44,11 @@ public class GoogleController extends AbstractService implements Speak {
 	}
 
 	@Override
+	public void listen() {
+
+	}
+
+	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return log -> logger.info("Saying (Google): {}", log.getData());
 	}

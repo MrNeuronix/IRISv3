@@ -19,12 +19,22 @@ public class CoreApplication {
 	@Qualifier("zwave")
 	private Service zwave;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 
 		SpringApplication.run(new Class<?>[] {
 				CoreApplication.class,
 				JpaConfig.class,
 				ReactorConfig.class
 		}, args);
+
+		CoreApplication core = new CoreApplication();
+		core.init();
+	}
+
+	private void init() throws Exception {
+		if(speak != null)
+			speak.listen();
+		if(zwave != null)
+			zwave.listen();
 	}
 }

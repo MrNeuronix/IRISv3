@@ -32,8 +32,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 	@Override
 	@PostConstruct
-	public void onStartup() throws InterruptedException {
-		init();
+	public void onStartup() {
 		logger.info("ZWaveController started");
 	}
 
@@ -54,8 +53,8 @@ public class ZWaveController extends AbstractService implements Protocol {
 		addSubscription("command.device.*");
 	}
 
-	// Main process
-	private void init() throws InterruptedException {
+	@Override
+	public void listen() throws InterruptedException {
 
 		NativeLibraryLoader.loadLibrary(ZWave4j.LIBRARY_NAME, ZWave4j.class);
 
@@ -339,5 +338,4 @@ public class ZWaveController extends AbstractService implements Protocol {
 			logger.info("Still waiting");
 		}
 	}
-
 }

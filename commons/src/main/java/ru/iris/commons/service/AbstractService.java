@@ -30,6 +30,10 @@ public abstract class AbstractService implements Service {
 	public abstract void subscribe() throws Exception;
 
 	@Override
+	@PostConstruct
+	public abstract void listen() throws Exception;
+
+	@Override
 	public void broadcast(String queue, Object object) {
 		r.notify(queue, Event.wrap(object));
 	}
