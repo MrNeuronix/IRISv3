@@ -14,7 +14,7 @@ public class Speaks {
 	private long id;
 
 	@CreationTimestamp
-	@Temporal(TemporalType.DATE)
+	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 
 	private String text;

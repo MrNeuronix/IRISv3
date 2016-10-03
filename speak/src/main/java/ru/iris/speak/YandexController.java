@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.bus.models.SpeakAdv;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
 import ru.iris.commons.database.model.Speaks;
@@ -36,7 +37,7 @@ public class YandexController extends AbstractService implements Speak {
 	@Autowired
 	private ConfigLoader config;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private final ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<>(50);
+	private final ArrayBlockingQueue<SpeakAdv> queue = new ArrayBlockingQueue<>(50);
 	private Map<String, Long> cache = new HashMap<>();
 	private static final String YANDEX_SYNTHESISER_URL = "https://tts.voicetech.yandex.net/generate";
 	private String API_KEY;
@@ -51,7 +52,7 @@ public class YandexController extends AbstractService implements Speak {
 	public void onStartup()
 	{
 		logger.info("Starting up Yandex Speak service");
-		r.notify("event.speak", Event.wrap("Запускается модуль синтеза речи"));
+		r.notify("event.speak", Event.wrap(new SpeakAdv("Запускается модуль синтеза речи")));
 	}
 
 	@Override
@@ -70,8 +71,7 @@ public class YandexController extends AbstractService implements Speak {
 	}
 
 	@PostConstruct
-	public void load() throws InterruptedException
-	{
+	public void load() throws InterruptedException, IOException {
 		API_KEY = config.get("yandexApiKey");
 		setLanguage(config.get("yandexLanguage"));
 		setSpeaker(config.get("yandexVoice"));
@@ -83,31 +83,35 @@ public class YandexController extends AbstractService implements Speak {
 
 		while(true)
 		{
-			String text = queue.poll(1000, TimeUnit.MILLISECONDS);
-			if (text == null)
+			SpeakAdv adv = queue.poll(1000, TimeUnit.MILLISECONDS);
+			if (adv == null)
 				continue;
 
 			logger.debug("Something coming into the pool!");
 
+			String text = adv.getText();
+
 			if(cache.containsKey(text))
 			{
 				logger.info("Saying from cache: {} ({})", text, "cache-" + cache.get(text) + ".mp3");
-				play(cache.get(text));
 			}
 			else
 			{
 				logger.info("Saying new phrase: {}", text);
 				long cacheIdent = new Date().getTime();
+				OutputStream outputStream = null;
+				InputStream resultForWrite = null;
+				InputStream result = null;
 
 				try
 				{
-					OutputStream outputStream = new FileOutputStream(new File("cache-" + cacheIdent + ".mp3"));
+					outputStream = new FileOutputStream(new File("cache-" + cacheIdent + ".mp3"));
 					logger.info("Trying to get MP3 data");
-					InputStream result = getMP3Data(text);
+					result = getMP3Data(text);
 
 					byte[] byteArray = IOUtils.toByteArray(result);
 
-					InputStream resultForWrite = new ByteArrayInputStream(byteArray);
+					resultForWrite = new ByteArrayInputStream(byteArray);
 
 					int read;
 					byte[] bytes = new byte[1024];
@@ -116,13 +120,20 @@ public class YandexController extends AbstractService implements Speak {
 						outputStream.write(bytes, 0, read);
 					}
 
-					resultForWrite.close();
-					result.close();
+					logger.info("Saved");
 				}
 				catch (IOException ex)
 				{
 					logger.error("Error: {}", ex.getLocalizedMessage());
 					return;
+				}
+				finally {
+					if(resultForWrite != null)
+						resultForWrite.close();
+					if(outputStream != null)
+						outputStream.close();
+					if(result != null)
+						result.close();
 				}
 
 				logger.info("Saving cache into db");
@@ -132,8 +143,12 @@ public class YandexController extends AbstractService implements Speak {
 				speak.setText(text);
 				speakDAO.save(speak);
 
+				// put new value in cache
 				cache.put(text, cacheIdent);
 			}
+
+			// play sound
+			play(cache.get(text));
 		}
 	}
 
@@ -150,10 +165,17 @@ public class YandexController extends AbstractService implements Speak {
 	public Consumer<Event<?>> handleMessage()
 	{
 		return event -> {
-			try {
-				queue.put((String) event.getData());
-			} catch (InterruptedException e) {
-				logger.error("Error: ", e.getLocalizedMessage());
+
+			if(event.getData() instanceof SpeakAdv) {
+				try {
+					queue.put((SpeakAdv) event.getData());
+				} catch (InterruptedException e) {
+					logger.error("Error: ", e.getLocalizedMessage());
+				}
+			}
+			else
+			{
+				logger.error("Unknown advert to Speak: {}", event.getData().getClass());
 			}
 		};
 	}
@@ -166,7 +188,7 @@ public class YandexController extends AbstractService implements Speak {
 			player.play();
 			player.close();
 		} catch (FileNotFoundException | JavaLayerException e) {
-			logger.error("Error: ", e.getLocalizedMessage());
+			logger.error("Error while trying to play {}: {}", cacheId, e.getLocalizedMessage());
 		}
 		finally {
 			try {
