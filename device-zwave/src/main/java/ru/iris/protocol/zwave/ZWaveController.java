@@ -18,6 +18,8 @@ import ru.iris.commons.protocol.Protocol;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import static reactor.bus.selector.Selectors.R;
+
 @Component
 @Profile("zwave")
 @Qualifier("zwave")
@@ -32,26 +34,23 @@ public class ZWaveController extends AbstractService implements Protocol {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	@PostConstruct
 	public void onStartup() {
 		logger.info("ZWaveController started");
 	}
 
 	@Override
-	@PreDestroy
 	public void onShutdown() {
 		logger.info("ZWaveController stopping");
 	}
 
 	@Override
-	public Consumer<Event<?>> handleMessage() {
-		System.out.println("Message has arrive!");
-		return null;
+	public void subscribe() throws Exception  {
+		addSubscription("command.device.*");
 	}
 
 	@Override
-	public void subscribe() throws Exception  {
-		addSubscription("command.device.*");
+	public Consumer<Event<?>> handleMessage() {
+		return event -> logger.info("ZWAVE MSG: " + event.getData().getClass());
 	}
 
 	@Override

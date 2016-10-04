@@ -1,5 +1,7 @@
 package ru.iris.commons.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import reactor.bus.Event;
@@ -16,6 +18,8 @@ public abstract class AbstractService implements Service {
 	@Autowired
 	private EventBus r;
 
+	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	@Override
 	@PostConstruct
 	public abstract void onStartup() throws InterruptedException;
@@ -28,6 +32,7 @@ public abstract class AbstractService implements Service {
 	public abstract Consumer<Event<?>> handleMessage() throws Exception;
 
 	@Override
+	@PostConstruct
 	public abstract void subscribe() throws Exception;
 
 	@Override
@@ -40,6 +45,7 @@ public abstract class AbstractService implements Service {
 	}
 
 	protected void addSubscription(String regex) throws Exception {
+		logger.info("Binding on: {}", regex);
 		r.on(R(regex), handleMessage());
 	}
 }

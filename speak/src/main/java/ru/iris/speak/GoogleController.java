@@ -25,20 +25,17 @@ public class GoogleController extends AbstractService implements Speak {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Override
-	@PostConstruct
 	public void onStartup() {
 		r.notify("speak.say", Event.wrap("Starting Google Speak service"));
 	}
 
 	@Override
-	@PreDestroy
 	public void onShutdown()
 	{
 		r.notify("speak.say", Event.wrap("Shutdown Google Speak service"));
 	}
 
 	@Override
-	@PostConstruct
 	public void subscribe() throws Exception {
 		addSubscription("speak.say");
 	}

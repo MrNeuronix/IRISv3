@@ -49,7 +49,6 @@ public class YandexController extends AbstractService implements Speak {
 	private SpeakDAO speakDAO;
 
 	@Override
-	@PostConstruct
 	public void onStartup()
 	{
 		logger.info("Starting up Yandex Speak service");
@@ -62,14 +61,12 @@ public class YandexController extends AbstractService implements Speak {
 	}
 
 	@Override
-	@PreDestroy
 	public void onShutdown()
 	{
 		logger.info("Shutdown Yandex Speak service");
 	}
 
 	@Override
-	@PostConstruct
 	public void subscribe() throws Exception
 	{
 		addSubscription("event.speak");
