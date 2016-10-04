@@ -1,6 +1,7 @@
 package ru.iris.commons.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
@@ -30,8 +31,8 @@ public abstract class AbstractService implements Service {
 	public abstract void subscribe() throws Exception;
 
 	@Override
-	@PostConstruct
-	public abstract void listen() throws Exception;
+	@Async
+	public abstract void run();
 
 	@Override
 	public void broadcast(String queue, Object object) {

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
@@ -76,7 +77,10 @@ public class YandexController extends AbstractService implements Speak {
 	}
 
 	@Override
-	public void listen() throws Exception {
+	@Async
+	public void run() {
+
+		logger.info("Starting Yandex listen thread");
 
 		API_KEY = config.get("yandexApiKey");
 		setLanguage(config.get("yandexLanguage"));
@@ -87,86 +91,85 @@ public class YandexController extends AbstractService implements Speak {
 			cache.put(speak.getText(), speak.getCache());
 		}
 
-		new Thread(() -> {
-			while(true)
-			{
-				SpeakAdv adv = null;
-				try {
-					adv = queue.poll(1000, TimeUnit.MILLISECONDS);
-				} catch (InterruptedException ex) {
-					logger.error("Error: {}", ex.getLocalizedMessage());
-				}
-				if (adv == null)
-					continue;
-
-				logger.debug("Something coming into the pool!");
-
-				String text = adv.getText();
-
-				if(cache.containsKey(text))
-				{
-					logger.info("Saying from cache: {} ({})", text, "cache-" + cache.get(text) + ".mp3");
-				}
-				else
-				{
-					logger.info("Saying new phrase: {}", text);
-					long cacheIdent = new Date().getTime();
-					OutputStream outputStream = null;
-					InputStream resultForWrite = null;
-					InputStream result = null;
-
-					try
-					{
-						outputStream = new FileOutputStream(new File("cache-" + cacheIdent + ".mp3"));
-						logger.info("Trying to get MP3 data");
-						result = getMP3Data(text);
-
-						byte[] byteArray = IOUtils.toByteArray(result);
-
-						resultForWrite = new ByteArrayInputStream(byteArray);
-
-						int read;
-						byte[] bytes = new byte[1024];
-
-						while ((read = resultForWrite.read(bytes)) != -1) {
-							outputStream.write(bytes, 0, read);
-						}
-
-						logger.info("Saved");
-					}
-					catch (IOException ex)
-					{
-						logger.error("Error: {}", ex.getLocalizedMessage());
-						return;
-					}
-					finally {
-						try {
-							if(resultForWrite != null)
-								resultForWrite.close();
-							if(outputStream != null)
-								outputStream.close();
-							if(result != null)
-								result.close();
-						} catch (IOException ex) {
-							logger.error("Error: {}", ex.getLocalizedMessage());
-						}
-					}
-
-					logger.info("Saving cache into db");
-
-					Speaks speak = new Speaks();
-					speak.setCache(cacheIdent);
-					speak.setText(text);
-					speakDAO.save(speak);
-
-					// put new value in cache
-					cache.put(text, cacheIdent);
-				}
-
-				// play sound
-				play(cache.get(text));
+		while(true)
+		{
+			SpeakAdv adv = null;
+			try {
+				adv = queue.poll(1000, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException ex) {
+				logger.error("Error: {}", ex.getLocalizedMessage());
 			}
-		}).start();
+			if (adv == null)
+				continue;
+
+			logger.debug("Something coming into the pool!");
+
+			String text = adv.getText();
+
+			if(cache.containsKey(text))
+			{
+				logger.info("Saying from cache: {} ({})", text, "cache-" + cache.get(text) + ".mp3");
+			}
+			else
+			{
+				logger.info("Saying new phrase: {}", text);
+				long cacheIdent = new Date().getTime();
+				OutputStream outputStream = null;
+				InputStream resultForWrite = null;
+				InputStream result = null;
+
+				try
+				{
+					outputStream = new FileOutputStream(new File("cache-" + cacheIdent + ".mp3"));
+					logger.info("Trying to get MP3 data");
+					result = getMP3Data(text);
+
+					byte[] byteArray = IOUtils.toByteArray(result);
+
+					resultForWrite = new ByteArrayInputStream(byteArray);
+
+					int read;
+					byte[] bytes = new byte[1024];
+
+					while ((read = resultForWrite.read(bytes)) != -1) {
+						outputStream.write(bytes, 0, read);
+					}
+
+					logger.info("Saved");
+				}
+				catch (IOException ex)
+				{
+					logger.error("Error: {}", ex.getLocalizedMessage());
+					return;
+				}
+				finally {
+					try {
+						if(resultForWrite != null)
+							resultForWrite.close();
+						if(outputStream != null)
+							outputStream.close();
+						if(result != null)
+							result.close();
+					} catch (IOException ex) {
+						logger.error("Error: {}", ex.getLocalizedMessage());
+					}
+				}
+
+				logger.info("Saving cache into db");
+
+				Speaks speak = new Speaks();
+				speak.setCache(cacheIdent);
+				speak.setText(text);
+				speakDAO.save(speak);
+
+				// put new value in cache
+				cache.put(text, cacheIdent);
+			}
+
+			// play sound
+			play(cache.get(text));
+		}
+
 	}
 
 	@Override

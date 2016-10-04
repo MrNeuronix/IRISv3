@@ -7,5 +7,5 @@ public interface Speak {
 
 	void setLanguage(String language);
 	InputStream getMP3Data(String text) throws IOException;
-	void listen() throws Exception;
+	void run() throws Exception;
 }

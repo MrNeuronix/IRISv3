@@ -44,7 +44,7 @@ public class GoogleController extends AbstractService implements Speak {
 	}
 
 	@Override
-	public void listen() {
+	public void run() {
 
 	}
 

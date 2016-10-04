@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.zwave4j.*;
 import reactor.bus.Event;
@@ -54,7 +55,8 @@ public class ZWaveController extends AbstractService implements Protocol {
 	}
 
 	@Override
-	public void listen() throws InterruptedException {
+	@Async
+	public void run() {
 
 		NativeLibraryLoader.loadLibrary(ZWave4j.LIBRARY_NAME, ZWave4j.class);
 
@@ -331,10 +333,14 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 		logger.info("Waiting while ZWave finish initialization");
 
-		// Ждем окончания инициализации
+		// Waiting for initialization ends
 		boolean ready = false;
 		while (!ready) {
-			Thread.sleep(1000);
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				logger.error("Error: {}", e.getLocalizedMessage());
+			}
 			logger.info("Still waiting");
 		}
 	}

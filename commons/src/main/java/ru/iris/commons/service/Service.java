@@ -15,6 +15,6 @@ public interface Service {
 	Consumer<Event<?>> handleMessage() throws Exception;
 	void subscribe() throws Exception;
 	void broadcast(String queue, Object object);
-	void listen() throws Exception;
+	void run() throws Exception;
 
 }
