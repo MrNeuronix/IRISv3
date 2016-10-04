@@ -21,7 +21,7 @@
             <artifactId>zwave4j</artifactId>
             <version>0.3-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${basedir}/../commons/lib/zwave4j-0.3-SNAPSHOT.jar</systemPath>
+            <systemPath>${basedir}/../lib/zwave4j-0.3-SNAPSHOT.jar</systemPath>
         </dependency>
     </dependencies>
 
