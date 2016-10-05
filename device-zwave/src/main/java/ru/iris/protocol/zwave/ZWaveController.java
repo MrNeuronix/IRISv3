@@ -12,11 +12,16 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.protocol.Device;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
+import ru.iris.protocol.zwave.protocol.ZWaveDevice;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static reactor.bus.selector.Selectors.R;
 
@@ -66,16 +71,13 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 		Manager manager = Manager.create();
 
-		NotificationWatcher watcher = (notification, context) -> {};
-
-
-		/*NotificationWatcher watcher = (notification, context) -> {
+		NotificationWatcher watcher = (notification, context) -> {
 
 			short node = notification.getNodeId();
-			Device device = null;
+			ZWaveDevice device = null;
 			Map<String, Object> data = new HashMap<>();
 
-			switch (notification.getType()) {
+			/*switch (notification.getType()) {
 				case DRIVER_READY:
 					homeId = notification.getHomeId();
 					logger.info("Driver ready. Home ID: " + homeId);
@@ -324,8 +326,8 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 			// save device and values
 			if (device != null)
-				device.save();
-		};*/
+				device.save(); */
+		};
 
 		manager.addWatcher(watcher, null);
 		manager.addDriver(config.get("zwavePort"));
