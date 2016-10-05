@@ -14,6 +14,7 @@ import ru.iris.commons.protocol.enums.State;
 import ru.iris.zwave.protocol.ZWaveDevice;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -37,7 +38,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 	{
 		Set<ZWaveDevice> ret = new HashSet<>();
 
-		Set<Device> devices = (Set<Device>) deviceDAO.findAll();
+		List<Device> devices = (List<Device>) deviceDAO.findAll();
 
 		for(Device device : devices)
 		{
@@ -71,12 +72,16 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		ret.setSource(SourceProtocol.ZWAVE);
 		ret.setState(State.UNKNOWN);
 
-		ZoneImpl zone = new ZoneImpl();
-		zone.setId(device.getZone().getId());
-		zone.setDate(device.getZone().getDate());
-		zone.setName(device.getZone().getName());
+		if(device.getZone() != null) {
 
-		ret.setZone(zone);
+			ZoneImpl zone = new ZoneImpl();
+
+			zone.setId(device.getZone().getId());
+			zone.setDate(device.getZone().getDate());
+			zone.setName(device.getZone().getName());
+
+			ret.setZone(zone);
+		}
 
 		Set<ru.iris.commons.protocol.DeviceValue> values = new HashSet<>();
 
