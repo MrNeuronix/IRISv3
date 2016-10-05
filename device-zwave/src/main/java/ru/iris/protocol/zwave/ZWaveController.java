@@ -16,6 +16,7 @@ import ru.iris.commons.protocol.Device;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
 import ru.iris.protocol.zwave.protocol.ZWaveDevice;
+import ru.iris.protocol.zwave.protocol.service.ZWaveDeviceService;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -35,6 +36,9 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 	@Autowired
 	private ConfigLoader config;
+
+	@Autowired
+	private ZWaveDeviceService service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

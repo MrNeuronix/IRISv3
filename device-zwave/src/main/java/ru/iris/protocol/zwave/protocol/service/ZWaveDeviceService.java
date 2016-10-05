@@ -3,6 +3,7 @@ package ru.iris.protocol.zwave.protocol.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.Zone;
@@ -16,6 +17,7 @@ import ru.iris.protocol.zwave.protocol.ZWaveDevice;
 import java.util.HashSet;
 import java.util.Set;
 
+@Service
 public class ZWaveDeviceService {
 
 	@Autowired
@@ -54,7 +56,7 @@ public class ZWaveDeviceService {
 	private ZWaveDevice merge(Device device) {
 
 		if (!device.getSource().equals(SourceProtocol.ZWAVE)) {
-			logger.error("Specified device in no ZWAVE!");
+			logger.error("Specified device is not ZWave device!");
 			return null;
 		}
 
