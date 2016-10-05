@@ -16,8 +16,8 @@ import ru.iris.zwave.protocol.ZWaveDevice;
 import java.util.HashSet;
 import java.util.Set;
 
-@Service("zwaveservice")
-public class ZWaveDeviceService {
+@Service
+public class ZWaveDeviceService implements ZWaveProtoService {
 
 	@Autowired
 	private DeviceDAO deviceDAO;

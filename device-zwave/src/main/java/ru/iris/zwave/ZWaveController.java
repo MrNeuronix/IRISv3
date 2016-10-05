@@ -12,10 +12,10 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.zwave.protocol.service.ZWaveProtoService;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
 import ru.iris.zwave.protocol.ZWaveDevice;
-import ru.iris.zwave.protocol.service.ZWaveDeviceService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 	private ConfigLoader config;
 
 	@Autowired
-	private ZWaveDeviceService service;
+	private ZWaveProtoService service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
