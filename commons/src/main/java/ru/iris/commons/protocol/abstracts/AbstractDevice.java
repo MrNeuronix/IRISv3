@@ -4,8 +4,8 @@ import ru.iris.commons.protocol.Device;
 import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.Zone;
 import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.Type;
+import ru.iris.commons.protocol.enums.State;
 
 import java.util.*;
 

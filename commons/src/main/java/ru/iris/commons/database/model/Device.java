@@ -1,8 +1,8 @@
 package ru.iris.commons.database.model;
 
 import org.hibernate.annotations.CreationTimestamp;
-import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.Type;
+import ru.iris.commons.protocol.enums.SourceProtocol;
 
 import javax.persistence.*;
 import java.util.*;

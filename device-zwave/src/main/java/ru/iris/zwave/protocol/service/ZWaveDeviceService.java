@@ -1,4 +1,4 @@
-package ru.iris.protocol.zwave.protocol.service;
+package ru.iris.zwave.protocol.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,17 +7,16 @@ import org.springframework.stereotype.Service;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.Zone;
-import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.DeviceValueImpl;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
-import ru.iris.protocol.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.ZWaveDevice;
 
 import java.util.HashSet;
 import java.util.Set;
 
-@Service
+@Service("zwaveservice")
 public class ZWaveDeviceService {
 
 	@Autowired
@@ -79,7 +78,7 @@ public class ZWaveDeviceService {
 
 		ret.setZone(zone);
 
-		Set<DeviceValue> values = new HashSet<>();
+		Set<ru.iris.commons.protocol.DeviceValue> values = new HashSet<>();
 
 		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues())
 		{
@@ -110,8 +109,11 @@ public class ZWaveDeviceService {
 			ret = new Device();
 		}
 
-		ret.setId(device.getId());
-		ret.setDate(device.getCreationDate());
+		if(!creating) {
+			ret.setId(device.getId());
+			ret.setDate(device.getCreationDate());
+		}
+
 		ret.setHumanReadable(device.getHumanReadableName());
 		ret.setInternalName(device.getInternalName());
 		ret.setManufacturer(device.getManufacturer());
@@ -132,7 +134,7 @@ public class ZWaveDeviceService {
 
 		Set<ru.iris.commons.database.model.DeviceValue> values = new HashSet<>();
 
-		for(DeviceValue deviceValue : device.getDeviceValues())
+		for(ru.iris.commons.protocol.DeviceValue deviceValue : device.getDeviceValues())
 		{
 			ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
 

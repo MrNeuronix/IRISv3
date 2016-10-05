@@ -11,8 +11,6 @@ import reactor.fn.Consumer;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 

@@ -1,4 +1,4 @@
-package ru.iris.protocol.zwave.protocol;
+package ru.iris.zwave.protocol;
 
 import ru.iris.commons.protocol.abstracts.AbstractDevice;
 

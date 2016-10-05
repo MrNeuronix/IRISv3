@@ -2,7 +2,6 @@ package ru.iris.speak;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
-import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +12,14 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.database.model.Speaks;
+import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.bus.models.SpeakAdv;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
-import ru.iris.commons.database.model.Speaks;
-import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;

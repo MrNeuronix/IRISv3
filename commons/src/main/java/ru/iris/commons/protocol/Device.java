@@ -1,8 +1,8 @@
 package ru.iris.commons.protocol;
 
+import ru.iris.commons.protocol.enums.Type;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
-import ru.iris.commons.protocol.enums.Type;
 
 import java.util.Date;
 import java.util.Set;

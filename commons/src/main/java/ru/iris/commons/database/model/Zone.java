@@ -1,14 +1,11 @@
 package ru.iris.commons.database.model;
 
 import org.hibernate.annotations.CreationTimestamp;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.Type;
 
 import javax.persistence.*;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 @Entity
 @Table(name = "v2_zones")

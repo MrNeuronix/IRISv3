@@ -1,4 +1,4 @@
-package ru.iris.protocol.zwave;
+package ru.iris.zwave;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +12,13 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.Device;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
-import ru.iris.protocol.zwave.protocol.ZWaveDevice;
-import ru.iris.protocol.zwave.protocol.service.ZWaveDeviceService;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import ru.iris.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.service.ZWaveDeviceService;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static reactor.bus.selector.Selectors.R;
 
 @Component
 @Profile("zwave")
