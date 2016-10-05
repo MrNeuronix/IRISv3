@@ -8,5 +8,6 @@ public interface DeviceValue {
 	Date getDate();
 	String getName();
 	<T> T getValue(Class<T> type);
+	Object getValue();
 
 }
