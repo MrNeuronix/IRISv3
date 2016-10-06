@@ -121,4 +121,44 @@ public abstract class AbstractDevice implements Device {
 	public void setValues(Set<DeviceValue> values) {
 		this.values = values;
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		AbstractDevice that = (AbstractDevice) o;
+		return id == that.id &&
+				Objects.equals(date, that.date) &&
+				Objects.equals(internalName, that.internalName) &&
+				Objects.equals(humanReadable, that.humanReadable) &&
+				Objects.equals(manufacturer, that.manufacturer) &&
+				Objects.equals(productName, that.productName) &&
+				source == that.source &&
+				type == that.type &&
+				Objects.equals(zone, that.zone) &&
+				state == that.state &&
+				Objects.equals(values, that.values);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id, date, internalName, humanReadable, manufacturer, productName, source, type, zone, state, values);
+	}
+
+	@Override
+	public String toString() {
+		return "AbstractDevice{" +
+				"id=" + id +
+				", date=" + date +
+				", internalName='" + internalName + '\'' +
+				", humanReadable='" + humanReadable + '\'' +
+				", manufacturer='" + manufacturer + '\'' +
+				", productName='" + productName + '\'' +
+				", source=" + source +
+				", type=" + type +
+				", zone=" + zone +
+				", state=" + state +
+				", values=" + values +
+				'}';
+	}
 }

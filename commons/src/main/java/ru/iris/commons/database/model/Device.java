@@ -33,7 +33,7 @@ public class Device {
 	@ManyToOne
 	private Zone zone;
 
-	@OneToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER, mappedBy = "device")
+	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "device")
 	@OrderBy("name ASC")
 	private Set<DeviceValue> values = new HashSet<>();
 

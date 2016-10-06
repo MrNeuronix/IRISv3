@@ -2,12 +2,17 @@ package ru.iris;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.IntegrationTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import ru.iris.commons.bus.config.ReactorConfig;
+import ru.iris.commons.config.TestJpaConfig;
 import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.DeviceValueImpl;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
@@ -23,6 +28,7 @@ import java.util.Set;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
 @ActiveProfiles("tests")
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class ZWaveTests {
 
 	@Autowired
@@ -42,12 +48,10 @@ public class ZWaveTests {
 		DeviceValueImpl val2 = new DeviceValueImpl();
 		val2.setName("Test val 2");
 		val2.setValue("All ok!");
-		val2.setId(5L);
 		val2.setDate(new Date());
 		values.add(val2);
 
 		device = new ZWaveDevice();
-		device.setId(100L);
 		device.setHumanReadable("Device 1");
 		device.setDate(new Date());
 		device.setInternalName("zw/1");
@@ -60,12 +64,31 @@ public class ZWaveTests {
 	}
 
 	@Test
-	public void canSaveByService() {
-		service.saveIntoDatabase(device);
+	public void Z1_canSaveByService() {
+		ZWaveDevice zw = service.saveIntoDatabase(device);
+		Assert.assertEquals(zw.getHumanReadableName(), "Device 1");
 	}
 
 	@Test
-	public void canFetchAndConvertByService() {
+	public void Z2_canFetchAndConvertByService() {
 		Assert.assertEquals(service.getZWaveDevices().size(), 1);
+	}
+
+	@Test
+	public void Z3_correctHumanReadableName() {
+		ZWaveDevice zw = service.getZWaveDevices().stream().findAny().get();
+		Assert.assertEquals(zw.getHumanReadableName(), "Device 1");
+	}
+
+	@Test
+	public void Z4_canChangeValuesAndSave() {
+		ZWaveDevice zw = service.getZWaveDevices().stream().findAny().get();
+
+		zw.setState(State.DEAD);
+		zw.getDeviceValues().iterator().next().setValue("new value!");
+
+		zw = service.saveIntoDatabase(zw);
+
+		Assert.assertEquals(zw.getDeviceValues().iterator().next().getValue(), "new value!");
 	}
 }

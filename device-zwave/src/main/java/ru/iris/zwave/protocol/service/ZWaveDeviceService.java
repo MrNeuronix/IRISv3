@@ -48,9 +48,9 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		return ret;
 	}
 
-	public void saveIntoDatabase(ZWaveDevice device)
+	public ZWaveDevice saveIntoDatabase(ZWaveDevice device)
 	{
-		deviceDAO.save(mergeForDB(device));
+		return merge(deviceDAO.save(mergeForDB(device)));
 	}
 
 	private ZWaveDevice merge(Device device) {
@@ -143,7 +143,10 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		{
 			ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
 
-			dv.setId(deviceValue.getId());
+			if(deviceValue.getId() != 0L)
+				dv.setId(deviceValue.getId());
+
+			dv.setDevice(ret);
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
 			dv.setValue(deviceValue.getValue().toString());

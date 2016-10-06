@@ -8,6 +8,6 @@ public interface ZWaveProtoService {
 
 	ZWaveDevice getDeviceById(long id);
 	Set<ZWaveDevice> getZWaveDevices();
-	void saveIntoDatabase(ZWaveDevice device);
+	ZWaveDevice saveIntoDatabase(ZWaveDevice device);
 
 }

@@ -9,5 +9,7 @@ public interface DeviceValue {
 	String getName();
 	<T> T getValue(Class<T> type);
 	Object getValue();
+	void setValue(Object value);
+	void setName(String name);
 
 }
