@@ -11,11 +11,12 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.bus.models.protocol.zwave.*;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
-import ru.iris.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDevice;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +36,8 @@ public class ZWaveController extends AbstractService implements Protocol {
 	private ZWaveProtoService service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private long homeId;
+	private boolean ready = false;
 
 	@Override
 	public void onStartup() {
@@ -73,73 +76,73 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 			short node = notification.getNodeId();
 			ZWaveDevice device = null;
-			Map<String, Object> data = new HashMap<>();
 
-			/*switch (notification.getType()) {
+			switch (notification.getType()) {
 				case DRIVER_READY:
 					homeId = notification.getHomeId();
-					logger.info("Driver ready. Home ID: " + homeId);
-					broadcast("event.devices.zwave.driver.ready", new GenericAdvertisement("ZWaveDriverReady", homeId));
+					logger.info("Driver ready. Home ID: {}", homeId);
+					broadcast("event.device.zwave.driver.ready", new ZWaveDriverReady(homeId));
 					break;
 				case DRIVER_FAILED:
 					logger.info("Driver failed");
-					broadcast("event.devices.zwave.driver.failed", new GenericAdvertisement("ZWaveDriverFailed"));
+					broadcast("event.device.zwave", new ZWaveDriverFailed());
 					break;
 				case DRIVER_RESET:
 					logger.info("Driver reset");
-					broadcast("event.devices.zwave.driver.reset", new GenericAdvertisement("ZWaveDriverReset"));
+					broadcast("event.device.zwave", new ZWaveDriverReset());
 					break;
 				case AWAKE_NODES_QUERIED:
 					logger.info("Awake nodes queried");
 					ready = true;
-					broadcast("event.devices.zwave.awakenodesqueried", new GenericAdvertisement("ZWaveAwakeNodesQueried"));
+					broadcast("event.device.zwave", new ZWaveAwakeNodesQueried());
 					break;
 				case ALL_NODES_QUERIED:
 					logger.info("All node queried");
 					manager.writeConfig(homeId);
 					ready = true;
-					broadcast("event.devices.zwave.allnodesqueried", new GenericAdvertisement("ZWaveAllNodesQueried"));
+					broadcast("event.device.zwave", new ZWaveAllNodesQueried());
 					break;
 				case ALL_NODES_QUERIED_SOME_DEAD:
 					logger.info("All node queried, some dead");
 					manager.writeConfig(homeId);
-					broadcast("event.devices.zwave.allnodesqueriedsomedead", new GenericAdvertisement("ZWaveAllNodesQueriedSomeDead"));
+					broadcast("event.device.zwave", new ZWaveAllNodesQueriedSomeDead());
 					break;
 				case POLLING_ENABLED:
 					logger.info("Polling enabled");
-					broadcast("event.devices.zwave.polling.enabled", new GenericAdvertisement("ZWavePollingEnabled", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWavePollingEnabled(notification.getNodeId()));
 					break;
 				case POLLING_DISABLED:
 					logger.info("Polling disabled");
-					broadcast("event.devices.zwave.polling.disabled", new GenericAdvertisement("ZWavePollingDisabled", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWavePollingDisabled(notification.getNodeId()));
 					break;
 				case NODE_NEW:
-					broadcast("event.devices.zwave.node.new", new GenericAdvertisement("ZWaveNodeNew", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWaveNodeNew(notification.getNodeId()));
 					break;
 				case NODE_ADDED:
-					broadcast("event.devices.zwave.node.added", new GenericAdvertisement("ZWaveNodeAdded", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWaveNodeAdded(notification.getNodeId()));
 					break;
 				case NODE_REMOVED:
-					broadcast("event.devices.zwave.node.removed", new GenericAdvertisement("ZWaveNodeRemoved", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWaveNodeRemoved(notification.getNodeId()));
 					break;
 				case ESSENTIAL_NODE_QUERIES_COMPLETE:
-					broadcast("event.devices.zwave.essentialnodequeriscomplete", new GenericAdvertisement("ZWaveEssentialsNodeQueriesComplete"));
+					broadcast("event.device.zwave", new ZWaveEssentialsNodeQueriesComplete());
 					break;
 				case NODE_QUERIES_COMPLETE:
-					broadcast("event.devices.zwave.queriescomplete", new GenericAdvertisement("ZWaveNodeQueriesComplete"));
+					broadcast("event.device.zwave", new ZWaveNodeQueriesComplete());
 					break;
 				case NODE_EVENT:
 					logger.info("Update info for node " + node);
 					manager.refreshNodeInfo(homeId, node);
-					broadcast("event.devices.zwave.node.event", new GenericAdvertisement("ZWaveNodeEvent", notification.getNodeId()));
+					broadcast("event.device.zwave", new ZWaveNodeEvent(notification.getNodeId()));
 					break;
 				case NODE_NAMING:
-					broadcast("event.devices.zwave.node.naming", new GenericAdvertisement("ZWaveNodeNaming", notification.getNodeId()));
+					broadcast("event.devices.zwave", new ZWaveNodeNaming(notification.getNodeId()));
 					break;
 				case NODE_PROTOCOL_INFO:
-					broadcast("event.devices.zwave.node.protocolinfo", new GenericAdvertisement("ZWaveNodeProtocolInfo", notification.getNodeId()));
+					broadcast("event.devices.zwave", new ZWaveNodeProtocolInfo(notification.getNodeId()));
 					break;
-				case VALUE_ADDED:
+			}
+				/*case VALUE_ADDED:
 
 					// check empty label
 					if (Manager.get().getValueLabel(notification.getValueId()).isEmpty())
@@ -324,7 +327,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 			// save device and values
 			if (device != null)
-				device.save(); */
+				device.save();*/
 		};
 
 		manager.addWatcher(watcher, null);

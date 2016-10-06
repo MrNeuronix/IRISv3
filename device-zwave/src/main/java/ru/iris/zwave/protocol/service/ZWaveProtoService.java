@@ -1,6 +1,6 @@
 package ru.iris.zwave.protocol.service;
 
-import ru.iris.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDevice;
 
 import java.util.Set;
 

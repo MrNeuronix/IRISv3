@@ -1,4 +1,4 @@
-package ru.iris.zwave.protocol;
+package ru.iris.zwave.protocol.model;
 
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 

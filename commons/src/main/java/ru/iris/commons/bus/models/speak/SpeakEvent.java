@@ -1,14 +1,14 @@
-package ru.iris.commons.bus.models;
+package ru.iris.commons.bus.models.speak;
 
-import ru.iris.commons.bus.Advertisement;
+import ru.iris.commons.bus.AbstractEvent;
 
 import java.util.Objects;
 
-public class SpeakAdv implements Advertisement {
+public class SpeakEvent extends AbstractEvent {
 
 	private String text;
 
-	public SpeakAdv(String text) {
+	public SpeakEvent(String text) {
 		this.text = text;
 	}
 
@@ -31,8 +31,8 @@ public class SpeakAdv implements Advertisement {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		SpeakAdv speakAdv = (SpeakAdv) o;
-		return Objects.equals(text, speakAdv.text);
+		SpeakEvent speakEvent = (SpeakEvent) o;
+		return Objects.equals(text, speakEvent.text);
 	}
 
 	@Override

@@ -10,8 +10,8 @@ import ru.iris.commons.database.model.Zone;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
-import ru.iris.zwave.protocol.ZWaveDevice;
-import ru.iris.zwave.protocol.ZWaveDeviceValue;
+import ru.iris.zwave.protocol.model.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 
 import java.util.*;
 

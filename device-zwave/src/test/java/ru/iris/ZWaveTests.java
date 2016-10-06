@@ -7,18 +7,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.protocol.DeviceValue;
-import ru.iris.zwave.protocol.ZWaveDeviceValue;
+import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.Type;
-import ru.iris.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDevice;
 
 import java.util.*;
 
@@ -82,6 +80,7 @@ public class ZWaveTests {
 		ZWaveDevice zw = service.getZWaveDevices().iterator().next();
 
 		zw.setState(State.DEAD);
+		zw.setProductName("Changed by Z4");
 		zw.getDeviceValues().get("Test val 1").setValue("new value!");
 
 		zw = service.saveIntoDatabase(zw);

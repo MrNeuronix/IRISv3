@@ -14,7 +14,7 @@ import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.database.model.Speaks;
 import ru.iris.commons.service.AbstractService;
-import ru.iris.commons.bus.models.SpeakAdv;
+import ru.iris.commons.bus.models.speak.SpeakEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
 import ru.iris.commons.service.Speak;
@@ -36,7 +36,7 @@ public class YandexController extends AbstractService implements Speak {
 	@Autowired
 	private ConfigLoader config;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private final ArrayBlockingQueue<SpeakAdv> queue = new ArrayBlockingQueue<>(50);
+	private final ArrayBlockingQueue<SpeakEvent> queue = new ArrayBlockingQueue<>(50);
 	private Map<String, Long> cache = new HashMap<>();
 	private static final String YANDEX_SYNTHESISER_URL = "https://tts.voicetech.yandex.net/generate";
 	private String API_KEY;
@@ -55,7 +55,7 @@ public class YandexController extends AbstractService implements Speak {
 	@PostConstruct
 	public void aSayHello()
 	{
-		r.notify("event.speak", Event.wrap(new SpeakAdv("Запускается модуль синтеза речи")));
+		r.notify("event.speak", Event.wrap(new SpeakEvent("Запускается модуль синтеза речи")));
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class YandexController extends AbstractService implements Speak {
 
 		while(true)
 		{
-			SpeakAdv adv = null;
+			SpeakEvent adv = null;
 			try {
 				adv = queue.poll(1000, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException ex) {
@@ -181,9 +181,9 @@ public class YandexController extends AbstractService implements Speak {
 	{
 		return event -> {
 
-			if(event.getData() instanceof SpeakAdv) {
+			if(event.getData() instanceof SpeakEvent) {
 				try {
-					queue.put((SpeakAdv) event.getData());
+					queue.put((SpeakEvent) event.getData());
 				} catch (InterruptedException e) {
 					logger.error("Error: ", e.getLocalizedMessage());
 				}
