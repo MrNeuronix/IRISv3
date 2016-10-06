@@ -86,5 +86,6 @@ public class ZWaveTests {
 		zw = service.saveIntoDatabase(zw);
 
 		Assert.assertEquals(zw.getDeviceValues().get("Test val 1").getValue(), "new value!");
+		Assert.assertEquals(zw.getProductName(), "Changed by Z4");
 	}
 }
