@@ -7,23 +7,20 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.IntegrationTest;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.iris.commons.bus.config.ReactorConfig;
-import ru.iris.commons.config.TestJpaConfig;
+import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.protocol.DeviceValue;
-import ru.iris.commons.protocol.DeviceValueImpl;
+import ru.iris.zwave.protocol.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.Type;
 import ru.iris.zwave.protocol.ZWaveDevice;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -35,21 +32,21 @@ public class ZWaveTests {
 	private ZWaveProtoService service;
 
 	ZWaveDevice device;
-	Set<DeviceValue> values = new HashSet<>();
+	Map<String, DeviceValue> values = new HashMap<>();
 
 	@Before
 	public void setUp() {
 
-		DeviceValueImpl val1 = new DeviceValueImpl();
+		ZWaveDeviceValue val1 = new ZWaveDeviceValue();
 		val1.setName("Test val 1");
 		val1.setValue(2.0D);
-		values.add(val1);
+		values.put("Test val 1", val1);
 
-		DeviceValueImpl val2 = new DeviceValueImpl();
+		ZWaveDeviceValue val2 = new ZWaveDeviceValue();
 		val2.setName("Test val 2");
 		val2.setValue("All ok!");
 		val2.setDate(new Date());
-		values.add(val2);
+		values.put("Test val 2", val2);
 
 		device = new ZWaveDevice();
 		device.setHumanReadable("Device 1");
@@ -60,7 +57,7 @@ public class ZWaveTests {
 		device.setManufacturer("Test manufact");
 		device.setProductName("Test prod name");
 		device.setState(State.ACTIVE);
-		device.setValues(values);
+		device.setDeviceValues(values);
 	}
 
 	@Test
@@ -76,19 +73,19 @@ public class ZWaveTests {
 
 	@Test
 	public void Z3_correctHumanReadableName() {
-		ZWaveDevice zw = service.getZWaveDevices().stream().findAny().get();
+		ZWaveDevice zw = service.getZWaveDevices().iterator().next();
 		Assert.assertEquals(zw.getHumanReadableName(), "Device 1");
 	}
 
 	@Test
 	public void Z4_canChangeValuesAndSave() {
-		ZWaveDevice zw = service.getZWaveDevices().stream().findAny().get();
+		ZWaveDevice zw = service.getZWaveDevices().iterator().next();
 
 		zw.setState(State.DEAD);
-		zw.getDeviceValues().iterator().next().setValue("new value!");
+		zw.getDeviceValues().get("Test val 1").setValue("new value!");
 
 		zw = service.saveIntoDatabase(zw);
 
-		Assert.assertEquals(zw.getDeviceValues().iterator().next().getValue(), "new value!");
+		Assert.assertEquals(zw.getDeviceValues().get("Test val 1").getValue(), "new value!");
 	}
 }

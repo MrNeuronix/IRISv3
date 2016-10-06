@@ -11,17 +11,17 @@ import java.util.*;
 
 public abstract class AbstractDevice implements Device {
 
-	private long id;
-	private Date date;
-	private String internalName;
-	private String humanReadable;
-	private String manufacturer;
-	private String productName;
-	private SourceProtocol source;
-	private Type type;
-	private Zone zone;
-	private State state;
-	private Set<DeviceValue> values = new HashSet<>();
+	protected long id;
+	protected Date date;
+	protected String internalName;
+	protected String humanReadable;
+	protected String manufacturer;
+	protected String productName;
+	protected SourceProtocol source;
+	protected Type type;
+	protected Zone zone;
+	protected State state;
+	protected Map<String, DeviceValue> values = new HashMap<>();
 
 	@Override
 	public long getId() {
@@ -73,9 +73,12 @@ public abstract class AbstractDevice implements Device {
 		return type;
 	}
 
-	@Override
-	public Set<DeviceValue> getDeviceValues() {
+	public Map<String, DeviceValue> getDeviceValues() {
 		return values;
+	}
+
+	public void setDeviceValues(Map<String, DeviceValue> values) {
+		this.values = values;
 	}
 
 	public void setId(long id) {
@@ -116,10 +119,6 @@ public abstract class AbstractDevice implements Device {
 
 	public void setState(State state) {
 		this.state = state;
-	}
-
-	public void setValues(Set<DeviceValue> values) {
-		this.values = values;
 	}
 
 	@Override

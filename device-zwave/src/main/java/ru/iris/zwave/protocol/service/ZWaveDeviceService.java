@@ -7,15 +7,13 @@ import org.springframework.stereotype.Service;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.Zone;
-import ru.iris.commons.protocol.DeviceValueImpl;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.zwave.protocol.ZWaveDevice;
+import ru.iris.zwave.protocol.ZWaveDeviceValue;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class ZWaveDeviceService implements ZWaveProtoService {
@@ -83,21 +81,21 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			ret.setZone(zone);
 		}
 
-		Set<ru.iris.commons.protocol.DeviceValue> values = new HashSet<>();
+		Map<String, ru.iris.commons.protocol.DeviceValue> values = new HashMap<>();
 
-		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues())
+		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues().values())
 		{
-			DeviceValueImpl dv = new DeviceValueImpl();
+			ZWaveDeviceValue dv = new ZWaveDeviceValue();
 
 			dv.setId(deviceValue.getId());
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
 			dv.setValue(deviceValue.getValue());
 
-			values.add(dv);
+			values.put(dv.getName(), dv);
 		}
 
-		ret.setValues(values);
+		ret.setDeviceValues(values);
 
 		return ret;
 	}
@@ -137,9 +135,9 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			ret.setZone(zone);
 		}
 
-		Set<ru.iris.commons.database.model.DeviceValue> values = new HashSet<>();
+		Map<String, ru.iris.commons.database.model.DeviceValue> values = new HashMap<>();
 
-		for(ru.iris.commons.protocol.DeviceValue deviceValue : device.getDeviceValues())
+		for(ru.iris.commons.protocol.DeviceValue deviceValue : device.getDeviceValues().values())
 		{
 			ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
 
@@ -151,7 +149,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setName(deviceValue.getName());
 			dv.setValue(deviceValue.getValue().toString());
 
-			values.add(dv);
+			values.put(dv.getName(), dv);
 		}
 
 		ret.setValues(values);

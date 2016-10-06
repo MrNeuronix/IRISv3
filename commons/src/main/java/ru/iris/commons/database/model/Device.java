@@ -35,7 +35,8 @@ public class Device {
 
 	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "device")
 	@OrderBy("name ASC")
-	private Set<DeviceValue> values = new HashSet<>();
+	@MapKey(name="name")
+	private Map<String, DeviceValue> values = new HashMap<>();
 
 	// State will be get in runtime runtime
 
@@ -115,11 +116,11 @@ public class Device {
 		this.zone = zone;
 	}
 
-	public Set<DeviceValue> getValues() {
+	public Map<String, DeviceValue> getValues() {
 		return values;
 	}
 
-	public void setValues(Set<DeviceValue> values) {
+	public void setValues(Map<String, DeviceValue> values) {
 		this.values = values;
 	}
 }

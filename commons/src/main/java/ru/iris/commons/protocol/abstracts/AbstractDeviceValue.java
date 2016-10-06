@@ -1,14 +1,16 @@
-package ru.iris.commons.protocol;
+package ru.iris.commons.protocol.abstracts;
+
+import ru.iris.commons.protocol.DeviceValue;
 
 import java.util.Date;
 import java.util.Objects;
 
-public class DeviceValueImpl implements DeviceValue {
+public abstract class AbstractDeviceValue implements DeviceValue {
 
-	private long id;
-	private Date date;
-	private String name;
-	private Object value;
+	protected long id;
+	protected Date date;
+	protected String name;
+	protected Object value;
 
 	@Override
 	public long getId() {
@@ -54,7 +56,7 @@ public class DeviceValueImpl implements DeviceValue {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		DeviceValueImpl that = (DeviceValueImpl) o;
+		AbstractDeviceValue that = (AbstractDeviceValue) o;
 		return id == that.id &&
 				Objects.equals(date, that.date) &&
 				Objects.equals(name, that.name) &&

@@ -5,7 +5,7 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 
 import java.util.Date;
-import java.util.Set;
+import java.util.Map;
 
 public interface Device {
 
@@ -19,6 +19,6 @@ public interface Device {
 	State getState();
 	Zone getZone();
 	Type getType();
-	Set<DeviceValue> getDeviceValues();
+	Map<String, DeviceValue> getDeviceValues();
 
 }
