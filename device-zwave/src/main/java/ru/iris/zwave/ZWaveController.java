@@ -13,13 +13,10 @@ import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.models.protocol.zwave.*;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.zwave.protocol.service.ZWaveProtoService;
-import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.protocol.Protocol;
+import ru.iris.commons.service.AbstractService;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
-
-import java.util.HashMap;
-import java.util.Map;
+import ru.iris.zwave.protocol.service.ZWaveProtoService;
 
 @Component
 @Profile("zwave")
@@ -336,7 +333,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 		logger.info("Waiting while ZWave finish initialization");
 
 		// Waiting for initialization ends
-		boolean ready = false;
+
 		while (!ready) {
 			try {
 				Thread.sleep(1000);

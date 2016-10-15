@@ -38,9 +38,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <includeSystemScope>true</includeSystemScope>
+                    <mainClass>ru.iris.CoreApplication</mainClass>
                     <finalName>iris</finalName>
-                    <layout>ZIP</layout>
                 </configuration>
             </plugin>
 
@@ -50,6 +49,22 @@
                 <executions>
                     <execution>
                         <id>copy-resources</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${basedir}/target</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>struct</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-resources-2</id>
                         <phase>package</phase>
                         <goals>
                             <goal>copy-resources</goal>

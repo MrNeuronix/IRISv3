@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.database.model.Speaks;
-import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.bus.models.speak.SpeakEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
+import ru.iris.commons.database.model.Speaks;
+import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
 
 import javax.annotation.PostConstruct;
@@ -103,7 +103,7 @@ public class YandexController extends AbstractService implements Speak {
 
 			if(cache.containsKey(text))
 			{
-				logger.info("Saying from cache: {} ({})", text, "cache-" + cache.get(text) + ".mp3");
+				logger.info("Saying from cache: {} ({})", text, "data/cache-" + cache.get(text) + ".mp3");
 			}
 			else
 			{
@@ -115,7 +115,7 @@ public class YandexController extends AbstractService implements Speak {
 
 				try
 				{
-					outputStream = new FileOutputStream(new File("cache-" + cacheIdent + ".mp3"));
+					outputStream = new FileOutputStream(new File("data/cache-" + cacheIdent + ".mp3"));
 					logger.info("Trying to get MP3 data");
 					result = getMP3Data(text);
 
@@ -198,7 +198,7 @@ public class YandexController extends AbstractService implements Speak {
 	private void play(Long cacheId) {
 		InputStream result = null;
 		try {
-			result = new FileInputStream("cache-" + cacheId + ".mp3");
+			result = new FileInputStream("data/cache-" + cacheId + ".mp3");
 			Player player = new Player(result);
 			player.play();
 			player.close();
