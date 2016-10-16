@@ -13,7 +13,10 @@ import ru.iris.commons.protocol.enums.State;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class ZWaveDeviceService implements ZWaveProtoService {
@@ -32,11 +35,11 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		return merge(dbDevice);
 	}
 
-	public Set<ZWaveDevice> getZWaveDevices()
+	public List<ZWaveDevice> getZWaveDevices()
 	{
-		Set<ZWaveDevice> ret = new HashSet<>();
+		List<ZWaveDevice> ret = new ArrayList<>();
 
-		List<Device> devices = (List<Device>) deviceDAO.findAll();
+		List<Device> devices = deviceDAO.findBySource(SourceProtocol.ZWAVE);
 
 		for(Device device : devices)
 		{
@@ -63,7 +66,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		ret.setId(device.getId());
 		ret.setDate(device.getDate());
 		ret.setHumanReadable(device.getHumanReadable());
-		ret.setInternalName(device.getInternalName());
+		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
@@ -91,6 +94,10 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
 			dv.setValue(deviceValue.getValue());
+			dv.setUnits(deviceValue.getUnits());
+			dv.setReadOnly(deviceValue.getReadOnly());
+			dv.setType(deviceValue.getType());
+			dv.setAdditionalData(deviceValue.getAdditionalData());
 
 			values.put(dv.getName(), dv);
 		}
@@ -118,7 +125,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		}
 
 		ret.setHumanReadable(device.getHumanReadableName());
-		ret.setInternalName(device.getInternalName());
+		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
@@ -147,7 +154,14 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setDevice(ret);
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
-			dv.setValue(deviceValue.getValue().toString());
+
+			if(deviceValue.getValue() != null)
+				dv.setValue(deviceValue.getValue().toString());
+
+			dv.setUnits(deviceValue.getUnits());
+			dv.setReadOnly(deviceValue.isReadOnly());
+			dv.setType(deviceValue.getType());
+			dv.setAdditionalData(deviceValue.getAdditionalData());
 
 			values.put(dv.getName(), dv);
 		}

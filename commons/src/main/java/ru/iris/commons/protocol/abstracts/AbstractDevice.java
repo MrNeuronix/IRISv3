@@ -3,22 +3,25 @@ package ru.iris.commons.protocol.abstracts;
 import ru.iris.commons.protocol.Device;
 import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.Zone;
+import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.Type;
 import ru.iris.commons.protocol.enums.State;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public abstract class AbstractDevice implements Device {
 
 	protected long id;
 	protected Date date;
-	protected String internalName;
+	protected Short node;
 	protected String humanReadable;
 	protected String manufacturer;
 	protected String productName;
 	protected SourceProtocol source;
-	protected Type type;
+	protected DeviceType type;
 	protected Zone zone;
 	protected State state;
 	protected Map<String, DeviceValue> values = new HashMap<>();
@@ -31,11 +34,6 @@ public abstract class AbstractDevice implements Device {
 	@Override
 	public Date getCreationDate() {
 		return date;
-	}
-
-	@Override
-	public String getInternalName() {
-		return internalName;
 	}
 
 	@Override
@@ -69,16 +67,18 @@ public abstract class AbstractDevice implements Device {
 	}
 
 	@Override
-	public Type getType() {
+	public DeviceType getType() {
 		return type;
 	}
 
-	public Map<String, DeviceValue> getDeviceValues() {
+	@Override
+	public Map<String, ? extends DeviceValue> getDeviceValues() {
 		return values;
 	}
 
-	public void setDeviceValues(Map<String, DeviceValue> values) {
-		this.values = values;
+	@Override
+	public void setDeviceValues(Map<String, ? extends DeviceValue> values) {
+		this.values = (Map<String, DeviceValue>) values;
 	}
 
 	public void setId(long id) {
@@ -87,10 +87,6 @@ public abstract class AbstractDevice implements Device {
 
 	public void setDate(Date date) {
 		this.date = date;
-	}
-
-	public void setInternalName(String internalName) {
-		this.internalName = internalName;
 	}
 
 	public void setHumanReadable(String humanReadable) {
@@ -109,7 +105,7 @@ public abstract class AbstractDevice implements Device {
 		this.source = source;
 	}
 
-	public void setType(Type type) {
+	public void setType(DeviceType type) {
 		this.type = type;
 	}
 
@@ -122,13 +118,22 @@ public abstract class AbstractDevice implements Device {
 	}
 
 	@Override
+	public Short getNode() {
+		return node;
+	}
+
+	public void setNode(Short node) {
+		this.node = node;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 		AbstractDevice that = (AbstractDevice) o;
 		return id == that.id &&
 				Objects.equals(date, that.date) &&
-				Objects.equals(internalName, that.internalName) &&
+				Objects.equals(node, that.node) &&
 				Objects.equals(humanReadable, that.humanReadable) &&
 				Objects.equals(manufacturer, that.manufacturer) &&
 				Objects.equals(productName, that.productName) &&
@@ -141,7 +146,7 @@ public abstract class AbstractDevice implements Device {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, date, internalName, humanReadable, manufacturer, productName, source, type, zone, state, values);
+		return Objects.hash(id, date, node, humanReadable, manufacturer, productName, source, type, zone, state, values);
 	}
 
 	@Override
@@ -149,7 +154,7 @@ public abstract class AbstractDevice implements Device {
 		return "AbstractDevice{" +
 				"id=" + id +
 				", date=" + date +
-				", internalName='" + internalName + '\'' +
+				", node='" + node + '\'' +
 				", humanReadable='" + humanReadable + '\'' +
 				", manufacturer='" + manufacturer + '\'' +
 				", productName='" + productName + '\'' +

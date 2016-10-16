@@ -11,14 +11,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ru.iris.commons.protocol.DeviceValue;
-import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
-import ru.iris.zwave.protocol.service.ZWaveProtoService;
+import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
-import ru.iris.commons.protocol.enums.Type;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
+import ru.iris.zwave.protocol.service.ZWaveProtoService;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest
@@ -29,7 +31,7 @@ public class ZWaveTests {
 	@Autowired
 	private ZWaveProtoService service;
 
-	ZWaveDevice device;
+	ZWaveDevice device, device2;
 	Map<String, DeviceValue> values = new HashMap<>();
 
 	@Before
@@ -46,27 +48,40 @@ public class ZWaveTests {
 		val2.setDate(new Date());
 		values.put("Test val 2", val2);
 
+		// zwave device 1
 		device = new ZWaveDevice();
 		device.setHumanReadable("Device 1");
 		device.setDate(new Date());
-		device.setInternalName("zw/1");
-		device.setType(Type.BINARY_SWITCH);
+		device.setNode((short) 1);
+		device.setType(DeviceType.BINARY_SWITCH);
 		device.setSource(SourceProtocol.ZWAVE);
 		device.setManufacturer("Test manufact");
 		device.setProductName("Test prod name");
 		device.setState(State.ACTIVE);
 		device.setDeviceValues(values);
+
+		// zwave device 2
+		device2 = new ZWaveDevice();
+		device2.setHumanReadable("Device 2");
+		device2.setDate(new Date());
+		device2.setNode((short) 2);
+		device2.setType(DeviceType.TEMP_HUMI_SENSOR);
+		device2.setSource(SourceProtocol.UNKNOWN);
+		device2.setManufacturer("Test manufact 2");
+		device2.setProductName("Test prod name 2");
+		device2.setState(State.DEAD);
 	}
 
 	@Test
 	public void Z1_canSaveByService() {
 		ZWaveDevice zw = service.saveIntoDatabase(device);
+		service.saveIntoDatabase(device2);
 		Assert.assertEquals(zw.getHumanReadableName(), "Device 1");
 	}
 
 	@Test
 	public void Z2_canFetchAndConvertByService() {
-		Assert.assertEquals(service.getZWaveDevices().size(), 1);
+		Assert.assertEquals(service.getZWaveDevices().size(), 2);
 	}
 
 	@Test

@@ -12,12 +12,12 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.models.speak.SpeakEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
 import ru.iris.commons.database.model.Speaks;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
+import ru.iris.speak.model.bus.SpeakEvent;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -31,10 +31,8 @@ import java.util.concurrent.*;
 @Profile("yandex")
 public class YandexController extends AbstractService implements Speak {
 
-	@Autowired
-	private EventBus r;
-	@Autowired
-	private ConfigLoader config;
+	private final EventBus r;
+	private final ConfigLoader config;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final ArrayBlockingQueue<SpeakEvent> queue = new ArrayBlockingQueue<>(50);
 	private Map<String, Long> cache = new HashMap<>();
@@ -43,8 +41,14 @@ public class YandexController extends AbstractService implements Speak {
 	private String language;
 	private String speaker;
 
+	private final SpeakDAO speakDAO;
+
 	@Autowired
-	private SpeakDAO speakDAO;
+	public YandexController(EventBus r, SpeakDAO speakDAO, ConfigLoader config) {
+		this.r = r;
+		this.speakDAO = speakDAO;
+		this.config = config;
+	}
 
 	@Override
 	public void onStartup()

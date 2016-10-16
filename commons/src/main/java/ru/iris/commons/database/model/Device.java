@@ -1,11 +1,13 @@
 package ru.iris.commons.database.model;
 
 import org.hibernate.annotations.CreationTimestamp;
-import ru.iris.commons.protocol.enums.Type;
+import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Entity
 @Table(name = "v2_devices")
@@ -19,16 +21,16 @@ public class Device {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 
-	private String internalName;
+	private Short node;
 	private String humanReadable;
 	private String manufacturer;
 	private String productName;
 
-	@Enumerated(EnumType.ORDINAL)
+	@Enumerated(EnumType.STRING)
 	private SourceProtocol source;
 
-	@Enumerated(EnumType.ORDINAL)
-	private Type type;
+	@Enumerated(EnumType.STRING)
+	private DeviceType type;
 
 	@ManyToOne
 	private Zone zone;
@@ -60,12 +62,12 @@ public class Device {
 		this.date = date;
 	}
 
-	public String getInternalName() {
-		return internalName;
+	public Short getNode() {
+		return node;
 	}
 
-	public void setInternalName(String internalName) {
-		this.internalName = internalName;
+	public void setNode(Short node) {
+		this.node = node;
 	}
 
 	public String getHumanReadable() {
@@ -100,11 +102,11 @@ public class Device {
 		this.source = source;
 	}
 
-	public Type getType() {
+	public DeviceType getType() {
 		return type;
 	}
 
-	public void setType(Type type) {
+	public void setType(DeviceType type) {
 		this.type = type;
 	}
 

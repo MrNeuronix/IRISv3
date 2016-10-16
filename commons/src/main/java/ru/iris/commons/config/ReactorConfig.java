@@ -1,4 +1,4 @@
-package ru.iris.commons.bus.config;
+package ru.iris.commons.config;
 
 import org.springframework.context.annotation.Configuration;
 import reactor.spring.context.config.EnableReactor;

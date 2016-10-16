@@ -1,5 +1,7 @@
 package ru.iris.zwave;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,41 +13,62 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.models.protocol.zwave.*;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.Protocol;
+import ru.iris.commons.protocol.enums.DeviceType;
+import ru.iris.commons.protocol.enums.State;
+import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
+import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
+import ru.iris.zwave.protocol.model.bus.*;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 @Profile("zwave")
 @Qualifier("zwave")
 public class ZWaveController extends AbstractService implements Protocol {
 
-	@Autowired
-	private EventBus r;
-
-	@Autowired
-	private ConfigLoader config;
-
-	@Autowired
-	private ZWaveProtoService service;
+	private final EventBus r;
+	private final ConfigLoader config;
+	private final ZWaveProtoService service;
+	private Map<Short, ZWaveDevice> devices = new HashMap<>();
+	private final Gson gson = new GsonBuilder().create();
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private long homeId;
 	private boolean ready = false;
+
+	@Autowired
+	public ZWaveController(ZWaveProtoService service, EventBus r, ConfigLoader config) {
+		this.service = service;
+		this.r = r;
+		this.config = config;
+	}
 
 	@Override
 	public void onStartup() {
 		logger.info("ZWaveController started");
 		if(!config.loadPropertiesFormCfgDirectory("zwave"))
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
+
+		for(ZWaveDevice device : service.getZWaveDevices()) {
+			devices.put(device.getNode(), device);
+		}
+
+		logger.debug("Load {} ZWave devices from database", devices.size());
 	}
 
 	@Override
 	public void onShutdown() {
 		logger.info("ZWaveController stopping");
+		logger.info("Saving ZWave devices state into database");
+		saveIntoDB();
+		logger.info("Saved");
 	}
 
 	@Override
@@ -55,7 +78,31 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 	@Override
 	public Consumer<Event<?>> handleMessage() {
-		return event -> logger.info("ZWAVE MSG: " + event.getData().getClass());
+		return event -> {
+			if (event.getData() instanceof ZWaveDeviceOn) {
+				ZWaveDeviceOn z = (ZWaveDeviceOn) event.getData();
+				deviceSetLevel(z.getNode(), 255);
+			} else if (event.getData() instanceof ZWaveDeviceOff) {
+				ZWaveDeviceOff z = (ZWaveDeviceOff) event.getData();
+				deviceSetLevel(z.getNode(), 0);
+			} else if (event.getData() instanceof ZWaveSetValue) {
+				ZWaveSetValue z = (ZWaveSetValue) event.getData();
+				deviceSetLevel(z.getNode(), z.getLabel(), z.getValue());
+			} else if (event.getData() instanceof ZWaveDeviceAddRequest) {
+				logger.info("Set controller into AddDevice mode");
+				Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);
+			} else if (event.getData() instanceof ZWaveDeviceRemoveRequest) {
+				ZWaveDeviceRemoveRequest z = (ZWaveDeviceRemoveRequest) event.getData();
+				logger.info("Set controller into RemoveDevice mode for node {}", z.getNode());
+				Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, z.getNode());
+			} else if (event.getData() instanceof ZWaveDeviceCancelRequest) {
+				logger.info("Canceling controller command");
+				Manager.get().cancelControllerCommand(homeId);
+			} else {
+				// We received unknown request message. Lets make generic log entry.
+				logger.info("Received unknown request for zwave service! Class: {}", event.getData().getClass());
+			}
+		};
 	}
 
 	@Override
@@ -66,7 +113,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 		final Options options = Options.create(config.get("openzwaveCfgPath"), "", "");
 		options.addOptionBool("ConsoleOutput", Boolean.valueOf(config.get("zwaveDebug")));
-		options.addOptionString("UserPath", "conf/", true);
+		options.addOptionString("UserPath", config.get("openzwaveCfgPath"), true);
 		options.lock();
 
 		Manager manager = Manager.create();
@@ -80,7 +127,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 				case DRIVER_READY:
 					homeId = notification.getHomeId();
 					logger.info("Driver ready. Home ID: {}", homeId);
-					broadcast("event.device.zwave.driver.ready", new ZWaveDriverReady(homeId));
+					broadcast("event.device.zwave", new ZWaveDriverReady(homeId));
 					break;
 				case DRIVER_FAILED:
 					logger.info("Driver failed");
@@ -140,8 +187,36 @@ public class ZWaveController extends AbstractService implements Protocol {
 				case NODE_PROTOCOL_INFO:
 					broadcast("event.devices.zwave", new ZWaveNodeProtocolInfo(notification.getNodeId()));
 					break;
-			}
-				/*case VALUE_ADDED:
+				case VALUE_REFRESHED:
+					broadcast("event.device.zwave", new ZWaveValueRefreshed(notification.getNodeId()));
+					logger.info("Node " + node + ": Value refreshed (" +
+							" command class: " + notification.getValueId().getCommandClassId() + ", " +
+							" instance: " + notification.getValueId().getInstance() + ", " +
+							" index: " + notification.getValueId().getIndex() + ", " +
+							" value: " + notification.getValueId());
+					break;
+				case GROUP:
+					broadcast("event.device.zwave", new ZWaveGroup(notification.getNodeId()));
+					break;
+				case SCENE_EVENT:
+					broadcast("event.device.zwave", new ZWaveScene(notification.getNodeId()));
+					break;
+				case CREATE_BUTTON:
+					broadcast("event.device.zwave", new ZWaveCreateButton(notification.getNodeId()));
+					break;
+				case DELETE_BUTTON:
+					broadcast("event.device.zwave", new ZWaveDeleteButton(notification.getNodeId()));
+					break;
+				case BUTTON_ON:
+					broadcast("event.device.zwave", new ZWaveButtonOn(notification.getNodeId()));
+					break;
+				case BUTTON_OFF:
+					broadcast("event.device.zwave", new ZWaveButtonOff(notification.getNodeId()));
+					break;
+				case NOTIFICATION:
+					broadcast("event.device.zwave", new ZWaveNotification(notification.getNodeId()));
+					break;
+				case VALUE_ADDED:
 
 					// check empty label
 					if (Manager.get().getValueLabel(notification.getValueId()).isEmpty())
@@ -150,56 +225,34 @@ public class ZWaveController extends AbstractService implements Protocol {
 					String nodeType = manager.getNodeType(homeId, node);
 
 					switch (nodeType) {
+
 						case "Portable Remote Controller":
-							device = addZWaveDeviceOrValue("controller", notification);
+							addZWaveDeviceOrValue(DeviceType.CONTROLLER, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Multilevel Power Switch":
-							device = addZWaveDeviceOrValue("dimmer", notification);
+							addZWaveDeviceOrValue(DeviceType.MULTILEVEL_SWITCH, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Routing Alarm Sensor":
-							device = addZWaveDeviceOrValue("alarmsensor", notification);
+							addZWaveDeviceOrValue(DeviceType.ALARM_SENSOR, notification);
 							break;
-
 						case "Binary Power Switch":
-							device = addZWaveDeviceOrValue("switch", notification);
+							addZWaveDeviceOrValue(DeviceType.BINARY_SWITCH, notification);
 							break;
-
 						case "Routing Binary Sensor":
-							device = addZWaveDeviceOrValue("binarysensor", notification);
+							addZWaveDeviceOrValue(DeviceType.BINARY_SENSOR, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Routing Multilevel Sensor":
-							device = addZWaveDeviceOrValue("multilevelsensor", notification);
+							addZWaveDeviceOrValue(DeviceType.MULTILEVEL_SENSOR, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Simple Meter":
-							device = addZWaveDeviceOrValue("metersensor", notification);
+							addZWaveDeviceOrValue(DeviceType.SIMPLE_METER, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Simple Window Covering":
-							device = addZWaveDeviceOrValue("drapes", notification);
+							addZWaveDeviceOrValue(DeviceType.DRAPES, notification);
 							break;
-
-						//////////////////////////////////
-
 						case "Setpoint Thermostat":
-							device = addZWaveDeviceOrValue("thermostat", notification);
+							addZWaveDeviceOrValue(DeviceType.THERMOSTAT, notification);
 							break;
-
-						//////////////////////////////////
-						//////////////////////////////////
 
 						default:
 							logger.info("Unassigned value for node" +
@@ -213,18 +266,21 @@ public class ZWaveController extends AbstractService implements Protocol {
 									" label " +
 									manager.getValueLabel(notification.getValueId()) +
 									" value " +
-									Utils.getValue(notification.getValueId()) +
+									getValue(notification.getValueId()) +
 									" index " +
 									notification.getValueId().getIndex() +
 									" instance " +
 									notification.getValueId().getInstance()
 							);
 
-							data.put("uuid", device.getUuid());
-							data.put("label", Manager.get().getValueLabel(notification.getValueId()));
-							data.put("data", String.valueOf(Utils.getValue(notification.getValueId())));
+							// finnaly, create message and sent
+							ZWaveValueAdded created = new ZWaveValueAdded(
+									node,
+									Manager.get().getValueLabel(notification.getValueId()),
+									getValue(notification.getValueId())
+							);
 
-							broadcast("event.devices.zwave.value.added", new GenericAdvertisement("ZWaveValueAdded", data));
+							broadcast("event.device.zwave", created);
 					}
 
 					// enable value polling TODO
@@ -233,100 +289,80 @@ public class ZWaveController extends AbstractService implements Protocol {
 					break;
 				case VALUE_REMOVED:
 
-					device = Device.getDeviceByNode(node);
+					device = devices.get(node);
 
 					if (device == null) {
-						logger.info("While save remove value, node " + node + " not found");
+						logger.info("Remove ZWave value requested, but node {} not found", node);
 						break;
 					}
 
-					device.removeValue(manager.getValueLabel(notification.getValueId()));
+					// remove value from device
+					device.getDeviceValues().remove(Manager.get().getValueLabel(notification.getValueId()));
 
-					data.put("uuid", device.getUuid());
-					data.put("label", Manager.get().getValueLabel(notification.getValueId()));
-					data.put("data", String.valueOf(Utils.getValue(notification.getValueId())));
+					ZWaveValueRemoved removed = new ZWaveValueRemoved(
+							node,
+							Manager.get().getValueLabel(notification.getValueId()),
+							getValue(notification.getValueId())
+					);
 
-					broadcast("event.devices.zwave.value.removed", new GenericAdvertisement("ZWaveValueRemoved", data));
+					broadcast("event.device.zwave", removed);
 
 					if (!manager.getValueLabel(notification.getValueId()).isEmpty()) {
-						logger.info("Node " + device.getNode() + ": Value " + manager.getValueLabel(notification.getValueId()) + " removed");
+						logger.info("Node {}: Value \"{}\" removed", device.getNode(), manager.getValueLabel(notification.getValueId()));
 					}
 
 					break;
 				case VALUE_CHANGED:
 
-					device = Device.getDeviceByNode(node);
+					device = devices.get(node);
 
 					if (device == null) {
+						logger.info("Change ZWave value requested, but node {} not found", node);
 						break;
 					}
 
 					// Check for awaked after sleeping nodes
-					if (manager.isNodeAwake(homeId, device.getNode()) && device.getStatus().equals("Sleeping")) {
-						logger.info("Setting node " + device.getNode() + " to LISTEN state");
-						device.setStatus("Listening");
+					if (manager.isNodeAwake(homeId, device.getNode()) && device.getState().equals(State.SLEEPING)) {
+						logger.info("Setting node {}  to LISTEN state", device.getNode());
+						device.setState(State.ACTIVE);
 					}
 
 					logger.info("Node " +
 							device.getNode() + ": " +
 							"Value for label \"" + manager.getValueLabel(notification.getValueId()) + "\" changed --> " +
-							"\"" + Utils.getValue(notification.getValueId()) + "\"");
+							"\"" + getValue(notification.getValueId()) + "\"");
 
-					DeviceValue udvChg = device.getValue(manager.getValueLabel(notification.getValueId()));
+					String label = manager.getValueLabel(notification.getValueId());
+					ValueId valueId = notification.getValueId();
+					ZWaveDeviceValue value = device.getDeviceValues().get(label);
 
-					if (udvChg != null)
-						device.removeValue(udvChg);
-					else
-						udvChg = new DeviceValue();
+					if(value == null)
+						value = new ZWaveDeviceValue();
 
-					udvChg.setLabel(manager.getValueLabel(notification.getValueId()));
-					udvChg.setValueType(Utils.getValueType(notification.getValueId()));
-					udvChg.setValueId(notification.getValueId());
-					udvChg.setValueUnits(Manager.get().getValueUnits(notification.getValueId()));
-					udvChg.setValue(String.valueOf(Utils.getValue(notification.getValueId())));
-					udvChg.setReadonly(Manager.get().isValueReadOnly(notification.getValueId()));
+					value.setName(label);
+					value.setType(getValueType(valueId));
+					value.setUnits(Manager.get().getValueUnits(valueId));
+					value.setReadOnly(Manager.get().isValueReadOnly(valueId));
+					value.setValue(getValue(valueId));
+					value.setAdditionalData(gson.toJson(valueId));
 
-					device.addValue(udvChg);
+					device.getDeviceValues().remove(label);
+					device.getDeviceValues().put(label, value);
+					devices.replace(node, device);
 
-					DBlogger.info("Value " + manager.getValueLabel(notification.getValueId()) + " changed: " + Utils.getValue(notification.getValueId()), device.getUuid());
-					SensorData.log(device.getUuid(), Manager.get().getValueLabel(notification.getValueId()), String.valueOf(Utils.getValue(notification.getValueId())));
+					ZWaveValueChanged changed = new ZWaveValueChanged(
+							node,
+							Manager.get().getValueLabel(notification.getValueId()),
+							getValue(notification.getValueId())
+					);
 
-					data.put("uuid", device.getUuid());
-					data.put("label", Manager.get().getValueLabel(notification.getValueId()));
-					data.put("data", String.valueOf(Utils.getValue(notification.getValueId())));
+					broadcast("event.device.zwave", changed);
 
-					broadcast("event.devices.zwave.value.changed", new GenericAdvertisement("ZWaveValueChanged", data));
-
-					break;
-				case VALUE_REFRESHED:
-					logger.info("Node " + node + ": Value refreshed (" +
-							" command class: " + notification.getValueId().getCommandClassId() + ", " +
-							" instance: " + notification.getValueId().getInstance() + ", " +
-							" index: " + notification.getValueId().getIndex() + ", " +
-							" value: " + Utils.getValue(notification.getValueId()));
-					break;
-				case GROUP:
-					break;
-				case SCENE_EVENT:
-					break;
-				case CREATE_BUTTON:
-					break;
-				case DELETE_BUTTON:
-					break;
-				case BUTTON_ON:
-					break;
-				case BUTTON_OFF:
-					break;
-				case NOTIFICATION:
 					break;
 				default:
 					logger.info(notification.getType().name());
 					break;
 			}
-
-			// save device and values
-			if (device != null)
-				device.save();*/
 		};
 
 		manager.addWatcher(watcher, null);
@@ -343,6 +379,286 @@ public class ZWaveController extends AbstractService implements Protocol {
 				logger.error("Error: {}", e.getLocalizedMessage());
 			}
 			logger.info("Still waiting");
+		}
+
+		saveIntoDB();
+	}
+
+	private void saveIntoDB() {
+		for(ZWaveDevice device : devices.values()) {
+			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
+		}
+	}
+
+	private ZWaveDevice addZWaveDeviceOrValue(DeviceType type, Notification notification) {
+
+		String label = Manager.get().getValueLabel(notification.getValueId());
+		String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
+		String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
+		ZWaveDevice device = devices.get(notification.getNodeId());
+		boolean listen = false;
+		ValueId valueId = notification.getValueId();
+		Short node = notification.getNodeId();
+
+		if (Manager.get().requestNodeState(homeId, notification.getNodeId()))
+		{
+			listen = true;
+		}
+
+		// device doesnt exists
+		if(device == null)
+		{
+			device = new ZWaveDevice();
+
+			device.setType(type);
+			device.setNode(node);
+			device.setManufacturer(manufName);
+			device.setProductName(productName);
+
+			if(listen)
+				device.setState(State.ACTIVE);
+			else
+				device.setState(State.UNKNOWN);
+
+			Map<String, ZWaveDeviceValue> values = new HashMap<>();
+
+			ZWaveDeviceValue value = new ZWaveDeviceValue();
+			value.setName(label);
+			value.setType(getValueType(valueId));
+			value.setUnits(Manager.get().getValueUnits(valueId));
+			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
+			value.setValue(getValue(valueId));
+			value.setAdditionalData(gson.toJson(valueId));
+
+			// Check if it is beaming device
+			ZWaveDeviceValue beaming = new ZWaveDeviceValue();
+			beaming.setName("beaming");
+			beaming.setType(ValueType.NONE);
+			beaming.setValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
+			beaming.setReadOnly(true);
+
+			values.put(label, value);
+			values.put("beaming", beaming);
+			device.setDeviceValues(values);
+
+			// add new device to pool
+			devices.put(node, device);
+
+			logger.info("Adding device " + type + " (node: " + node + ") to system");
+		}
+		//device exists, add/change value
+		else
+		{
+			device.setManufacturer(manufName);
+			device.setProductName(productName);
+
+			if(listen)
+				device.setState(State.ACTIVE);
+			else
+				device.setState(State.UNKNOWN);
+
+			// check empty label
+			if (label.isEmpty())
+				return device;
+
+			logger.info("Node {}: Add \"{}\" value \"{}\"", node, label, getValue(valueId));
+
+			ZWaveDeviceValue value = device.getDeviceValues().get(label);
+
+			if(value == null)
+				value = new ZWaveDeviceValue();
+
+			value.setName(label);
+			value.setType(getValueType(valueId));
+			value.setUnits(Manager.get().getValueUnits(valueId));
+			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
+			value.setValue(getValue(valueId));
+			value.setAdditionalData(gson.toJson(valueId));
+
+			device.getDeviceValues().remove(label);
+			device.getDeviceValues().put(label, value);
+
+			// replace
+			devices.replace(node, device);
+		}
+
+		return device;
+	}
+
+	private void setTypedValue(ValueId valueId, String value) {
+
+		logger.debug("Set type {} to label {}", valueId.getType(), Manager.get().getValueLabel(valueId));
+
+		switch (valueId.getType()) {
+			case BOOL:
+				logger.debug("Set value type BOOL to " + value);
+				Manager.get().setValueAsBool(valueId, Boolean.valueOf(value));
+				break;
+			case BYTE:
+				logger.debug("Set value type BYTE to " + value);
+				Manager.get().setValueAsByte(valueId, Short.valueOf(value));
+				break;
+			case DECIMAL:
+				logger.debug("Set value type FLOAT to " + value);
+				Manager.get().setValueAsFloat(valueId, Float.valueOf(value));
+				break;
+			case INT:
+				logger.debug("Set value type INT to " + value);
+				Manager.get().setValueAsInt(valueId, Integer.valueOf(value));
+				break;
+			case LIST:
+				logger.debug("Set value type LIST to " + value);
+				break;
+			case SCHEDULE:
+				logger.debug("Set value type SCHEDULE to " + value);
+				break;
+			case SHORT:
+				logger.debug("Set value type SHORT to " + value);
+				Manager.get().setValueAsShort(valueId, Short.valueOf(value));
+				break;
+			case STRING:
+				logger.debug("Set value type STRING to " + value);
+				Manager.get().setValueAsString(valueId, value);
+				break;
+			case BUTTON:
+				logger.debug("Set value type BUTTON to " + value);
+				break;
+			case RAW:
+				logger.debug("Set value RAW to " + value);
+				break;
+			default:
+				break;
+		}
+	}
+
+	private Object getValue(ValueId valueId)
+	{
+		switch (valueId.getType())
+		{
+			case BOOL:
+				AtomicReference<Boolean> b = new AtomicReference<>();
+				Manager.get().getValueAsBool(valueId, b);
+				return b.get();
+			case BYTE:
+				AtomicReference<Short> bb = new AtomicReference<>();
+				Manager.get().getValueAsByte(valueId, bb);
+				return bb.get();
+			case DECIMAL:
+				AtomicReference<Float> f = new AtomicReference<>();
+				Manager.get().getValueAsFloat(valueId, f);
+				return f.get();
+			case INT:
+				AtomicReference<Integer> i = new AtomicReference<>();
+				Manager.get().getValueAsInt(valueId, i);
+				return i.get();
+			case LIST:
+				return null;
+			case SCHEDULE:
+				return null;
+			case SHORT:
+				AtomicReference<Short> s = new AtomicReference<>();
+				Manager.get().getValueAsShort(valueId, s);
+				return s.get();
+			case STRING:
+				AtomicReference<String> ss = new AtomicReference<>();
+				Manager.get().getValueAsString(valueId, ss);
+				return ss.get();
+			case BUTTON:
+				return null;
+			case RAW:
+				AtomicReference<short[]> sss = new AtomicReference<>();
+				Manager.get().getValueAsRaw(valueId, sss);
+				return sss.get();
+			default:
+				return null;
+		}
+	}
+
+	private ru.iris.commons.protocol.enums.ValueType getValueType(ValueId valueId)
+	{
+		switch (valueId.getType())
+		{
+			case BOOL:
+				return ValueType.BOOL;
+			case BYTE:
+				return ValueType.BYTE;
+			case DECIMAL:
+				return ValueType.DECIMAL;
+			case INT:
+				return ValueType.INT;
+			case LIST:
+				return ValueType.LIST;
+			case SCHEDULE:
+				return ValueType.SCHEDULE;
+			case SHORT:
+				return ValueType.SHORT;
+			case STRING:
+				return ValueType.STRING;
+			case BUTTON:
+				return ValueType.BUTTON;
+			case RAW:
+				return ValueType.RAW;
+			default:
+				return ValueType.RAW;
+		}
+	}
+
+	private void deviceSetLevel(short node, int level) {
+		deviceSetLevel(node, "Level", String.valueOf(level));
+	}
+
+	private void deviceSetLevel(short node, String label, String level)
+	{
+		ZWaveDevice device = devices.get(node);
+
+		if(device == null)
+		{
+			logger.error("Cant find device node {} for set level request", node);
+			return;
+		}
+
+		if (!device.getState().equals(State.DEAD) && device.getDeviceValues().get(label) != null)
+		{
+			logger.info("Node {}: Setting value: {} for label \"{}\"", node, level, label);
+
+			if (!Manager.get().isValueReadOnly(gson.fromJson(device.getDeviceValues().get(label).getAdditionalData(), ValueId.class)))
+			{
+				setTypedValue(gson.fromJson(device.getDeviceValues().get(label).getAdditionalData(), ValueId.class), level);
+			}
+			else
+			{
+				logger.info("Node {}: Value \"{}\" is read-only! Skip.", node, label);
+			}
+		}
+		else
+		{
+			logger.info("Node {}: Cant set empty value or node dead", node);
+		}
+	}
+
+	private class CallbackListener implements ControllerCallback {
+		private ControllerCommand ctl;
+
+		CallbackListener(ControllerCommand ctl) {
+			this.ctl = ctl;
+		}
+
+		@Override
+		public void onCallback(ControllerState state, ControllerError err, Object context) {
+			logger.debug("ZWave Command Callback: {} , {}", state, err);
+
+			if (ctl == ControllerCommand.REMOVE_DEVICE && state == ControllerState.COMPLETED) {
+				logger.info("Remove ZWave device from network");
+				Manager.get().softReset(homeId);
+				Manager.get().testNetwork(homeId, 5);
+				Manager.get().healNetwork(homeId, true);
+			}
+
+			if (ctl == ControllerCommand.ADD_DEVICE && state == ControllerState.COMPLETED) {
+				logger.info("Add ZWave device to network");
+				Manager.get().testNetwork(homeId, 5);
+				Manager.get().healNetwork(homeId, true);
+			}
 		}
 	}
 }

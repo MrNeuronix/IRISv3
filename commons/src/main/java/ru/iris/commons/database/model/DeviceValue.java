@@ -1,6 +1,7 @@
 package ru.iris.commons.database.model;
 
 import org.hibernate.annotations.CreationTimestamp;
+import ru.iris.commons.protocol.enums.ValueType;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -22,6 +23,13 @@ public class DeviceValue {
 
 	private String name;
 	private String value;
+	private String units;
+	private Boolean readOnly;
+
+	@Enumerated(EnumType.STRING)
+	private ValueType type = ValueType.STRING;
+
+	private String additionalData;
 
 	public DeviceValue() {
 	}
@@ -64,5 +72,37 @@ public class DeviceValue {
 
 	public void setValue(String value) {
 		this.value = value;
+	}
+
+	public ValueType getType() {
+		return type;
+	}
+
+	public void setType(ValueType type) {
+		this.type = type;
+	}
+
+	public String getUnits() {
+		return units;
+	}
+
+	public void setUnits(String units) {
+		this.units = units;
+	}
+
+	public Boolean getReadOnly() {
+		return readOnly;
+	}
+
+	public void setReadOnly(Boolean readOnly) {
+		this.readOnly = readOnly;
+	}
+
+	public String getAdditionalData() {
+		return additionalData;
+	}
+
+	public void setAdditionalData(String additionalData) {
+		this.additionalData = additionalData;
 	}
 }

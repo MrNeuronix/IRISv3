@@ -1,12 +1,12 @@
-package ru.iris.commons.bus.models.protocol.zwave;
+package ru.iris.zwave.protocol.model.bus;
 
 import ru.iris.commons.bus.AbstractEvent;
 
-public class ZWavePollingDisabled extends AbstractEvent {
+public class ZWaveDeviceRemoveRequest extends AbstractEvent {
 
 	private short node;
 
-	public ZWavePollingDisabled(short node) {
+	public ZWaveDeviceRemoveRequest(short node) {
 		this.node = node;
 	}
 
@@ -20,7 +20,7 @@ public class ZWavePollingDisabled extends AbstractEvent {
 
 	@Override
 	public String toString() {
-		return "ZWavePollingDisabled{" +
+		return "ZWaveDeviceRemoveRequest{" +
 				"node=" + node +
 				'}';
 	}

@@ -9,8 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import ru.iris.commons.bus.config.ReactorConfig;
 import ru.iris.commons.config.JpaConfig;
+import ru.iris.commons.config.ReactorConfig;
 import ru.iris.commons.service.Service;
 import ru.iris.commons.service.Speak;
 

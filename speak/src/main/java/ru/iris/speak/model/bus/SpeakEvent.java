@@ -1,4 +1,4 @@
-package ru.iris.commons.bus.models.speak;
+package ru.iris.speak.model.bus;
 
 import ru.iris.commons.bus.AbstractEvent;
 

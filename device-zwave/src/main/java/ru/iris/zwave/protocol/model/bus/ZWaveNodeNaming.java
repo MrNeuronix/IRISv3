@@ -1,12 +1,12 @@
-package ru.iris.commons.bus.models.protocol.zwave;
+package ru.iris.zwave.protocol.model.bus;
 
 import ru.iris.commons.bus.AbstractEvent;
 
-public class ZWaveNodeNew extends AbstractEvent {
+public class ZWaveNodeNaming extends AbstractEvent {
 
 	private short node;
 
-	public ZWaveNodeNew(short node) {
+	public ZWaveNodeNaming(short node) {
 		this.node = node;
 	}
 
@@ -20,7 +20,7 @@ public class ZWaveNodeNew extends AbstractEvent {
 
 	@Override
 	public String toString() {
-		return "ZWaveNodeNew{" +
+		return "ZWaveNodeNaming{" +
 				"node=" + node +
 				'}';
 	}
