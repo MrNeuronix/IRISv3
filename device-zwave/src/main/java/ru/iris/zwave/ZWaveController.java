@@ -39,6 +39,8 @@ public class ZWaveController extends AbstractService implements Protocol {
 	@Override
 	public void onStartup() {
 		logger.info("ZWaveController started");
+		if(!config.loadPropertiesFormCfgDirectory("zwave"))
+			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
 	}
 
 	@Override

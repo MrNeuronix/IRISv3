@@ -50,6 +50,8 @@ public class YandexController extends AbstractService implements Speak {
 	public void onStartup()
 	{
 		logger.info("Starting up Yandex Speak service");
+		if(!config.loadPropertiesFormCfgDirectory("speak"))
+			logger.error("Cant load speak-specific configs. Check speak.property if exists");
 	}
 
 	@PostConstruct

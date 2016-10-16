@@ -9,36 +9,91 @@ import reactor.bus.EventBus;
 import ru.iris.commons.database.dao.ConfigDAO;
 import ru.iris.commons.database.model.Config;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Scope("singleton")
 public class ConfigLoader {
 
-	private final IrisConfig irisConfig;
 	private final ConfigDAO configDAO;
 	private final EventBus r;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private static Map<String, String> propertyMap = null;
+	private static Map<String, String> propertyMap = new ConcurrentHashMap<>();
 
 	@Autowired
-	public ConfigLoader(EventBus r, IrisConfig irisConfig, ConfigDAO configDAO)
+	public ConfigLoader(EventBus r, ConfigDAO configDAO)
 	{
 		this.r = r;
-		this.irisConfig = irisConfig;
 		this.configDAO = configDAO;
 
-			if (propertyMap != null)
-			{
-				return;
-			}
-			propertyMap = irisConfig.getConfig();
-
-			logger.info("Loaded " + propertyMap.size() + " properties from file");
-
 			loadPropertiesFromDatabase();
+	}
+
+	/**
+	 * Loads properties from config directory by given name.
+	 *
+	 * @return true if load successfully.
+	 */
+	public boolean loadPropertiesFormCfgDirectory(String name)
+	{
+		logger.debug("Start loading {} property from config directory", name);
+		final Properties properties = new Properties();
+		try (final InputStream stream = new FileInputStream("./config/" + name + ".properties"))
+		{
+			properties.load(stream);
+
+			for(String key : properties.stringPropertyNames())
+			{
+				set(key, properties.getProperty(key));
+			}
+			logger.debug("Properties {} loaded. Inserted {} keys", name, properties.size());
+			stream.close();
+		}
+		catch (IOException ex)
+		{
+			logger.error("Failed to load property {} from config directory: {}. Trying to load defaults from classpath...", name, ex.getLocalizedMessage());
+
+			if(!loadPropertiesFormClasspath(name))
+				return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Loads properties from classpath by given name.
+	 *
+	 * @return true if load successfully.
+	 */
+	public boolean loadPropertiesFormClasspath(String name)
+	{
+		logger.debug("Start loading {} property from classpath", name);
+		final Properties properties = new Properties();
+		try (final InputStream stream = getClass().getResourceAsStream(name))
+		{
+			properties.load(stream);
+
+			for(String key : properties.stringPropertyNames())
+			{
+				set(key, properties.getProperty(key));
+			}
+			logger.debug("Properties {} loaded. Inserted {} keys", name, properties.size());
+			stream.close();
+		}
+		catch (IOException ex)
+		{
+			logger.error("Failed to load property {} from classpath: {}", name, ex.getLocalizedMessage());
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -51,7 +106,7 @@ public class ConfigLoader {
 
 		for (Config line : dbcfg) {
 			logger.info("Loading config for " + line.getParam());
-			propertyMap.put(line.getParam(), line.getValue());
+			set(line.getParam(), line.getValue());
 		}
 
 		return true;
