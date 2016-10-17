@@ -1,9 +1,12 @@
 package ru.iris.zwave.protocol.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.zwave4j.ValueId;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.Zone;
@@ -24,6 +27,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 	@Autowired
 	private DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+	private final Gson gson = new GsonBuilder().create();
 
 	public ZWaveDevice getDeviceById(long id)
 	{
@@ -97,7 +101,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setAdditionalData(deviceValue.getAdditionalData());
+			dv.setValueId(gson.fromJson(deviceValue.getAdditionalData(), ValueId.class));
 
 			values.put(dv.getName(), dv);
 		}
@@ -144,7 +148,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 
 		Map<String, ru.iris.commons.database.model.DeviceValue> values = new HashMap<>();
 
-		for(ru.iris.commons.protocol.DeviceValue deviceValue : device.getDeviceValues().values())
+		for(ZWaveDeviceValue deviceValue : device.getDeviceValues().values())
 		{
 			ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
 
@@ -161,7 +165,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.isReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setAdditionalData(deviceValue.getAdditionalData());
+			dv.setAdditionalData(gson.toJson(deviceValue.getValueId()));
 
 			values.put(dv.getName(), dv);
 		}

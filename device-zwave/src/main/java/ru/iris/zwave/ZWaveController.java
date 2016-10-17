@@ -37,7 +37,6 @@ public class ZWaveController extends AbstractService implements Protocol {
 	private final ConfigLoader config;
 	private final ZWaveProtoService service;
 	private Map<Short, ZWaveDevice> devices = new HashMap<>();
-	private final Gson gson = new GsonBuilder().create();
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private long homeId;
@@ -344,7 +343,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 					value.setUnits(Manager.get().getValueUnits(valueId));
 					value.setReadOnly(Manager.get().isValueReadOnly(valueId));
 					value.setValue(getValue(valueId));
-					value.setAdditionalData(gson.toJson(valueId));
+					value.setValueId(valueId);
 
 					device.getDeviceValues().remove(label);
 					device.getDeviceValues().put(label, value);
@@ -428,7 +427,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 			value.setUnits(Manager.get().getValueUnits(valueId));
 			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
 			value.setValue(getValue(valueId));
-			value.setAdditionalData(gson.toJson(valueId));
+			value.setValueId(valueId);
 
 			// Check if it is beaming device
 			ZWaveDeviceValue beaming = new ZWaveDeviceValue();
@@ -473,7 +472,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 			value.setUnits(Manager.get().getValueUnits(valueId));
 			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
 			value.setValue(getValue(valueId));
-			value.setAdditionalData(gson.toJson(valueId));
+			value.setValueId(valueId);
 
 			device.getDeviceValues().remove(label);
 			device.getDeviceValues().put(label, value);
@@ -621,9 +620,9 @@ public class ZWaveController extends AbstractService implements Protocol {
 		{
 			logger.info("Node {}: Setting value: {} for label \"{}\"", node, level, label);
 
-			if (!Manager.get().isValueReadOnly(gson.fromJson(device.getDeviceValues().get(label).getAdditionalData(), ValueId.class)))
+			if (!Manager.get().isValueReadOnly(device.getDeviceValues().get(label).getValueId()))
 			{
-				setTypedValue(gson.fromJson(device.getDeviceValues().get(label).getAdditionalData(), ValueId.class), level);
+				setTypedValue(device.getDeviceValues().get(label).getValueId(), level);
 			}
 			else
 			{
