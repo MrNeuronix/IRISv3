@@ -16,6 +16,11 @@
     <dependencies>
         <dependency>
             <groupId>ru.iris</groupId>
+            <artifactId>device-noolite</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.iris</groupId>
             <artifactId>device-zwave</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>

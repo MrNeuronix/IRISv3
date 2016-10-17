@@ -22,6 +22,10 @@ public class ZWaveDeviceValue extends AbstractDeviceValue {
 				", date=" + date +
 				", name='" + name + '\'' +
 				", value=" + value +
+				", units='" + units + '\'' +
+				", readOnly=" + readOnly +
+				", type=" + type +
+				", valueId='" + valueId + '\'' +
 				'}';
 	}
 

@@ -1,7 +1,5 @@
 package ru.iris.zwave;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +17,9 @@ import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.service.AbstractService;
+import ru.iris.zwave.protocol.events.*;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
-import ru.iris.zwave.protocol.model.bus.*;
 import ru.iris.zwave.protocol.service.ZWaveProtoService;
 
 import java.util.HashMap;

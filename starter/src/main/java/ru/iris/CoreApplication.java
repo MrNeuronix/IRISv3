@@ -21,17 +21,26 @@ import javax.annotation.PostConstruct;
 @Component
 public class CoreApplication {
 
-	@Autowired
-	private CoreApplication core;
-
-	@Autowired(required = false)
-	private Speak speak;
-
-	@Autowired(required = false)
-	@Qualifier("zwave")
-	private Service zwave;
+	private final Speak speak;
+	private final Service zwave;
+	private final Service nooliteRx;
+	private final Service nooliteTx;
 
 	private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
+
+	@Autowired(required = false)
+	public CoreApplication(
+			Speak speak,
+			@Qualifier("zwave") Service zwave,
+			@Qualifier("noolite-rx") Service nooliteRx,
+			@Qualifier("noolite-tx") Service nooliteTx
+	)
+	{
+		this.speak = speak;
+		this.zwave = zwave;
+		this.nooliteRx = nooliteRx;
+		this.nooliteTx = nooliteTx;
+	}
 
 	public static void main(String[] args) throws Exception {
 
@@ -49,5 +58,9 @@ public class CoreApplication {
 			speak.run();
 		if(zwave != null)
 			zwave.run();
+		if(nooliteRx != null)
+			nooliteRx.run();
+		if(nooliteTx != null)
+			nooliteTx.run();
 	}
 }
