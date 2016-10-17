@@ -70,7 +70,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 
 	@Override
 	public void subscribe() throws Exception  {
-		addSubscription("command.device.*");
+		addSubscription("command.device.zwave.*");
 	}
 
 	@Override

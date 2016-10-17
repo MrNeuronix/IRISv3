@@ -7,13 +7,16 @@ public enum DeviceType {
 	MULTILEVEL_SWITCH("dimmer"),
 	ALARM_SENSOR("alarmsensor"),
 	BINARY_SENSOR("binarysensor"),
-	MULTILEVEL_SENSOR("binarysensor"),
+	MULTILEVEL_SENSOR("multilevelsensor"),
 	SIMPLE_METER("simplemeter"),
 	TEMP_HUMI_SENSOR("temphumisensor"),
+	TEMP_SENSOR("tempsensor"),
 	DOOR_SENSOR("doorsensor"),
 	DRAPES("drapes"),
 	THERMOSTAT("thermostat"),
-	MOTION_SENSOR("motionsensor");
+	MOTION_SENSOR("motionsensor"),
+	UNKNOWN_SENSOR("unknownsensor"),
+	UNKNOWN("unknown");
 
 	private final String name;
 
