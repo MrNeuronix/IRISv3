@@ -21,8 +21,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Profile("noolite-tx")
-@Qualifier("noolite-tx")
+@Profile("noolite")
+@Qualifier("noolitetx")
 public class NooliteTXController extends AbstractService implements Protocol {
 
 	private final EventBus r;

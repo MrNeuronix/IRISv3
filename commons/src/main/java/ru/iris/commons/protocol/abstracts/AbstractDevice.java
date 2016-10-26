@@ -1,7 +1,6 @@
 package ru.iris.commons.protocol.abstracts;
 
 import ru.iris.commons.protocol.Device;
-import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.Zone;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
@@ -12,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public abstract class AbstractDevice implements Device {
+public abstract class AbstractDevice<T> implements Device<T> {
 
 	protected long id;
 	protected Date date;
@@ -24,7 +23,7 @@ public abstract class AbstractDevice implements Device {
 	protected DeviceType type;
 	protected Zone zone;
 	protected State state;
-	protected Map<String, DeviceValue> values = new HashMap<>();
+	protected Map<String, T> values = new HashMap<>();
 
 	@Override
 	public long getId() {
@@ -72,13 +71,13 @@ public abstract class AbstractDevice implements Device {
 	}
 
 	@Override
-	public Map<String, ? extends DeviceValue> getDeviceValues() {
+	public Map<String, T> getDeviceValues() {
 		return values;
 	}
 
 	@Override
-	public void setDeviceValues(Map<String, ? extends DeviceValue> values) {
-		this.values = (Map<String, DeviceValue>) values;
+	public void setDeviceValues(Map<String, T> values) {
+		this.values = values;
 	}
 
 	public void setId(long id) {

@@ -6,7 +6,7 @@ import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "v2_speaks")
+@Table(name = "speaks")
 public class Speaks {
 
 	@Id
@@ -19,6 +19,9 @@ public class Speaks {
 
 	private String text;
 	private Long cache;
+
+	@ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.DETACH, CascadeType.REFRESH})
+	private Zone zone;
 
 	public Speaks() {
 	}
@@ -53,5 +56,13 @@ public class Speaks {
 
 	public void setCache(Long cache) {
 		this.cache = cache;
+	}
+
+	public Zone getZone() {
+		return zone;
+	}
+
+	public void setZone(Zone zone) {
+		this.zone = zone;
 	}
 }

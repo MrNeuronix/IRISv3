@@ -56,7 +56,7 @@ public class ConfigLoader {
 			logger.debug("Properties {} loaded. Inserted {} keys", name, properties.size());
 			stream.close();
 		}
-		catch (IOException ex)
+		catch (IOException | NullPointerException ex)
 		{
 			logger.error("Failed to load property {} from config directory: {}. Trying to load defaults from classpath...", name, ex.getLocalizedMessage());
 
@@ -87,7 +87,7 @@ public class ConfigLoader {
 			logger.debug("Properties {} loaded. Inserted {} keys", name, properties.size());
 			stream.close();
 		}
-		catch (IOException ex)
+		catch (IOException | NullPointerException ex)
 		{
 			logger.error("Failed to load property {} from classpath: {}", name, ex.getLocalizedMessage());
 			return false;

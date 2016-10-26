@@ -1,24 +1,8 @@
 package ru.iris.noolite.protocol.model;
 
-import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.abstracts.AbstractDevice;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class NooliteDevice extends AbstractDevice {
-
-	private Map<String, NooliteDeviceValue> values = new HashMap<>();
-
-	@Override
-	public Map<String, NooliteDeviceValue> getDeviceValues() {
-		return values;
-	}
-
-	@Override
-	public void setDeviceValues(Map<String, ? extends DeviceValue> values) {
-		this.values = (Map<String, NooliteDeviceValue>) values;
-	}
+public class NooliteDevice extends AbstractDevice<NooliteDeviceValue> {
 
 	@Override
 	public String toString() {

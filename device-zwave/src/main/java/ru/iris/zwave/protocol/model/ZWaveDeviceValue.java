@@ -3,7 +3,7 @@ package ru.iris.zwave.protocol.model;
 import org.zwave4j.ValueId;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
-public class ZWaveDeviceValue extends AbstractDeviceValue {
+public class ZWaveDeviceValue extends AbstractDeviceValue<ZWaveDeviceValueChange> {
 
 	private ValueId valueId;
 
@@ -21,12 +21,12 @@ public class ZWaveDeviceValue extends AbstractDeviceValue {
 				"id=" + id +
 				", date=" + date +
 				", name='" + name + '\'' +
-				", value=" + value +
+				", value=" + currentValue +
 				", units='" + units + '\'' +
 				", readOnly=" + readOnly +
 				", type=" + type +
 				", valueId='" + valueId + '\'' +
+				", currentValue=" + currentValue +
 				'}';
 	}
-
 }

@@ -5,9 +5,10 @@ import ru.iris.commons.protocol.enums.ValueType;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.List;
 
 @Entity
-@Table(name = "v2_device_values")
+@Table(name = "device_values")
 public class DeviceValue {
 
 	@Id
@@ -22,7 +23,6 @@ public class DeviceValue {
 	private Device device;
 
 	private String name;
-	private String value;
 	private String units;
 	private Boolean readOnly;
 
@@ -30,6 +30,9 @@ public class DeviceValue {
 	private ValueType type = ValueType.STRING;
 
 	private String additionalData;
+
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
+	private List<DeviceValueChange> changes;
 
 	public DeviceValue() {
 	}
@@ -66,14 +69,6 @@ public class DeviceValue {
 		this.name = name;
 	}
 
-	public String getValue() {
-		return value;
-	}
-
-	public void setValue(String value) {
-		this.value = value;
-	}
-
 	public ValueType getType() {
 		return type;
 	}
@@ -104,5 +99,13 @@ public class DeviceValue {
 
 	public void setAdditionalData(String additionalData) {
 		this.additionalData = additionalData;
+	}
+
+	public List<DeviceValueChange> getChanges() {
+		return changes;
+	}
+
+	public void setChanges(List<DeviceValueChange> changes) {
+		this.changes = changes;
 	}
 }

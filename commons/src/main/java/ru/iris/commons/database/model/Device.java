@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Entity
-@Table(name = "v2_devices")
+@Table(name = "devices")
 public class Device {
 
 	@Id

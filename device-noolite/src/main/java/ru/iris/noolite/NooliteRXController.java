@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@Profile("noolite-rx")
-@Qualifier("noolite-rx")
+@Profile("noolite")
+@Qualifier("nooliterx")
 public class NooliteRXController extends AbstractService implements Protocol {
 
 	private final EventBus r;
@@ -112,6 +112,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 
 			Watcher watcher = notification -> {
 
+				boolean isNew = false;
 				byte channel = notification.getChannel();
 				SensorType sensor = (SensorType) notification.getValue("sensortype");
 
@@ -146,9 +147,9 @@ public class NooliteRXController extends AbstractService implements Protocol {
 						}
 						device.getDeviceValues().put("channel", new NooliteDeviceValue("channel", channel));
 					}
-				}
 
-				Map<String, Object> params = new HashMap<>();
+					isNew = true;
+				}
 
 				// turn off
 				switch (notification.getType()) {
@@ -237,7 +238,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 						broadcast("event.device.noolite", new NooliteDeviceTempHumi(
 								channel,
 								(double) notification.getValue("temp"),
-								(double) notification.getValue("humi"),
+								(int) notification.getValue("humi"),
 								batteryState)
 						);
 						break;
@@ -256,6 +257,12 @@ public class NooliteRXController extends AbstractService implements Protocol {
 					default:
 						logger.info("Unknown command: {}", notification.getType().name());
 				}
+
+				// save/replace device in devices pool
+				if(isNew)
+					devices.put(channel, service.saveIntoDatabase(device));
+				else
+					devices.replace(channel, device);
 			};
 
 			rx.addWatcher(watcher);
@@ -278,13 +285,13 @@ public class NooliteRXController extends AbstractService implements Protocol {
 		if (deviceValue == null) {
 			deviceValue = new NooliteDeviceValue();
 			deviceValue.setName(label);
-			deviceValue.setValue(value);
+			deviceValue.setCurrentValue(value);
 			deviceValue.setReadOnly(false);
 
 			device.getDeviceValues().put(label, deviceValue);
 		}
 		else {
-			deviceValue.setValue(value);
+			deviceValue.setCurrentValue(value);
 			device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
 		}
 	}

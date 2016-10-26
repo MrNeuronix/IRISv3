@@ -2,14 +2,14 @@ package ru.iris.noolite.protocol.model;
 
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
-public class NooliteDeviceValue extends AbstractDeviceValue {
+public class NooliteDeviceValue extends AbstractDeviceValue<NooliteDeviceValueChange> {
 
 	public NooliteDeviceValue() {
 	}
 
 	public NooliteDeviceValue(String name, byte value) {
 		super.name = name;
-		super.value = value;
+		super.currentValue = value;
 	}
 
 	@Override
@@ -18,7 +18,7 @@ public class NooliteDeviceValue extends AbstractDeviceValue {
 				"id=" + id +
 				", date=" + date +
 				", name='" + name + '\'' +
-				", value=" + value +
+				", currentValue=" + currentValue +
 				", units='" + units + '\'' +
 				", readOnly=" + readOnly +
 				", type=" + type +

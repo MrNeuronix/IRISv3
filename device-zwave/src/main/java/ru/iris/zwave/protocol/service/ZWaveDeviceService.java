@@ -9,12 +9,14 @@ import org.springframework.stereotype.Service;
 import org.zwave4j.ValueId;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
+import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
+import ru.iris.zwave.protocol.model.ZWaveDeviceValueChange;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -88,7 +90,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			ret.setZone(zone);
 		}
 
-		Map<String, ru.iris.commons.protocol.DeviceValue> values = new HashMap<>();
+		Map<String, ZWaveDeviceValue> values = new HashMap<>();
 
 		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues().values())
 		{
@@ -97,11 +99,19 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setId(deviceValue.getId());
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
-			dv.setValue(deviceValue.getValue());
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setValueId(gson.fromJson(deviceValue.getAdditionalData(), ValueId.class));
+
+			for(DeviceValueChange change : deviceValue.getChanges())
+			{
+					ZWaveDeviceValueChange dvc = new ZWaveDeviceValueChange();
+
+					dvc.setValue(change.getValue());
+					dvc.setValueId(gson.fromJson(change.getAdditionalData(), ValueId.class));
+
+					dv.getChanges().add(dvc);
+			}
 
 			values.put(dv.getName(), dv);
 		}
@@ -158,14 +168,20 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 			dv.setDevice(ret);
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
-
-			if(deviceValue.getValue() != null)
-				dv.setValue(deviceValue.getValue().toString());
-
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.isReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setAdditionalData(gson.toJson(deviceValue.getValueId()));
+
+			deviceValue.getChanges().stream().filter(change -> change.getId() == 0L).forEach(change -> {
+
+				DeviceValueChange changeDB = new DeviceValueChange();
+
+				changeDB.setDeviceValue(dv);
+				changeDB.setValue(deviceValue.getCurrentValue().toString());
+				changeDB.setAdditionalData(gson.toJson(deviceValue.getValueId(), ValueId.class));
+
+				dv.getChanges().add(changeDB);
+			});
 
 			values.put(dv.getName(), dv);
 		}
@@ -175,4 +191,13 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		return ret;
 	}
 
+	public ZWaveDeviceValue addChange(ZWaveDeviceValue value) {
+
+		ZWaveDeviceValueChange add = new ZWaveDeviceValueChange();
+		add.setValueId(value.getValueId());
+		add.setValue(value.getCurrentValue());
+		value.getChanges().add(add);
+
+		return value;
+	}
 }

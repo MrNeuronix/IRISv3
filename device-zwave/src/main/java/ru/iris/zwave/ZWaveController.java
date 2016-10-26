@@ -340,8 +340,10 @@ public class ZWaveController extends AbstractService implements Protocol {
 					value.setType(getValueType(valueId));
 					value.setUnits(Manager.get().getValueUnits(valueId));
 					value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-					value.setValue(getValue(valueId));
+					value.setCurrentValue(getValue(valueId));
 					value.setValueId(valueId);
+
+					service.addChange(value);
 
 					device.getDeviceValues().remove(label);
 					device.getDeviceValues().put(label, value);
@@ -397,7 +399,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 		ValueId valueId = notification.getValueId();
 		Short node = notification.getNodeId();
 
-		if (Manager.get().requestNodeState(homeId, notification.getNodeId()))
+		if (Manager.get().requestNodeState(homeId, node))
 		{
 			listen = true;
 		}
@@ -411,6 +413,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 			device.setNode(node);
 			device.setManufacturer(manufName);
 			device.setProductName(productName);
+			device.setHumanReadable("zwave/node/"+node);
 
 			if(listen)
 				device.setState(State.ACTIVE);
@@ -424,15 +427,18 @@ public class ZWaveController extends AbstractService implements Protocol {
 			value.setType(getValueType(valueId));
 			value.setUnits(Manager.get().getValueUnits(valueId));
 			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-			value.setValue(getValue(valueId));
+			value.setCurrentValue(getValue(valueId));
 			value.setValueId(valueId);
 
 			// Check if it is beaming device
 			ZWaveDeviceValue beaming = new ZWaveDeviceValue();
 			beaming.setName("beaming");
 			beaming.setType(ValueType.NONE);
-			beaming.setValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
+			beaming.setCurrentValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
 			beaming.setReadOnly(true);
+
+			service.addChange(beaming);
+			service.addChange(value);
 
 			values.put(label, value);
 			values.put("beaming", beaming);
@@ -469,8 +475,10 @@ public class ZWaveController extends AbstractService implements Protocol {
 			value.setType(getValueType(valueId));
 			value.setUnits(Manager.get().getValueUnits(valueId));
 			value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-			value.setValue(getValue(valueId));
+			value.setCurrentValue(getValue(valueId));
 			value.setValueId(valueId);
+
+			service.addChange(value);
 
 			device.getDeviceValues().remove(label);
 			device.getDeviceValues().put(label, value);

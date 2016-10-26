@@ -1,12 +1,11 @@
 package ru.iris.zwave.protocol.model;
 
-import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.abstracts.AbstractDevice;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class ZWaveDevice extends AbstractDevice {
+public class ZWaveDevice extends AbstractDevice<ZWaveDeviceValue> {
 
 	private long homeId;
 	private Map<String, ZWaveDeviceValue> values = new HashMap<>();
@@ -24,9 +23,8 @@ public class ZWaveDevice extends AbstractDevice {
 		return values;
 	}
 
-
-	public void setDeviceValues(Map<String, ? extends DeviceValue> values) {
-		this.values = (Map<String, ZWaveDeviceValue>) values;
+	public void setDeviceValues(Map<String, ZWaveDeviceValue> values) {
+		this.values = values;
 	}
 
 	@Override

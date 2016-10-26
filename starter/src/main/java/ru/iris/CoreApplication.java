@@ -32,8 +32,8 @@ public class CoreApplication {
 	public CoreApplication(
 			Speak speak,
 			@Qualifier("zwave") Service zwave,
-			@Qualifier("noolite-rx") Service nooliteRx,
-			@Qualifier("noolite-tx") Service nooliteTx
+			@Qualifier("nooliterx") Service nooliteRx,
+			@Qualifier("noolitetx") Service nooliteTx
 	)
 	{
 		this.speak = speak;

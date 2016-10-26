@@ -1,12 +1,12 @@
 package ru.iris.speak.model.bus;
 
 import ru.iris.commons.bus.AbstractEvent;
-
-import java.util.Objects;
+import ru.iris.commons.database.model.Zone;
 
 public class SpeakEvent extends AbstractEvent {
 
 	private String text;
+	private Zone zone;
 
 	public SpeakEvent(String text) {
 		this.text = text;
@@ -20,23 +20,38 @@ public class SpeakEvent extends AbstractEvent {
 		this.text = text;
 	}
 
+	public Zone getZone() {
+		return zone;
+	}
+
+	public void setZone(Zone zone) {
+		this.zone = zone;
+	}
+
 	@Override
 	public String toString() {
-		return "SpeakAdv{" +
+		return "SpeakEvent{" +
 				"text='" + text + '\'' +
+				", zone=" + zone +
 				'}';
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		SpeakEvent speakEvent = (SpeakEvent) o;
-		return Objects.equals(text, speakEvent.text);
+		if (!(o instanceof SpeakEvent)) return false;
+
+		SpeakEvent that = (SpeakEvent) o;
+
+		if (text != null ? !text.equals(that.text) : that.text != null) return false;
+		return zone != null ? zone.equals(that.zone) : that.zone == null;
+
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(text);
+		int result = text != null ? text.hashCode() : 0;
+		result = 31 * result + (zone != null ? zone.hashCode() : 0);
+		return result;
 	}
 }

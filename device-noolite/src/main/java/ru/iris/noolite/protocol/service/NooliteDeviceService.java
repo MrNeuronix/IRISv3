@@ -1,7 +1,5 @@
 package ru.iris.noolite.protocol.service;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +24,6 @@ public class NooliteDeviceService implements NooliteProtoService {
 	@Autowired
 	private DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private final Gson gson = new GsonBuilder().create();
 
 	public NooliteDevice getDeviceById(long id)
 	{

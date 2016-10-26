@@ -74,7 +74,6 @@ public class YandexController extends AbstractService implements Speak {
 	public void subscribe() throws Exception
 	{
 		addSubscription("event.speak");
-		addSubscription("event.speak.volume.set");
 	}
 
 	@Override
@@ -189,7 +188,12 @@ public class YandexController extends AbstractService implements Speak {
 
 			if(event.getData() instanceof SpeakEvent) {
 				try {
-					queue.put((SpeakEvent) event.getData());
+					SpeakEvent speakEvent = (SpeakEvent) event.getData();
+
+					// zone == null -> speak everywhere
+					if(speakEvent.getZone() == null)
+						queue.put(speakEvent);
+
 				} catch (InterruptedException e) {
 					logger.error("Error: ", e.getLocalizedMessage());
 				}
