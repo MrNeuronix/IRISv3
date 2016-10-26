@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
@@ -29,6 +30,7 @@ import java.util.concurrent.*;
 
 @Component
 @Profile("yandex")
+@Scope("singleton")
 public class YandexController extends AbstractService implements Speak {
 
 	private final EventBus r;
