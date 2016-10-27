@@ -26,10 +26,15 @@ import java.util.Map;
 @Service("nooliteDeviceService")
 public class NooliteDeviceService implements ProtocolService<NooliteDevice, NooliteDeviceValue> {
 
-	@Autowired
-	private DeviceDAO deviceDAO;
+	private final DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	@Autowired
+	public NooliteDeviceService(DeviceDAO deviceDAO) {
+		this.deviceDAO = deviceDAO;
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public NooliteDevice getDeviceById(long id)
 	{
@@ -41,6 +46,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return merge(dbDevice);
 	}
 
+	@Override
 	@Transactional(readOnly = true)
 	public List<NooliteDevice> getDevices()
 	{
@@ -56,6 +62,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return ret;
 	}
 
+	@Override
 	@Transactional
 	public NooliteDevice saveIntoDatabase(NooliteDevice device)
 	{
@@ -191,6 +198,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return ret;
 	}
 
+	@Override
 	public NooliteDeviceValue addChange(NooliteDeviceValue value) {
 
 		NooliteDeviceValueChange add = new NooliteDeviceValueChange();

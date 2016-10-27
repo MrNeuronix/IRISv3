@@ -29,11 +29,16 @@ import java.util.Map;
 @Service("zwaveDeviceService")
 public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDeviceValue> {
 
-	@Autowired
-	private DeviceDAO deviceDAO;
+	private final DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final Gson gson = new GsonBuilder().create();
 
+	@Autowired
+	public ZWaveDeviceService(DeviceDAO deviceDAO) {
+		this.deviceDAO = deviceDAO;
+	}
+
+	@Override
 	@Transactional(readOnly = true)
 	public ZWaveDevice getDeviceById(long id)
 	{
@@ -45,6 +50,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return merge(dbDevice);
 	}
 
+	@Override
 	@Transactional
 	public List<ZWaveDevice> getDevices()
 	{
@@ -60,6 +66,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return ret;
 	}
 
+	@Override
 	@Transactional
 	public ZWaveDevice saveIntoDatabase(ZWaveDevice device)
 	{
@@ -201,7 +208,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return ret;
 	}
 
-	@Transactional
+	@Override
 	public ZWaveDeviceValue addChange(ZWaveDeviceValue value) {
 
 		ZWaveDeviceValueChange add = new ZWaveDeviceValueChange();
