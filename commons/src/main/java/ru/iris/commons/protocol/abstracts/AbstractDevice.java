@@ -15,7 +15,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 
 	protected long id;
 	protected Date date;
-	protected Short node;
+	protected Byte node;
 	protected String humanReadable;
 	protected String manufacturer;
 	protected String productName;
@@ -117,11 +117,11 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	}
 
 	@Override
-	public Short getNode() {
+	public Byte getNode() {
 		return node;
 	}
 
-	public void setNode(Short node) {
+	public void setNode(Byte node) {
 		this.node = node;
 	}
 

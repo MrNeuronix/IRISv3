@@ -30,7 +30,7 @@ public class NooliteTXController extends AbstractService {
 	private final EventBus r;
 	private final ConfigLoader config;
 	private final ProtocolService<NooliteDevice, NooliteDeviceValue> service;
-	private Map<Short, NooliteDevice> devices = new HashMap<>();
+	private Map<Byte, NooliteDevice> devices = new HashMap<>();
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 

@@ -55,7 +55,7 @@ public class ZWaveController extends AbstractService {
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
 
 		for(ZWaveDevice device : service.getDevices()) {
-			devices.put(device.getNode(), device);
+			devices.put((short)device.getNode(), device);
 		}
 
 		logger.debug("Load {} ZWave devices from database", devices.size());
@@ -386,7 +386,7 @@ public class ZWaveController extends AbstractService {
 
 	private void saveIntoDB() {
 		for(ZWaveDevice device : devices.values()) {
-			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
+			devices.replace((short)device.getNode(), device, service.saveIntoDatabase(device));
 		}
 	}
 
@@ -411,7 +411,7 @@ public class ZWaveController extends AbstractService {
 			device = new ZWaveDevice();
 
 			device.setType(type);
-			device.setNode(node);
+			device.setNode(Byte.valueOf(String.valueOf(node)));
 			device.setManufacturer(manufName);
 			device.setProductName(productName);
 			device.setHumanReadable("zwave/node/"+node);
@@ -438,11 +438,20 @@ public class ZWaveController extends AbstractService {
 			beaming.setCurrentValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
 			beaming.setReadOnly(true);
 
+			// add channel value
+			ZWaveDeviceValue channel = new ZWaveDeviceValue();
+			channel.setName("channel");
+			channel.setType(ValueType.BYTE);
+			channel.setCurrentValue(Byte.valueOf(String.valueOf(node)));
+			channel.setReadOnly(true);
+
 			service.addChange(beaming);
+			service.addChange(channel);
 			service.addChange(value);
 
 			values.put(label, value);
 			values.put("beaming", beaming);
+			values.put("channel", channel);
 			device.setDeviceValues(values);
 
 			// add new device to pool

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
@@ -29,6 +30,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 	private DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	@Transactional(readOnly = true)
 	public NooliteDevice getDeviceById(long id)
 	{
 		Device dbDevice = deviceDAO.findOne(id);
@@ -39,6 +41,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return merge(dbDevice);
 	}
 
+	@Transactional(readOnly = true)
 	public List<NooliteDevice> getDevices()
 	{
 		List<NooliteDevice> ret = new ArrayList<>();
@@ -53,11 +56,13 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return ret;
 	}
 
+	@Transactional
 	public NooliteDevice saveIntoDatabase(NooliteDevice device)
 	{
 		return merge(deviceDAO.save(mergeForDB(device)));
 	}
 
+	@Transactional
 	private NooliteDevice merge(Device device) {
 
 		if (!device.getSource().equals(SourceProtocol.NOOLITE)) {
@@ -70,12 +75,22 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		ret.setId(device.getId());
 		ret.setDate(device.getDate());
 		ret.setHumanReadable(device.getHumanReadable());
-		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
 		ret.setSource(SourceProtocol.NOOLITE);
 		ret.setState(State.UNKNOWN);
+
+		// fill channel
+		DeviceValue channel = device.getValues().get("channel");
+
+		if(channel != null) {
+			// changes sorted by date DESC, first value is fresh
+			ret.setNode(Byte.valueOf(channel.getChanges().get(0).getValue()));
+		}
+		else {
+			logger.error("Channel not specified in ZWave node id " + device.getId());
+		}
 
 		if(device.getZone() != null) {
 
@@ -101,16 +116,6 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
 
-			for(DeviceValueChange change : deviceValue.getChanges())
-			{
-				NooliteDeviceValueChange dvc = new NooliteDeviceValueChange();
-
-				dvc.setValue(change.getValue());
-				dvc.setAdditionalData(change.getAdditionalData());
-
-				dv.getChanges().add(dvc);
-			}
-
 			values.put(dv.getName(), dv);
 		}
 
@@ -119,6 +124,7 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		return ret;
 	}
 
+	@Transactional
 	private Device mergeForDB(NooliteDevice device) {
 
 		Device ret = deviceDAO.findOne(device.getId());
@@ -137,7 +143,6 @@ public class NooliteDeviceService implements ProtocolService<NooliteDevice, Nool
 		}
 
 		ret.setHumanReadable(device.getHumanReadableName());
-		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());

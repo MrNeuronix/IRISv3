@@ -6,9 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.zwave4j.ValueId;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
+import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
 import ru.iris.commons.protocol.ProtocolService;
@@ -32,6 +34,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final Gson gson = new GsonBuilder().create();
 
+	@Transactional(readOnly = true)
 	public ZWaveDevice getDeviceById(long id)
 	{
 		Device dbDevice = deviceDAO.findOne(id);
@@ -42,6 +45,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return merge(dbDevice);
 	}
 
+	@Transactional
 	public List<ZWaveDevice> getDevices()
 	{
 		List<ZWaveDevice> ret = new ArrayList<>();
@@ -56,11 +60,13 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return ret;
 	}
 
+	@Transactional
 	public ZWaveDevice saveIntoDatabase(ZWaveDevice device)
 	{
 		return merge(deviceDAO.save(mergeForDB(device)));
 	}
 
+	@Transactional
 	private ZWaveDevice merge(Device device) {
 
 		if (!device.getSource().equals(SourceProtocol.ZWAVE)) {
@@ -73,12 +79,22 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		ret.setId(device.getId());
 		ret.setDate(device.getDate());
 		ret.setHumanReadable(device.getHumanReadable());
-		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
 		ret.setSource(SourceProtocol.ZWAVE);
 		ret.setState(State.UNKNOWN);
+
+		// fill channel
+		DeviceValue channel = device.getValues().get("channel");
+
+		if(channel != null) {
+			// changes sorted by date DESC, first value is fresh
+			ret.setNode(Byte.valueOf(channel.getChanges().get(0).getValue()));
+		}
+		else {
+			logger.error("Channel not specified in ZWave node id " + device.getId());
+		}
 
 		if(device.getZone() != null) {
 
@@ -104,16 +120,6 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
 
-			for(DeviceValueChange change : deviceValue.getChanges())
-			{
-					ZWaveDeviceValueChange dvc = new ZWaveDeviceValueChange();
-
-					dvc.setValue(change.getValue());
-					dvc.setValueId(gson.fromJson(change.getAdditionalData(), ValueId.class));
-
-					dv.getChanges().add(dvc);
-			}
-
 			values.put(dv.getName(), dv);
 		}
 
@@ -122,6 +128,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return ret;
 	}
 
+	@Transactional
 	private Device mergeForDB(ZWaveDevice device) {
 
 		Device ret = deviceDAO.findOne(device.getId());
@@ -140,7 +147,6 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		}
 
 		ret.setHumanReadable(device.getHumanReadableName());
-		ret.setNode(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
@@ -197,6 +203,7 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		return ret;
 	}
 
+	@Transactional
 	public ZWaveDeviceValue addChange(ZWaveDeviceValue value) {
 
 		ZWaveDeviceValueChange add = new ZWaveDeviceValueChange();

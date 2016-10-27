@@ -21,7 +21,6 @@ public class Device {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 
-	private Short node;
 	private String humanReadable;
 	private String manufacturer;
 	private String productName;
@@ -60,14 +59,6 @@ public class Device {
 
 	public void setDate(Date date) {
 		this.date = date;
-	}
-
-	public Short getNode() {
-		return node;
-	}
-
-	public void setNode(Short node) {
-		this.node = node;
 	}
 
 	public String getHumanReadable() {

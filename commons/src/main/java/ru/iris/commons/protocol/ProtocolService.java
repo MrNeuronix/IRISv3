@@ -13,5 +13,4 @@ public interface ProtocolService<DEVICE, DEVICEVALUE> {
 	List<DEVICE> getDevices();
 	DEVICE saveIntoDatabase(DEVICE device);
 	DEVICEVALUE addChange(DEVICEVALUE value);
-
 }

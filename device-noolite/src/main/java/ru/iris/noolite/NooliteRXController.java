@@ -58,7 +58,7 @@ public class NooliteRXController extends AbstractService {
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
 
 		for(NooliteDevice device : service.getDevices()) {
-			devices.put(Byte.valueOf(String.valueOf(device.getNode())), device);
+			devices.put(device.getNode(), device);
 		}
 
 		logger.debug("Load {} Noolite devices from database", devices.size());
@@ -118,6 +118,8 @@ public class NooliteRXController extends AbstractService {
 				byte channel = notification.getChannel();
 				SensorType sensor = (SensorType) notification.getValue("sensortype");
 
+				logger.debug("Message to RX from channel " + channel);
+
 				NooliteDevice device = devices.get(channel);
 
 				if (device == null) {
@@ -127,14 +129,10 @@ public class NooliteRXController extends AbstractService {
 					device.setState(State.ACTIVE);
 					device.setType(DeviceType.UNKNOWN);
 					device.setManufacturer("Nootechnika");
-					device.setNode((short) (1000 + channel));
+					device.setNode(channel);
 
-					// device is not sensor
-					if (sensor == null) {
-						device.setType(DeviceType.BINARY_SWITCH);
-						device.getDeviceValues().put("channel", new NooliteDeviceValue("channel", channel));
-					}
-					else {
+					// device is sensor
+					if (sensor != null) {
 						switch (sensor) {
 							case PT111:
 								device.setType(DeviceType.TEMP_HUMI_SENSOR);
@@ -147,10 +145,11 @@ public class NooliteRXController extends AbstractService {
 							default:
 								device.setType(DeviceType.UNKNOWN_SENSOR);
 						}
-						NooliteDeviceValue ch = new NooliteDeviceValue("channel", channel);
-						device.getDeviceValues().put("channel", ch);
-						service.addChange(ch);
 					}
+
+					NooliteDeviceValue ch = new NooliteDeviceValue("channel", channel, ValueType.BYTE);
+					device.getDeviceValues().put("channel", ch);
+					service.addChange(ch);
 
 					isNew = true;
 				}
@@ -279,7 +278,7 @@ public class NooliteRXController extends AbstractService {
 
 	private void saveIntoDB() {
 		for(NooliteDevice device : devices.values()) {
-			devices.replace(Byte.valueOf(String.valueOf(device.getNode())), device, service.saveIntoDatabase(device));
+			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
 		}
 	}
 

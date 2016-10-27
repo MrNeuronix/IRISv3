@@ -1,15 +1,17 @@
 package ru.iris.noolite.protocol.model;
 
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
+import ru.iris.commons.protocol.enums.ValueType;
 
 public class NooliteDeviceValue extends AbstractDeviceValue<NooliteDeviceValueChange> {
 
 	public NooliteDeviceValue() {
 	}
 
-	public NooliteDeviceValue(String name, byte value) {
+	public NooliteDeviceValue(String name, byte value, ValueType type) {
 		super.name = name;
 		super.currentValue = value;
+		super.type = type;
 	}
 
 	@Override
