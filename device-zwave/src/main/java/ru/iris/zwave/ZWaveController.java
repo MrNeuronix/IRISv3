@@ -433,7 +433,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			// Check if it is beaming device
 			ZWaveDeviceValue beaming = new ZWaveDeviceValue();
 			beaming.setName("beaming");
-			beaming.setType(ValueType.NONE);
+			beaming.setType(ValueType.BYTE);
 			beaming.setCurrentValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
 			beaming.setReadOnly(true);
 
