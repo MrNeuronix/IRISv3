@@ -5,9 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.iris.commons.protocol.Device;
 import ru.iris.commons.service.ProtocolService;
 
@@ -36,8 +34,8 @@ public class DevicesFacade {
 		this.nooliteTx = nooliteTx;
 	}
 
-	@RequestMapping("/devices/all")
-	public List<Device> getAllDevices(@RequestParam(value="source", defaultValue="all") String source) {
+	@RequestMapping(value = "/devices/{source}", method = RequestMethod.GET)
+	public List<Device> getAllDevices(@PathVariable(value="source") String source) {
 
 		List<Device> ret = new ArrayList<>();
 		if(source.equals("all") || source.equals("zwave"))
