@@ -88,12 +88,10 @@ public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDev
 		// fill channel
 		DeviceValue channel = device.getValues().get("channel");
 
-		if(channel != null) {
+		// changes == 0 if detached entity passed
+		if(channel != null && channel.getChanges().size() != 0) {
 			// changes sorted by date DESC, first value is fresh
 			ret.setNode(Byte.valueOf(channel.getChanges().get(0).getValue()));
-		}
-		else {
-			logger.error("Channel not specified in ZWave node id " + device.getId());
 		}
 
 		if(device.getZone() != null) {
