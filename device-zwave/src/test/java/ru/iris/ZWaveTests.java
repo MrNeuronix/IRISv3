@@ -10,8 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.iris.commons.protocol.DeviceValue;
-import ru.iris.commons.protocol.ProtocolService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
@@ -29,7 +28,7 @@ import java.util.Map;
 public class ZWaveTests {
 
 	@Autowired
-	private ProtocolService<ZWaveDevice, ZWaveDeviceValue> service;
+	private ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> service;
 
 	ZWaveDevice device, device2;
 	Map<String, ZWaveDeviceValue> values = new HashMap<>();

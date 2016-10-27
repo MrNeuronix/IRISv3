@@ -12,12 +12,12 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.ProtocolService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
-import ru.iris.commons.service.AbstractService;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite.protocol.events.*;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
@@ -26,29 +26,31 @@ import ru.iris.noolite4j.watchers.BatteryState;
 import ru.iris.noolite4j.watchers.SensorType;
 import ru.iris.noolite4j.watchers.Watcher;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @Component
 @Profile("noolite")
 @Qualifier("nooliterx")
 @Scope("singleton")
-public class NooliteRXController extends AbstractService {
+public class NooliteRXController extends AbstractProtocolService<NooliteDevice> {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final ProtocolService<NooliteDevice, NooliteDeviceValue> service;
-	private Map<Byte, NooliteDevice> devices = new HashMap<>();
+	private final ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> service;
 
 	private RX2164 rx;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public NooliteRXController(@Qualifier("nooliteDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
+	public NooliteRXController(@Qualifier("nooliteDeviceService") ProtocolServiceLayer service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
+	}
+
+	public Map<Byte, NooliteDevice> getDevices() {
+		return devices;
 	}
 
 	@Override

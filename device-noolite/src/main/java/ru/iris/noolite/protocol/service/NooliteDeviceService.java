@@ -10,7 +10,7 @@ import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
-import ru.iris.commons.protocol.ProtocolService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service("nooliteDeviceService")
-public class NooliteDeviceService implements ProtocolService<NooliteDevice, NooliteDeviceValue> {
+public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
 
 	private final DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());

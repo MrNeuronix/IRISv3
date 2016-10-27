@@ -12,6 +12,7 @@
 		<module>device-noolite</module>
 		<module>starter</module>
 		<module>commons</module>
+        <module>facade</module>
     </modules>
 	<packaging>pom</packaging>
 

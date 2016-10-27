@@ -13,11 +13,11 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.ProtocolService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
-import ru.iris.commons.service.AbstractService;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.zwave.protocol.events.*;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
@@ -30,19 +30,18 @@ import java.util.concurrent.atomic.AtomicReference;
 @Profile("zwave")
 @Qualifier("zwave")
 @Scope("singleton")
-public class ZWaveController extends AbstractService {
+public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final ProtocolService<ZWaveDevice, ZWaveDeviceValue> service;
-	private Map<Short, ZWaveDevice> devices = new HashMap<>();
+	private final ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private long homeId;
 	private boolean ready = false;
 
 	@Autowired
-	public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
+	public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolServiceLayer service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
@@ -55,7 +54,7 @@ public class ZWaveController extends AbstractService {
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
 
 		for(ZWaveDevice device : service.getDevices()) {
-			devices.put((short)device.getNode(), device);
+			devices.put(device.getNode(), device);
 		}
 
 		logger.debug("Load {} ZWave devices from database", devices.size());
@@ -118,7 +117,7 @@ public class ZWaveController extends AbstractService {
 
 		NotificationWatcher watcher = (notification, context) -> {
 
-			short node = notification.getNodeId();
+			Byte node = (byte) notification.getNodeId();
 			ZWaveDevice device = null;
 
 			switch (notification.getType()) {
@@ -386,7 +385,7 @@ public class ZWaveController extends AbstractService {
 
 	private void saveIntoDB() {
 		for(ZWaveDevice device : devices.values()) {
-			devices.replace((short)device.getNode(), device, service.saveIntoDatabase(device));
+			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
 		}
 	}
 
@@ -395,10 +394,10 @@ public class ZWaveController extends AbstractService {
 		String label = Manager.get().getValueLabel(notification.getValueId());
 		String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
 		String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
-		ZWaveDevice device = devices.get(notification.getNodeId());
+		ZWaveDevice device = devices.get((byte)notification.getNodeId());
 		boolean listen = false;
 		ValueId valueId = notification.getValueId();
-		Short node = notification.getNodeId();
+		Byte node = (byte) notification.getNodeId();
 
 		if (Manager.get().requestNodeState(homeId, node))
 		{
@@ -411,7 +410,7 @@ public class ZWaveController extends AbstractService {
 			device = new ZWaveDevice();
 
 			device.setType(type);
-			device.setNode(Byte.valueOf(String.valueOf(node)));
+			device.setNode(node);
 			device.setManufacturer(manufName);
 			device.setProductName(productName);
 			device.setHumanReadable("zwave/node/"+node);
@@ -618,11 +617,11 @@ public class ZWaveController extends AbstractService {
 		}
 	}
 
-	private void deviceSetLevel(short node, int level) {
+	private void deviceSetLevel(Byte node, int level) {
 		deviceSetLevel(node, "Level", String.valueOf(level));
 	}
 
-	private void deviceSetLevel(short node, String label, String level)
+	private void deviceSetLevel(Byte node, String label, String level)
 	{
 		ZWaveDevice device = devices.get(node);
 

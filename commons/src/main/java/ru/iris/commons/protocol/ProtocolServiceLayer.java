@@ -7,7 +7,7 @@ import java.util.List;
  */
 
 
-public interface ProtocolService<DEVICE, DEVICEVALUE> {
+public interface ProtocolServiceLayer<DEVICE, DEVICEVALUE> {
 
 	DEVICE getDeviceById(long id);
 	List<DEVICE> getDevices();

@@ -12,30 +12,26 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.ProtocolService;
-import ru.iris.commons.service.AbstractService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite.protocol.events.NooliteValueChanged;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @Profile("noolite")
 @Qualifier("noolitetx")
 @Scope("singleton")
-public class NooliteTXController extends AbstractService {
+public class NooliteTXController extends AbstractProtocolService<NooliteDevice> {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final ProtocolService<NooliteDevice, NooliteDeviceValue> service;
-	private Map<Byte, NooliteDevice> devices = new HashMap<>();
+	private final ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public NooliteTXController(@Qualifier("nooliteDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
+	public NooliteTXController(@Qualifier("nooliteDeviceService") ProtocolServiceLayer service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;

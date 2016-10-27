@@ -13,7 +13,7 @@ import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
-import ru.iris.commons.protocol.ProtocolService;
+import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service("zwaveDeviceService")
-public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDeviceValue> {
+public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> {
 
 	private final DeviceDAO deviceDAO;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
