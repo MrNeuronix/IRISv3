@@ -434,23 +434,14 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			ZWaveDeviceValue beaming = new ZWaveDeviceValue();
 			beaming.setName("beaming");
 			beaming.setType(ValueType.BYTE);
-			beaming.setCurrentValue(String.valueOf(Manager.get().isNodeBeamingDevice(homeId, node)));
+			beaming.setCurrentValue(Manager.get().isNodeBeamingDevice(homeId, node));
 			beaming.setReadOnly(true);
 
-			// add channel value
-			ZWaveDeviceValue channel = new ZWaveDeviceValue();
-			channel.setName("channel");
-			channel.setType(ValueType.BYTE);
-			channel.setCurrentValue(Byte.valueOf(String.valueOf(node)));
-			channel.setReadOnly(true);
-
 			service.addChange(beaming);
-			service.addChange(channel);
 			service.addChange(value);
 
 			values.put(label, value);
 			values.put("beaming", beaming);
-			values.put("channel", channel);
 			device.setDeviceValues(values);
 
 			// add new device to pool

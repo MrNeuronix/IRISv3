@@ -26,8 +26,6 @@ import ru.iris.noolite4j.watchers.BatteryState;
 import ru.iris.noolite4j.watchers.SensorType;
 import ru.iris.noolite4j.watchers.Watcher;
 
-import java.util.Map;
-
 @Component
 @Profile("noolite")
 @Qualifier("nooliterx")
@@ -144,10 +142,6 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 								device.setType(DeviceType.UNKNOWN_SENSOR);
 						}
 					}
-
-					NooliteDeviceValue ch = new NooliteDeviceValue("channel", channel, ValueType.BYTE);
-					device.getDeviceValues().put("channel", ch);
-					service.addChange(ch);
 
 					isNew = true;
 				}

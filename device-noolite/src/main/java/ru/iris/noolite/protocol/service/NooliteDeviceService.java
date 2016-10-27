@@ -43,7 +43,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		if(dbDevice == null)
 			return null;
 
-		return merge(dbDevice);
+		return merge(dbDevice, null);
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 		for(Device device : devices)
 		{
-			ret.add(merge(device));
+			ret.add(merge(device, null));
 		}
 
 		return ret;
@@ -66,11 +66,11 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	@Transactional
 	public NooliteDevice saveIntoDatabase(NooliteDevice device)
 	{
-		return merge(deviceDAO.save(mergeForDB(device)));
+		return merge(deviceDAO.save(mergeForDB(device)), device);
 	}
 
 	@Transactional
-	private NooliteDevice merge(Device device) {
+	private NooliteDevice merge(Device device, NooliteDevice nooDevice) {
 
 		if (!device.getSource().equals(SourceProtocol.NOOLITE)) {
 			logger.error("Specified device is not Noolite device!");
@@ -82,19 +82,12 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		ret.setId(device.getId());
 		ret.setDate(device.getDate());
 		ret.setHumanReadable(device.getHumanReadable());
+		ret.setNode(device.getChannel());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
 		ret.setSource(SourceProtocol.NOOLITE);
 		ret.setState(State.UNKNOWN);
-
-		// fill channel
-		DeviceValue channel = device.getValues().get("channel");
-
-		if(channel != null && channel.getChanges().size() != 0) {
-			// changes sorted by date DESC, first value is fresh
-			ret.setNode(Byte.valueOf(channel.getChanges().get(0).getValue()));
-		}
 
 		if(device.getZone() != null) {
 
@@ -120,6 +113,18 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
 
+			// fill values
+			if(nooDevice != null) {
+				NooliteDeviceValue nooValue = nooDevice.getDeviceValues().get(dv.getName());
+
+				if(nooValue != null) {
+					dv.setCurrentValue(nooValue.getCurrentValue());
+					dv.setAdditionalData(nooValue.getAdditionalData());
+				}
+				else {
+					logger.error("Cannot found device value for " + dv.getName());
+				}
+			}
 			values.put(dv.getName(), dv);
 		}
 
@@ -147,6 +152,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		}
 
 		ret.setHumanReadable(device.getHumanReadableName());
+		ret.setChannel(device.getNode());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());

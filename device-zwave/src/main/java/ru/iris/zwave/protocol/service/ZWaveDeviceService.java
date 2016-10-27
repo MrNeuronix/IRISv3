@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.zwave4j.ValueId;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
@@ -47,7 +46,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		if(dbDevice == null)
 			return null;
 
-		return merge(dbDevice);
+		return merge(dbDevice, null);
 	}
 
 	@Override
@@ -60,7 +59,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 
 		for(Device device : devices)
 		{
-			ret.add(merge(device));
+			ret.add(merge(device, null));
 		}
 
 		return ret;
@@ -70,11 +69,11 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Transactional
 	public ZWaveDevice saveIntoDatabase(ZWaveDevice device)
 	{
-		return merge(deviceDAO.save(mergeForDB(device)));
+		return merge(deviceDAO.save(mergeForDB(device)), device);
 	}
 
 	@Transactional
-	private ZWaveDevice merge(Device device) {
+	private ZWaveDevice merge(Device device, ZWaveDevice zwdevice) {
 
 		if (!device.getSource().equals(SourceProtocol.ZWAVE)) {
 			logger.error("Specified device is not ZWave device!");
@@ -91,15 +90,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		ret.setType(device.getType());
 		ret.setSource(SourceProtocol.ZWAVE);
 		ret.setState(State.UNKNOWN);
-
-		// fill channel
-		DeviceValue channel = device.getValues().get("channel");
-
-		// changes == 0 if detached entity passed
-		if(channel != null && channel.getChanges().size() != 0) {
-			// changes sorted by date DESC, first value is fresh
-			ret.setNode(Byte.valueOf(channel.getChanges().get(0).getValue()));
-		}
+		ret.setNode(device.getChannel());
 
 		if(device.getZone() != null) {
 
@@ -124,6 +115,21 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
+
+			// fill values
+			if(zwdevice != null) {
+
+				ZWaveDeviceValue zValue = zwdevice.getDeviceValues().get(dv.getName());
+
+				if(zValue != null) {
+					dv.setCurrentValue(zValue.getCurrentValue());
+					dv.setAdditionalData(zValue.getAdditionalData());
+					dv.setValueId(zValue.getValueId());
+				}
+				else {
+					logger.error("Cannot found device value for " + dv.getName());
+				}
+			}
 
 			values.put(dv.getName(), dv);
 		}
@@ -155,6 +161,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
+		ret.setChannel(device.getNode());
 		ret.setSource(SourceProtocol.ZWAVE);
 
 		if(creating && device.getZone() != null)
