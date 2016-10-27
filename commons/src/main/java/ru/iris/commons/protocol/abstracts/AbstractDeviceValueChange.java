@@ -1,5 +1,6 @@
 package ru.iris.commons.protocol.abstracts;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.iris.commons.protocol.DeviceValueChange;
 
 import java.util.Date;
@@ -7,7 +8,10 @@ import java.util.Date;
 public abstract class AbstractDeviceValueChange implements DeviceValueChange {
 
 	protected long id;
+
+	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	protected Date date;
+
 	protected Object value;
 	protected String additionalData;
 

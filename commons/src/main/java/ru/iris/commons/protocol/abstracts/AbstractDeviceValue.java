@@ -1,5 +1,6 @@
 package ru.iris.commons.protocol.abstracts;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import net.minidev.json.annotate.JsonIgnore;
 import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
@@ -11,7 +12,10 @@ import java.util.List;
 public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 
 	protected long id;
+
+	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	protected Date date;
+
 	protected String name;
 	protected Object currentValue;
 	protected String units;
