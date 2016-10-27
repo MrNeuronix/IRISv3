@@ -37,11 +37,13 @@ public class DevicesFacade {
 	}
 
 	@RequestMapping("/devices/all")
-	public List<Device> getAllDevices() {
+	public List<Device> getAllDevices(@RequestParam(value="source", defaultValue="all") String source) {
 
 		List<Device> ret = new ArrayList<>();
-		ret.addAll(zwave.getDevices().values());
-		ret.addAll(nooliteRx.getDevices().values());
+		if(source.equals("all") || source.equals("zwave"))
+			ret.addAll(zwave.getDevices().values());
+		if(source.equals("all") || source.equals("noolite"))
+			ret.addAll(nooliteRx.getDevices().values());
 
 		return ret;
 	}
