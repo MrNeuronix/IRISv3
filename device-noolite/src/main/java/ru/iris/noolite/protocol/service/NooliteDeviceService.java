@@ -6,20 +6,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
+import ru.iris.commons.database.model.DeviceValue;
+import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
+import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service
-public class NooliteDeviceService implements NooliteProtoService {
+@Service("nooliteDeviceService")
+public class NooliteDeviceService implements ProtocolService<NooliteDevice, NooliteDeviceValue> {
 
 	@Autowired
 	private DeviceDAO deviceDAO;
@@ -35,7 +39,7 @@ public class NooliteDeviceService implements NooliteProtoService {
 		return merge(dbDevice);
 	}
 
-	public List<NooliteDevice> getNooliteDevices()
+	public List<NooliteDevice> getDevices()
 	{
 		List<NooliteDevice> ret = new ArrayList<>();
 
@@ -84,20 +88,28 @@ public class NooliteDeviceService implements NooliteProtoService {
 			ret.setZone(zone);
 		}
 
-		Map<String, ru.iris.commons.protocol.DeviceValue> values = new HashMap<>();
+		Map<String, NooliteDeviceValue> values = new HashMap<>();
 
-		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues().values())
+		for(DeviceValue deviceValue : device.getValues().values())
 		{
 			NooliteDeviceValue dv = new NooliteDeviceValue();
 
 			dv.setId(deviceValue.getId());
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
-			dv.setValue(deviceValue.getValue());
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.getReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setAdditionalData(deviceValue.getAdditionalData());
+
+			for(DeviceValueChange change : deviceValue.getChanges())
+			{
+				NooliteDeviceValueChange dvc = new NooliteDeviceValueChange();
+
+				dvc.setValue(change.getValue());
+				dvc.setAdditionalData(change.getAdditionalData());
+
+				dv.getChanges().add(dvc);
+			}
 
 			values.put(dv.getName(), dv);
 		}
@@ -154,14 +166,20 @@ public class NooliteDeviceService implements NooliteProtoService {
 			dv.setDevice(ret);
 			dv.setDate(deviceValue.getDate());
 			dv.setName(deviceValue.getName());
-
-			if(deviceValue.getValue() != null)
-				dv.setValue(deviceValue.getValue().toString());
-
 			dv.setUnits(deviceValue.getUnits());
 			dv.setReadOnly(deviceValue.isReadOnly());
 			dv.setType(deviceValue.getType());
-			dv.setAdditionalData(deviceValue.getAdditionalData());
+
+			deviceValue.getChanges().stream().filter(change -> change.getId() == 0L).forEach(change -> {
+
+				DeviceValueChange changeDB = new DeviceValueChange();
+
+				changeDB.setDeviceValue(dv);
+				changeDB.setValue(deviceValue.getCurrentValue().toString());
+				changeDB.setAdditionalData(deviceValue.getAdditionalData());
+
+				dv.getChanges().add(changeDB);
+			});
 
 			values.put(dv.getName(), dv);
 		}
@@ -169,6 +187,16 @@ public class NooliteDeviceService implements NooliteProtoService {
 		ret.setValues(values);
 
 		return ret;
+	}
+
+	public NooliteDeviceValue addChange(NooliteDeviceValue value) {
+
+		NooliteDeviceValueChange add = new NooliteDeviceValueChange();
+		add.setAdditionalData(value.getAdditionalData());
+		add.setValue(value.getCurrentValue());
+		value.getChanges().add(add);
+
+		return value;
 	}
 
 }

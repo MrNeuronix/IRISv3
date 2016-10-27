@@ -1,9 +1,11 @@
 package ru.iris.commons.database.model;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.iris.commons.protocol.enums.ValueType;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -32,7 +34,8 @@ public class DeviceValue {
 	private String additionalData;
 
 	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
-	private List<DeviceValueChange> changes;
+	@BatchSize(size=200)
+	private List<DeviceValueChange> changes = new ArrayList<>();
 
 	public DeviceValue() {
 	}

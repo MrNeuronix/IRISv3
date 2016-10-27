@@ -11,12 +11,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ru.iris.commons.protocol.DeviceValue;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
-import ru.iris.zwave.protocol.service.ZWaveProtoService;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -29,22 +29,22 @@ import java.util.Map;
 public class ZWaveTests {
 
 	@Autowired
-	private ZWaveProtoService service;
+	private ProtocolService<ZWaveDevice, ZWaveDeviceValue> service;
 
 	ZWaveDevice device, device2;
-	Map<String, DeviceValue> values = new HashMap<>();
+	Map<String, ZWaveDeviceValue> values = new HashMap<>();
 
 	@Before
 	public void setUp() {
 
 		ZWaveDeviceValue val1 = new ZWaveDeviceValue();
 		val1.setName("Test val 1");
-		val1.setValue(2.0D);
+		val1.setCurrentValue(2.0D);
 		values.put("Test val 1", val1);
 
 		ZWaveDeviceValue val2 = new ZWaveDeviceValue();
 		val2.setName("Test val 2");
-		val2.setValue("All ok!");
+		val2.setCurrentValue("All ok!");
 		val2.setDate(new Date());
 		values.put("Test val 2", val2);
 
@@ -81,26 +81,26 @@ public class ZWaveTests {
 
 	@Test
 	public void Z2_canFetchAndConvertByService() {
-		Assert.assertEquals(service.getZWaveDevices().size(), 2);
+		Assert.assertEquals(service.getDevices().size(), 2);
 	}
 
 	@Test
 	public void Z3_correctHumanReadableName() {
-		ZWaveDevice zw = service.getZWaveDevices().iterator().next();
+		ZWaveDevice zw = service.getDevices().iterator().next();
 		Assert.assertEquals(zw.getHumanReadableName(), "Device 1");
 	}
 
 	@Test
 	public void Z4_canChangeValuesAndSave() {
-		ZWaveDevice zw = service.getZWaveDevices().iterator().next();
+		ZWaveDevice zw = service.getDevices().iterator().next();
 
 		zw.setState(State.DEAD);
 		zw.setProductName("Changed by Z4");
-		zw.getDeviceValues().get("Test val 1").setValue("new value!");
+		zw.getDeviceValues().get("Test val 1").setCurrentValue("new value!");
 
 		zw = service.saveIntoDatabase(zw);
 
-		Assert.assertEquals(zw.getDeviceValues().get("Test val 1").getValue(), "new value!");
+		Assert.assertEquals(zw.getDeviceValues().get("Test val 1").getCurrentValue(), "new value!");
 		Assert.assertEquals(zw.getProductName(), "Changed by Z4");
 	}
 }

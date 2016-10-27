@@ -12,15 +12,15 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.Protocol;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
+import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.noolite.protocol.events.*;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
-import ru.iris.noolite.protocol.service.NooliteProtoService;
 import ru.iris.noolite4j.receiver.RX2164;
 import ru.iris.noolite4j.watchers.BatteryState;
 import ru.iris.noolite4j.watchers.SensorType;
@@ -33,11 +33,11 @@ import java.util.Map;
 @Profile("noolite")
 @Qualifier("nooliterx")
 @Scope("singleton")
-public class NooliteRXController extends AbstractService implements Protocol {
+public class NooliteRXController extends AbstractService {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final NooliteProtoService service;
+	private final ProtocolService<NooliteDevice, NooliteDeviceValue> service;
 	private Map<Byte, NooliteDevice> devices = new HashMap<>();
 
 	private RX2164 rx;
@@ -45,7 +45,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public NooliteRXController(NooliteProtoService service, EventBus r, ConfigLoader config) {
+	public NooliteRXController(@Qualifier("nooliteDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
@@ -57,7 +57,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 		if(!config.loadPropertiesFormCfgDirectory("noolite"))
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
 
-		for(NooliteDevice device : service.getNooliteDevices()) {
+		for(NooliteDevice device : service.getDevices()) {
 			devices.put(Byte.valueOf(String.valueOf(device.getNode())), device);
 		}
 
@@ -147,7 +147,9 @@ public class NooliteRXController extends AbstractService implements Protocol {
 							default:
 								device.setType(DeviceType.UNKNOWN_SENSOR);
 						}
-						device.getDeviceValues().put("channel", new NooliteDeviceValue("channel", channel));
+						NooliteDeviceValue ch = new NooliteDeviceValue("channel", channel);
+						device.getDeviceValues().put("channel", ch);
+						service.addChange(ch);
 					}
 
 					isNew = true;
@@ -157,7 +159,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 				switch (notification.getType()) {
 					case TURN_OFF:
 						logger.info("Channel {}: Got OFF command", channel);
-						updateValue(device, "level", 0);
+						updateValue(device, "level", 0, ValueType.BYTE);
 
 						// device product name unkown
 						if (device.getProductName().isEmpty()) {
@@ -171,14 +173,14 @@ public class NooliteRXController extends AbstractService implements Protocol {
 					case SLOW_TURN_OFF:
 						logger.info("Channel {}: Got DIM command", channel);
 						// we only know, that the user hold OFF button
-						updateValue(device, "level", 0);
+						updateValue(device, "level", 0, ValueType.BYTE);
 
 						broadcast("event.device.noolite", new NooliteDeviceOn(channel));
 						break;
 
 					case TURN_ON:
 						logger.info("Channel {}: Got ON command", channel);
-						updateValue(device, "level", 255);
+						updateValue(device, "level", 255, ValueType.BYTE);
 
 						// device product name unkown
 						if (device.getType().equals(DeviceType.UNKNOWN)) {
@@ -192,14 +194,14 @@ public class NooliteRXController extends AbstractService implements Protocol {
 					case SLOW_TURN_ON:
 						logger.info("Channel {}: Got BRIGHT command", channel);
 						// we only know, that the user hold ON button
-						updateValue(device, "level", 255);
+						updateValue(device, "level", 255, ValueType.BYTE);
 
 						broadcast("event.device.noolite", new NooliteDeviceOn(channel));
 						break;
 
 					case SET_LEVEL:
 						logger.info("Channel {}: Got SETLEVEL command.", channel);
-						updateValue(device, "level", notification.getValue("level"));
+						updateValue(device, "level", notification.getValue("level"), ValueType.BYTE);
 
 						// device product name unkown
 						if (device.getProductName().isEmpty() || device.getType().equals(DeviceType.BINARY_SWITCH)) {
@@ -233,9 +235,9 @@ public class NooliteRXController extends AbstractService implements Protocol {
 								batteryState = ru.iris.commons.protocol.enums.BatteryState.UNKNOWN;
 						}
 
-						updateValue(device, "temperature", notification.getValue("temp"));
-						updateValue(device, "humidity", notification.getValue("humi"));
-						updateValue(device, "battery", batteryState);
+						updateValue(device, "temperature", notification.getValue("temp"), ValueType.DOUBLE);
+						updateValue(device, "humidity", notification.getValue("humi"), ValueType.BYTE);
+						updateValue(device, "battery", batteryState, ValueType.STRING);
 
 						broadcast("event.device.noolite", new NooliteDeviceTempHumi(
 								channel,
@@ -281,13 +283,14 @@ public class NooliteRXController extends AbstractService implements Protocol {
 		}
 	}
 
-	private void updateValue(NooliteDevice device, String label, Object value) {
+	private void updateValue(NooliteDevice device, String label, Object value, ValueType type) {
 		NooliteDeviceValue deviceValue = device.getDeviceValues().get(label);
 
 		if (deviceValue == null) {
 			deviceValue = new NooliteDeviceValue();
 			deviceValue.setName(label);
 			deviceValue.setCurrentValue(value);
+			deviceValue.setType(type);
 			deviceValue.setReadOnly(false);
 
 			device.getDeviceValues().put(label, deviceValue);
@@ -296,5 +299,7 @@ public class NooliteRXController extends AbstractService implements Protocol {
 			deviceValue.setCurrentValue(value);
 			device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
 		}
+
+		service.addChange(deviceValue);
 	}
 }

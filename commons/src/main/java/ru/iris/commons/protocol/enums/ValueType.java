@@ -13,5 +13,6 @@ public enum ValueType {
 	RAW,
 	JSON,
 	UNKNOWN,
+	DOUBLE,
 	NONE
 }

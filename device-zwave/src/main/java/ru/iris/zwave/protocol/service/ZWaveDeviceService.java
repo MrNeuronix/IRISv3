@@ -11,6 +11,7 @@ import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.database.model.Zone;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
@@ -23,8 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Service
-public class ZWaveDeviceService implements ZWaveProtoService {
+@Service("zwaveDeviceService")
+public class ZWaveDeviceService implements ProtocolService<ZWaveDevice, ZWaveDeviceValue> {
 
 	@Autowired
 	private DeviceDAO deviceDAO;
@@ -41,7 +42,7 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 		return merge(dbDevice);
 	}
 
-	public List<ZWaveDevice> getZWaveDevices()
+	public List<ZWaveDevice> getDevices()
 	{
 		List<ZWaveDevice> ret = new ArrayList<>();
 
@@ -177,7 +178,12 @@ public class ZWaveDeviceService implements ZWaveProtoService {
 				DeviceValueChange changeDB = new DeviceValueChange();
 
 				changeDB.setDeviceValue(dv);
-				changeDB.setValue(deviceValue.getCurrentValue().toString());
+
+				if(deviceValue.getCurrentValue() != null)
+					changeDB.setValue(deviceValue.getCurrentValue().toString());
+				else
+					logger.debug("Skipping null ZWave value change");
+
 				changeDB.setAdditionalData(gson.toJson(deviceValue.getValueId(), ValueId.class));
 
 				dv.getChanges().add(changeDB);

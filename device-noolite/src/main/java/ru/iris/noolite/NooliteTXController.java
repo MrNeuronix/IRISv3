@@ -12,11 +12,11 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.Protocol;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.noolite.protocol.events.NooliteValueChanged;
 import ru.iris.noolite.protocol.model.NooliteDevice;
-import ru.iris.noolite.protocol.service.NooliteProtoService;
+import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,17 +25,17 @@ import java.util.Map;
 @Profile("noolite")
 @Qualifier("noolitetx")
 @Scope("singleton")
-public class NooliteTXController extends AbstractService implements Protocol {
+public class NooliteTXController extends AbstractService {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final NooliteProtoService service;
+	private final ProtocolService<NooliteDevice, NooliteDeviceValue> service;
 	private Map<Short, NooliteDevice> devices = new HashMap<>();
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public NooliteTXController(NooliteProtoService service, EventBus r, ConfigLoader config) {
+	public NooliteTXController(@Qualifier("nooliteDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
@@ -47,7 +47,7 @@ public class NooliteTXController extends AbstractService implements Protocol {
 		if(!config.loadPropertiesFormCfgDirectory("noolite"))
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
 
-		for(NooliteDevice device : service.getNooliteDevices()) {
+		for(NooliteDevice device : service.getDevices()) {
 			devices.put(device.getNode(), device);
 		}
 

@@ -13,7 +13,7 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.Protocol;
+import ru.iris.commons.protocol.ProtocolService;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
@@ -21,7 +21,6 @@ import ru.iris.commons.service.AbstractService;
 import ru.iris.zwave.protocol.events.*;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
-import ru.iris.zwave.protocol.service.ZWaveProtoService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,11 +30,11 @@ import java.util.concurrent.atomic.AtomicReference;
 @Profile("zwave")
 @Qualifier("zwave")
 @Scope("singleton")
-public class ZWaveController extends AbstractService implements Protocol {
+public class ZWaveController extends AbstractService {
 
 	private final EventBus r;
 	private final ConfigLoader config;
-	private final ZWaveProtoService service;
+	private final ProtocolService<ZWaveDevice, ZWaveDeviceValue> service;
 	private Map<Short, ZWaveDevice> devices = new HashMap<>();
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -43,7 +42,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 	private boolean ready = false;
 
 	@Autowired
-	public ZWaveController(ZWaveProtoService service, EventBus r, ConfigLoader config) {
+	public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolService service, EventBus r, ConfigLoader config) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
@@ -55,7 +54,7 @@ public class ZWaveController extends AbstractService implements Protocol {
 		if(!config.loadPropertiesFormCfgDirectory("zwave"))
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
 
-		for(ZWaveDevice device : service.getZWaveDevices()) {
+		for(ZWaveDevice device : service.getDevices()) {
 			devices.put(device.getNode(), device);
 		}
 
