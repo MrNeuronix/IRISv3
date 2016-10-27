@@ -49,10 +49,6 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 		this.config = config;
 	}
 
-	public Map<Byte, NooliteDevice> getDevices() {
-		return devices;
-	}
-
 	@Override
 	public void onStartup() {
 		logger.info("NooliteRXController started");
