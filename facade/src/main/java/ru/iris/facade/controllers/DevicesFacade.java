@@ -124,12 +124,13 @@ public class DevicesFacade {
 						}
 						break;
 				}
-				return new OkStatus();
+				return new OkStatus("message sent");
 			}
 		}
 		return new ErrorStatus("device not found");
 	}
 
+	// sent message
 	private void setDeviceLevel(Device device, Object message) {
 		r.notify("command.device." + device.getSourceProtocol().name().toLowerCase(), Event.wrap(message));
 	}
