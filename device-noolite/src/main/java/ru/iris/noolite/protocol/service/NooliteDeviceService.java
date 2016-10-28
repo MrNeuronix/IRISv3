@@ -214,5 +214,4 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 		return value;
 	}
-
 }

@@ -1,7 +1,6 @@
 package ru.iris.commons.protocol.abstracts;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import net.minidev.json.annotate.JsonIgnore;
 import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
@@ -22,8 +21,6 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	protected boolean readOnly = false;
 	protected ValueType type;
 	protected String additionalData;
-
-	@JsonIgnore
 	protected List<T> changes = new LinkedList<>();
 
 	@Override

@@ -1,8 +1,10 @@
 package ru.iris.zwave.protocol.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.zwave4j.ValueId;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
 public class ZWaveDeviceValue extends AbstractDeviceValue<ZWaveDeviceValueChange> {
 
 	private ValueId valueId;

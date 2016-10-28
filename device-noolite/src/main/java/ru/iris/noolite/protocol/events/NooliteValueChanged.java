@@ -1,49 +1,55 @@
 package ru.iris.noolite.protocol.events;
 
 import ru.iris.commons.bus.AbstractEvent;
+import ru.iris.noolite4j.watchers.Notification;
 
 public class NooliteValueChanged extends AbstractEvent {
 
-	private short node;
-	private String label;
-	private Object value;
+	private byte channel;
+	private byte level;
+	private Notification notification;
 
-	public NooliteValueChanged(short node, String label, Object value) {
-		this.node = node;
-		this.label = label;
-		this.value = value;
+	public NooliteValueChanged(byte channel, byte level) {
+		this.channel = channel;
+		this.level = level;
 	}
 
-	public short getNode() {
-		return node;
+	public NooliteValueChanged(byte channel, byte level, Notification notification) {
+		this.channel = channel;
+		this.level = level;
+		this.notification = notification;
 	}
 
-	public void setNode(short node) {
-		this.node = node;
+	public Notification getNotification() {
+		return notification;
 	}
 
-	public String getLabel() {
-		return label;
+	public void setNotification(Notification notification) {
+		this.notification = notification;
 	}
 
-	public void setLabel(String label) {
-		this.label = label;
+	public byte getChannel() {
+		return channel;
 	}
 
-	public Object getValue() {
-		return value;
+	public void setChannel(byte channel) {
+		this.channel = channel;
 	}
 
-	public void setValue(Object value) {
-		this.value = value;
+	public byte getLevel() {
+		return level;
+	}
+
+	public void setLevel(byte level) {
+		this.level = level;
 	}
 
 	@Override
 	public String toString() {
-		return "NooliteValueChanged{" +
-				"node=" + node +
-				", label='" + label + '\'' +
-				", value=" + value +
+		return "NooliteValueChangedl{" +
+				"channel=" + channel +
+				", level=" + level +
+				", notification=" + notification +
 				'}';
 	}
 }

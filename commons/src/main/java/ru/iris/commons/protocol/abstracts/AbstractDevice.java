@@ -1,6 +1,7 @@
 package ru.iris.commons.protocol.abstracts;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import ru.iris.commons.protocol.Device;
 import ru.iris.commons.protocol.Zone;
 import ru.iris.commons.protocol.enums.DeviceType;
@@ -16,7 +17,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 
 	protected long id;
 
-	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
+	@JsonIgnore
 	protected Date date;
 	protected Byte node;
 	protected String humanReadable;
@@ -34,6 +35,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	}
 
 	@Override
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	public Date getCreationDate() {
 		return date;
 	}

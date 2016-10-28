@@ -1,8 +1,10 @@
 package ru.iris.noolite.protocol.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
+@JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
 public class NooliteDeviceValue extends AbstractDeviceValue<NooliteDeviceValueChange> {
 
 	public NooliteDeviceValue() {
