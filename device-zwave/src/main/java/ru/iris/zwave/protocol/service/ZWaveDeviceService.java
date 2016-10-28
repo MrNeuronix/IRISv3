@@ -119,6 +119,8 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 			// fill values
 			if(zwdevice != null) {
 
+				ret.setHomeId(zwdevice.getHomeId());
+
 				ZWaveDeviceValue zValue = zwdevice.getDeviceValues().get(dv.getName());
 
 				if(zValue != null) {
