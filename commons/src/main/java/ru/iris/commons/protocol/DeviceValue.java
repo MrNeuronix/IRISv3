@@ -12,6 +12,7 @@ public interface DeviceValue<CHANGE> {
 	String getName();
 	<T> T getCurrentValue(Class<T> type);
 	Object getCurrentValue();
+	Date getLastUpdated();
 	void setCurrentValue(Object value);
 	void setName(String name);
 	void setUnits(String units);

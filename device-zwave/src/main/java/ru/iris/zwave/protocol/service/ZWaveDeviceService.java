@@ -20,10 +20,7 @@ import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValueChange;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("zwaveDeviceService")
 public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> {
@@ -224,6 +221,8 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		add.setValueId(value.getValueId());
 		add.setValue(value.getCurrentValue());
 		value.getChanges().add(add);
+
+		value.setLastUpdated(new Date());
 
 		return value;
 	}

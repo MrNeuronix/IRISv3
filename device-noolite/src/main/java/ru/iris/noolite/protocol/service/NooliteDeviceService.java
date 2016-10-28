@@ -18,10 +18,7 @@ import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service("nooliteDeviceService")
 public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
@@ -211,6 +208,8 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		add.setAdditionalData(value.getAdditionalData());
 		add.setValue(value.getCurrentValue());
 		value.getChanges().add(add);
+
+		value.setLastUpdated(new Date());
 
 		return value;
 	}

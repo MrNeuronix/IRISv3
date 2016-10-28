@@ -15,6 +15,9 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
 	protected Date date;
 
+	@JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+	protected Date lastUpdated;
+
 	protected String name;
 	protected Object currentValue;
 	protected String units;
@@ -22,6 +25,15 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	protected ValueType type;
 	protected String additionalData;
 	protected List<T> changes = new LinkedList<>();
+
+	@Override
+	public Date getLastUpdated() {
+		return lastUpdated;
+	}
+
+	public void setLastUpdated(Date lastUpdated) {
+		this.lastUpdated = lastUpdated;
+	}
 
 	@Override
 	public long getId() {
