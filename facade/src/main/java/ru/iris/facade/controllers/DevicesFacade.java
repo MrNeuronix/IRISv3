@@ -56,9 +56,9 @@ public class DevicesFacade {
 	public List<Device> getAllDevices(@PathVariable(value="source") String source) {
 
 		List<Device> ret = new ArrayList<>();
-		if(source.equals("all") || source.equals("zwave"))
+		if (zwave != null && (source.equals("all") || source.equals("zwave")))
 			ret.addAll(zwave.getDevices().values());
-		if(source.equals("all") || source.equals("noolite"))
+		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
 			ret.addAll(nooliteRx.getDevices().values());
 
 		return ret;
@@ -74,9 +74,9 @@ public class DevicesFacade {
 	@RequestMapping("/device/{source}/channel/{channel}")
 	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Byte channel) {
 		List<Device> ret = new ArrayList<>();
-		if (source.equals("zwave"))
+		if (zwave != null && (source.equals("all") || source.equals("zwave")))
 			ret.addAll(zwave.getDevices().values());
-		else if (source.equals("noolite"))
+		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
 			ret.addAll(nooliteRx.getDevices().values());
 
 		for (Device device : ret) {
@@ -99,9 +99,9 @@ public class DevicesFacade {
 	                                @PathVariable(value = "channel") Byte channel,
 	                                @PathVariable(value = "level") String level) {
 		List<Device> ret = new ArrayList<>();
-		if (source.equals("zwave"))
+		if (zwave != null && (source.equals("all") || source.equals("zwave")))
 			ret.addAll(zwave.getDevices().values());
-		else if (source.equals("noolite"))
+		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
 			ret.addAll(nooliteRx.getDevices().values());
 
 		for (Device device : ret) {
