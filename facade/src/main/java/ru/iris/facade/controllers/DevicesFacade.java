@@ -29,7 +29,7 @@ public class DevicesFacade {
 
 	private final ProtocolService<Device> zwave;
 	private final ProtocolService<Device> nooliteRx;
-	private final EventBus r;
+	private EventBus r;
 
 	private static final Logger logger = LoggerFactory.getLogger(DevicesFacade.class);
 
@@ -37,12 +37,15 @@ public class DevicesFacade {
 	public DevicesFacade(
 			@Qualifier("zwave") ProtocolService<Device> zwave,
 			@Qualifier("nooliterx") ProtocolService<Device> nooliteRx,
-			@Qualifier("noolitetx") ProtocolService<Device> nooliteTx,
-			EventBus r
+			@Qualifier("noolitetx") ProtocolService<Device> nooliteTx
 	)
 	{
 		this.zwave = zwave;
 		this.nooliteRx = nooliteRx;
+	}
+
+	@Autowired
+	public void setR(EventBus r) {
 		this.r = r;
 	}
 
