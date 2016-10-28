@@ -53,7 +53,7 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 
 		logger.debug("Load {} Noolite devices from database", devices.size());
 
-		PC1132 pc = new PC1132();
+		pc = new PC1132();
 		pc.open();
 	}
 
