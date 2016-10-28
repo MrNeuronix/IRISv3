@@ -4,17 +4,17 @@ import ru.iris.commons.bus.AbstractEvent;
 
 public class ZWaveDeviceOn extends AbstractEvent {
 
-	private Byte node;
+	private Short node;
 
-	public ZWaveDeviceOn(Byte node) {
+	public ZWaveDeviceOn(Short node) {
 		this.node = node;
 	}
 
-	public Byte getNode() {
+	public Short getNode() {
 		return node;
 	}
 
-	public void setNode(Byte node) {
+	public void setNode(Short node) {
 		this.node = node;
 	}
 

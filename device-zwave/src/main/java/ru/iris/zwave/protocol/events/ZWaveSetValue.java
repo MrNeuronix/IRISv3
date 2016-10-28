@@ -4,21 +4,21 @@ import ru.iris.commons.bus.AbstractEvent;
 
 public class ZWaveSetValue extends AbstractEvent {
 
-	private Byte node;
+	private Short node;
 	private String label;
 	private String value;
 
-	public ZWaveSetValue(Byte node, String label, String value) {
+	public ZWaveSetValue(Short node, String label, String value) {
 		this.node = node;
 		this.label = label;
 		this.value = value;
 	}
 
-	public Byte getNode() {
+	public Short getNode() {
 		return node;
 	}
 
-	public void setNode(Byte node) {
+	public void setNode(Short node) {
 		this.node = node;
 	}
 

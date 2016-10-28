@@ -5,8 +5,7 @@ import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 
@@ -24,7 +23,7 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	protected boolean readOnly = false;
 	protected ValueType type;
 	protected String additionalData;
-	protected List<T> changes = new LinkedList<>();
+	protected ConcurrentLinkedQueue<T> changes = new ConcurrentLinkedQueue<>();
 
 	@Override
 	public Date getLastUpdated() {
@@ -63,7 +62,7 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	}
 
 	@Override
-	public <T> T getCurrentValue(Class<T> type) {
+	public <TYPE> TYPE getCurrentValue(Class<TYPE> type) {
 		return type.cast(currentValue);
 	}
 
@@ -114,11 +113,11 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	}
 
 	@Override
-	public List<T> getChanges() {
+	public ConcurrentLinkedQueue<T> getChanges() {
 		return changes;
 	}
 
-	public void setChanges(List<T> changes) {
+	public void setChanges(ConcurrentLinkedQueue<T> changes) {
 		this.changes = changes;
 	}
 

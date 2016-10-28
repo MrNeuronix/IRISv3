@@ -168,6 +168,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 			}
 
 			isNew = true;
+			device = service.saveIntoDatabase(device);
 		}
 
 		// turn off
@@ -279,7 +280,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 
 		// save/replace device in devices pool
 		if (isNew) {
-			devices.put(channel, service.saveIntoDatabase(device));
+			devices.put(channel, device);
 			broadcast("event.device.noolite.added", new NooliteDeviceAdded(notification));
 		} else
 			devices.replace(channel, device);

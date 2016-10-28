@@ -9,9 +9,9 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractDevice<T> implements Device<T> {
 
@@ -27,7 +27,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	protected DeviceType type;
 	protected Zone zone;
 	protected State state;
-	protected Map<String, T> values = new HashMap<>();
+	protected Map<String, T> values = new ConcurrentHashMap<>();
 
 	@Override
 	public long getId() {

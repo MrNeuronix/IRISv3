@@ -90,7 +90,7 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 				DeviceSetValue n = (DeviceSetValue) event.getData();
 				if (n.getName().equals("level")) {
 					logger.info("Set level {} on channel {}", n.getValue(), n.getChannel());
-					pc.setLevel(n.getChannel().byteValue(), (Byte) n.getValue());
+					pc.setLevel(n.getChannel().byteValue(), ((Short) n.getValue()).byteValue());
 					broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (Short) n.getValue()));
 				} else {
 					logger.info("Unknown value passed for NooliteTX: {} -> {}", n.getName(), n.getValue());
