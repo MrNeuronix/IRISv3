@@ -4,17 +4,17 @@ import ru.iris.commons.bus.AbstractEvent;
 
 public class DeviceOff extends AbstractEvent {
 
-	private byte channel;
+	private Short channel;
 
-	public DeviceOff(byte channel) {
+	public DeviceOff(Short channel) {
 		this.channel = channel;
 	}
 
-	public byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 

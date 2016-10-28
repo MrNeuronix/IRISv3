@@ -51,7 +51,7 @@ public class ZWaveTests {
 		device = new ZWaveDevice();
 		device.setHumanReadable("Device 1");
 		device.setDate(new Date());
-		device.setNode((byte) 1);
+		device.setChannel((short) 1);
 		device.setType(DeviceType.BINARY_SWITCH);
 		device.setSource(SourceProtocol.ZWAVE);
 		device.setManufacturer("Test manufact");
@@ -63,7 +63,7 @@ public class ZWaveTests {
 		device2 = new ZWaveDevice();
 		device2.setHumanReadable("Device 2");
 		device2.setDate(new Date());
-		device2.setNode((byte) 2);
+		device2.setChannel((short) 2);
 		device2.setType(DeviceType.TEMP_HUMI_SENSOR);
 		device2.setSource(SourceProtocol.UNKNOWN);
 		device2.setManufacturer("Test manufact 2");

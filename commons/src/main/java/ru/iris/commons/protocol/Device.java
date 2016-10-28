@@ -11,7 +11,7 @@ public interface Device<T> {
 
 	long getId();
 	Date getCreationDate();
-	Byte getNode();
+	Short getChannel();
 	String getHumanReadableName();
 	String getManufacturer();
 	String getProductName();

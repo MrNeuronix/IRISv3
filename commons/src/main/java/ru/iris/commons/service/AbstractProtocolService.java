@@ -22,7 +22,7 @@ public abstract class AbstractProtocolService<DEVICE> implements ProtocolService
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	protected Map<Byte, DEVICE> devices = new HashMap<>();
+	protected Map<Short, DEVICE> devices = new HashMap<>();
 
 	@Override
 	@PostConstruct
@@ -54,11 +54,11 @@ public abstract class AbstractProtocolService<DEVICE> implements ProtocolService
 	}
 
 	@Override
-	public Map<Byte, DEVICE> getDevices() {
+	public Map<Short, DEVICE> getDevices() {
 		return devices;
 	}
 
-	public void setDevices(Map<Byte, DEVICE> devices) {
+	public void setDevices(Map<Short, DEVICE> devices) {
 		this.devices = devices;
 	}
 }

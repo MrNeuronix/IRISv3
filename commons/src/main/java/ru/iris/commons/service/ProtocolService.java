@@ -19,6 +19,6 @@ public interface ProtocolService<DEVICE> {
 	void broadcast(String queue, Object object);
 	void run() throws Exception;
 
-	Map<Byte, DEVICE> getDevices();
+	Map<Short, DEVICE> getDevices();
 
 }

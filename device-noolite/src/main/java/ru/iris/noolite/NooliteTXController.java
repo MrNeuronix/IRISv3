@@ -48,7 +48,7 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
 
 		for(NooliteDevice device : service.getDevices()) {
-			devices.put(device.getNode(), device);
+			devices.put(device.getChannel(), device);
 		}
 
 		logger.debug("Load {} Noolite devices from database", devices.size());
@@ -81,19 +81,19 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 			if (event.getData() instanceof DeviceOn) {
 				DeviceOn n = (DeviceOn) event.getData();
 				logger.info("Turn ON device on channel {}", n.getChannel());
-				pc.turnOn(n.getChannel());
-				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (byte) 255));
+				pc.turnOn(n.getChannel().byteValue());
+				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (short) 255));
 			} else if (event.getData() instanceof DeviceOff) {
 				DeviceOff n = (DeviceOff) event.getData();
 				logger.info("Turn OFF device on channel {}", n.getChannel());
-				pc.turnOff(n.getChannel());
-				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (byte) 0));
+				pc.turnOff(n.getChannel().byteValue());
+				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (short) 0));
 			} else if (event.getData() instanceof DeviceSetValue) {
 				DeviceSetValue n = (DeviceSetValue) event.getData();
 				if (n.getName().equals("level")) {
 					logger.info("Set level {} on channel {}", n.getValue(), n.getChannel());
-					pc.setLevel(n.getChannel(), (Byte) n.getValue());
-					broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (Byte) n.getValue()));
+					pc.setLevel(n.getChannel().byteValue(), (Byte) n.getValue());
+					broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (Short) n.getValue()));
 				} else {
 					logger.info("Unknown value passed for NooliteTX: {} -> {}", n.getName(), n.getValue());
 				}

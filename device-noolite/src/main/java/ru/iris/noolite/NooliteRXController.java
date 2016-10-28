@@ -55,7 +55,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
 
 		for(NooliteDevice device : service.getDevices()) {
-			devices.put(device.getNode(), device);
+			devices.put(device.getChannel(), device);
 		}
 
 		logger.debug("Load {} Noolite devices from database", devices.size());
@@ -82,12 +82,12 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 				NooliteBindRXChannel n = (NooliteBindRXChannel) event.getData();
 				logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
 				logger.info("Binding device to RX channel {}", n.getChannel());
-				rx.bindChannel(n.getChannel());
+				rx.bindChannel(n.getChannel().byteValue());
 			} else if (event.getData() instanceof NooliteUnbindRXChannel) {
 				NooliteBindRXChannel n = (NooliteBindRXChannel) event.getData();
 				logger.debug("Get UnbindRXChannel advertisement (channel {})",n.getChannel());
 				logger.info("Unbinding device from RX channel {}", n.getChannel());
-				rx.unbindChannel(n.getChannel());
+				rx.unbindChannel(n.getChannel().byteValue());
 			} else if (event.getData() instanceof NooliteUnbindAllRXChannels) {
 				logger.debug("Get UnbindAllRXChannel advertisement");
 				logger.info("Unbinding all RX channels");
@@ -132,7 +132,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 	private void doWork(Notification notification) {
 
 		boolean isNew = false;
-		byte channel = notification.getChannel();
+		Short channel = (short) notification.getChannel();
 		SensorType sensor = (SensorType) notification.getValue("sensortype");
 
 		logger.debug("Message to RX from channel " + channel);
@@ -146,7 +146,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 			device.setState(State.ACTIVE);
 			device.setType(DeviceType.UNKNOWN);
 			device.setManufacturer("Nootechnika");
-			device.setNode(channel);
+			device.setChannel(channel);
 
 			// device is sensor
 			if (sensor != null) {
@@ -221,7 +221,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 					device.setType(DeviceType.MULTILEVEL_SWITCH);
 				}
 
-				broadcast("event.device.noolite.setlevel", new NooliteDeviceSetLevel(channel, (byte) notification.getValue("level")));
+				broadcast("event.device.noolite.setlevel", new NooliteDeviceSetLevel(channel, (short) notification.getValue("level")));
 				break;
 
 			case STOP_DIM_BRIGHT:
@@ -284,7 +284,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 
 	private void saveIntoDB() {
 		for(NooliteDevice device : devices.values()) {
-			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
+			devices.replace(device.getChannel(), device, service.saveIntoDatabase(device));
 		}
 	}
 

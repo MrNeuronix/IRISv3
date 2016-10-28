@@ -4,17 +4,17 @@ import ru.iris.commons.bus.AbstractEvent;
 
 public class NooliteBindRXChannel extends AbstractEvent {
 
-	private byte channel;
+	private Short channel;
 
-	public NooliteBindRXChannel(byte channel) {
+	public NooliteBindRXChannel(Short channel) {
 		this.channel = channel;
 	}
 
-	public byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 

@@ -4,11 +4,11 @@ import ru.iris.commons.bus.AbstractEvent;
 
 public class DeviceSetValue extends AbstractEvent {
 
-	private byte channel;
+	private Short channel;
 	private String name;
 	private Object value;
 
-	public DeviceSetValue(byte channel, String name, Object value) {
+	public DeviceSetValue(Short channel, String name, Object value) {
 		this.channel = channel;
 		this.name = name;
 		this.value = value;
@@ -23,11 +23,11 @@ public class DeviceSetValue extends AbstractEvent {
 				'}';
 	}
 
-	public byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 

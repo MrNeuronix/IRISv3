@@ -82,7 +82,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		ret.setId(device.getId());
 		ret.setDate(device.getDate());
 		ret.setHumanReadable(device.getHumanReadable());
-		ret.setNode(device.getChannel());
+		ret.setChannel(device.getChannel());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
@@ -152,7 +152,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		}
 
 		ret.setHumanReadable(device.getHumanReadableName());
-		ret.setChannel(device.getNode());
+		ret.setChannel(device.getChannel());
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());

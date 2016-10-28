@@ -12,7 +12,7 @@ public class NooliteDevice extends AbstractDevice<NooliteDeviceValue> {
 				", humanReadable='" + humanReadable + '\'' +
 				", manufacturer='" + manufacturer + '\'' +
 				", productName='" + productName + '\'' +
-				", node=" + node +
+				", channel=" + channel +
 				", source=" + source +
 				", type=" + type +
 				", zone=" + zone +

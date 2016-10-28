@@ -21,7 +21,7 @@ public class Device {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 
-	private Byte channel;
+	private Short channel;
 
 	private String humanReadable;
 	private String manufacturer;
@@ -71,11 +71,11 @@ public class Device {
 		this.humanReadable = humanReadable;
 	}
 
-	public Byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(Byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 

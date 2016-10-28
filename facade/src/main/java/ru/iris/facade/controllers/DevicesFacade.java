@@ -75,7 +75,7 @@ public class DevicesFacade {
 	 * @return device
 	 */
 	@RequestMapping("/device/{source}/channel/{channel}")
-	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Byte channel) {
+	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Short channel) {
 		List<Device> ret = new ArrayList<>();
 		if (zwave != null && (source.equals("all") || source.equals("zwave")))
 			ret.addAll(zwave.getDevices().values());
@@ -83,7 +83,7 @@ public class DevicesFacade {
 			ret.addAll(nooliteRx.getDevices().values());
 
 		for (Device device : ret) {
-			if (Objects.equals(device.getNode(), channel))
+			if (Objects.equals(device.getChannel(), channel))
 				return device;
 		}
 		return new ErrorStatus("device not found");
@@ -99,7 +99,7 @@ public class DevicesFacade {
 	 */
 	@RequestMapping("/device/{source}/channel/{channel}/{level}")
 	public Object onDeviceByChannel(@PathVariable(value = "source") String source,
-	                                @PathVariable(value = "channel") Byte channel,
+	                                @PathVariable(value = "channel") Short channel,
 	                                @PathVariable(value = "level") String level) {
 		List<Device> ret = new ArrayList<>();
 		if (zwave != null && (source.equals("all") || source.equals("zwave")))
@@ -108,20 +108,24 @@ public class DevicesFacade {
 			ret.addAll(nooliteRx.getDevices().values());
 
 		for (Device device : ret) {
-			if (Objects.equals(device.getNode(), channel)) {
+			if (Objects.equals(device.getChannel(), channel)) {
 				switch (level) {
 					case "on":
 					case "255":
-						setDeviceLevel(device, new DeviceOn(device.getNode()));
+						setDeviceLevel(device, new DeviceOn(device.getChannel()));
 						break;
 					case "off":
 					case "0":
-						setDeviceLevel(device, new DeviceOff(device.getNode()));
+						setDeviceLevel(device, new DeviceOff(device.getChannel()));
 						break;
 					default:
 						try {
-							Byte bLevel = Byte.valueOf(level);
-							setDeviceLevel(device, new DeviceSetValue(device.getNode(), "level", bLevel));
+							Short bLevel = Short.valueOf(level);
+
+							if (bLevel > 0 && bLevel < 255)
+								setDeviceLevel(device, new DeviceSetValue(device.getChannel(), "level", bLevel));
+							else
+								return new ErrorStatus("incorrect value level");
 						} catch (NumberFormatException ex) {
 							return new ErrorStatus("parse error");
 						}

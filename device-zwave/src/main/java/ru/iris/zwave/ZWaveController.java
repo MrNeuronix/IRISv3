@@ -54,7 +54,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
 
 		for(ZWaveDevice device : service.getDevices()) {
-			devices.put(device.getNode(), device);
+			devices.put(device.getChannel(), device);
 		}
 
 		logger.debug("Load {} ZWave devices from database", devices.size());
@@ -117,7 +117,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 		NotificationWatcher watcher = (notification, context) -> {
 
-			Byte node = (byte) notification.getNodeId();
+			Short node = notification.getNodeId();
 			ZWaveDevice device = null;
 
 			switch (notification.getType()) {
@@ -305,7 +305,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					broadcast("event.device.zwave", removed);
 
 					if (!manager.getValueLabel(notification.getValueId()).isEmpty()) {
-						logger.info("Node {}: Value \"{}\" removed", device.getNode(), manager.getValueLabel(notification.getValueId()));
+						logger.info("Node {}: Value \"{}\" removed", device.getChannel(), manager.getValueLabel(notification.getValueId()));
 					}
 
 					break;
@@ -319,13 +319,13 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					}
 
 					// Check for awaked after sleeping nodes
-					if (manager.isNodeAwake(homeId, device.getNode()) && device.getState().equals(State.SLEEPING)) {
-						logger.info("Setting node {}  to LISTEN state", device.getNode());
+					if (manager.isNodeAwake(homeId, device.getChannel()) && device.getState().equals(State.SLEEPING)) {
+						logger.info("Setting node {}  to LISTEN state", device.getChannel());
 						device.setState(State.ACTIVE);
 					}
 
 					logger.info("Node " +
-							device.getNode() + ": " +
+							device.getChannel() + ": " +
 							"Value for label \"" + manager.getValueLabel(notification.getValueId()) + "\" changed --> " +
 							"\"" + getValue(notification.getValueId()) + "\"");
 
@@ -385,7 +385,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 	private void saveIntoDB() {
 		for(ZWaveDevice device : devices.values()) {
-			devices.replace(device.getNode(), device, service.saveIntoDatabase(device));
+			devices.replace(device.getChannel(), device, service.saveIntoDatabase(device));
 		}
 	}
 
@@ -394,10 +394,10 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 		String label = Manager.get().getValueLabel(notification.getValueId());
 		String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
 		String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
-		ZWaveDevice device = devices.get((byte)notification.getNodeId());
+		Short node = notification.getNodeId();
+		ZWaveDevice device = devices.get(node);
 		boolean listen = false;
 		ValueId valueId = notification.getValueId();
-		Byte node = (byte) notification.getNodeId();
 
 		if (Manager.get().requestNodeState(homeId, node))
 		{
@@ -410,7 +410,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			device = new ZWaveDevice();
 
 			device.setType(type);
-			device.setNode(node);
+			device.setChannel(node);
 			device.setManufacturer(manufName);
 			device.setProductName(productName);
 			device.setHumanReadable("zwave/node/"+node);

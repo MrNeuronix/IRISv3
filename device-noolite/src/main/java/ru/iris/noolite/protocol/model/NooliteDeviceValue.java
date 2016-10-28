@@ -10,7 +10,7 @@ public class NooliteDeviceValue extends AbstractDeviceValue<NooliteDeviceValueCh
 	public NooliteDeviceValue() {
 	}
 
-	public NooliteDeviceValue(String name, byte value, ValueType type) {
+	public NooliteDeviceValue(String name, Short value, ValueType type) {
 		super.name = name;
 		super.currentValue = value;
 		super.type = type;

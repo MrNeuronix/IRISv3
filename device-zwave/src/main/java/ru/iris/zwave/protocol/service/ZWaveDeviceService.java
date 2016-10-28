@@ -90,7 +90,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		ret.setType(device.getType());
 		ret.setSource(SourceProtocol.ZWAVE);
 		ret.setState(State.UNKNOWN);
-		ret.setNode(device.getChannel());
+		ret.setChannel(device.getChannel());
 
 		if(device.getZone() != null) {
 
@@ -161,7 +161,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		ret.setManufacturer(device.getManufacturer());
 		ret.setProductName(device.getProductName());
 		ret.setType(device.getType());
-		ret.setChannel(device.getNode());
+		ret.setChannel(device.getChannel());
 		ret.setSource(SourceProtocol.ZWAVE);
 
 		if(creating && device.getZone() != null)

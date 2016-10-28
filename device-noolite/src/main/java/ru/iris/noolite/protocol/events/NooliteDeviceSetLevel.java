@@ -1,46 +1,30 @@
 package ru.iris.noolite.protocol.events;
 
 import ru.iris.commons.bus.AbstractEvent;
-import ru.iris.noolite4j.watchers.Notification;
 
 public class NooliteDeviceSetLevel extends AbstractEvent {
 
-	private byte channel;
-	private byte level;
-	private Notification notification;
+	private Short channel;
+	private Short level;
 
-	public NooliteDeviceSetLevel(byte channel, byte level) {
+	public NooliteDeviceSetLevel(Short channel, Short level) {
 		this.channel = channel;
 		this.level = level;
 	}
 
-	public NooliteDeviceSetLevel(byte channel, byte level, Notification notification) {
-		this.channel = channel;
-		this.level = level;
-		this.notification = notification;
-	}
-
-	public Notification getNotification() {
-		return notification;
-	}
-
-	public void setNotification(Notification notification) {
-		this.notification = notification;
-	}
-
-	public byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 
-	public byte getLevel() {
+	public Short getLevel() {
 		return level;
 	}
 
-	public void setLevel(byte level) {
+	public void setLevel(Short level) {
 		this.level = level;
 	}
 
@@ -49,7 +33,6 @@ public class NooliteDeviceSetLevel extends AbstractEvent {
 		return "NooliteDeviceSetLevel{" +
 				"channel=" + channel +
 				", level=" + level +
-				", notification=" + notification +
 				'}';
 	}
 }

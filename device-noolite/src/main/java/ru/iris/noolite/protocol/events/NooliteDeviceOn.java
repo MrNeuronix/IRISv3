@@ -1,35 +1,20 @@
 package ru.iris.noolite.protocol.events;
 
 import ru.iris.commons.bus.AbstractEvent;
-import ru.iris.noolite4j.watchers.Notification;
 
 public class NooliteDeviceOn extends AbstractEvent {
 
-	private byte channel;
-	private Notification notification;
+	private Short channel;
 
-	public NooliteDeviceOn(byte channel) {
+	public NooliteDeviceOn(Short channel) {
 		this.channel = channel;
 	}
 
-	public NooliteDeviceOn(byte channel, Notification notification) {
-		this.channel = channel;
-		this.notification = notification;
-	}
-
-	public Notification getNotification() {
-		return notification;
-	}
-
-	public void setNotification(Notification notification) {
-		this.notification = notification;
-	}
-
-	public byte getChannel() {
+	public Short getChannel() {
 		return channel;
 	}
 
-	public void setChannel(byte channel) {
+	public void setChannel(Short channel) {
 		this.channel = channel;
 	}
 
@@ -37,7 +22,6 @@ public class NooliteDeviceOn extends AbstractEvent {
 	public String toString() {
 		return "NooliteDeviceOn{" +
 				"channel=" + channel +
-				", notification=" + notification +
 				'}';
 	}
 }

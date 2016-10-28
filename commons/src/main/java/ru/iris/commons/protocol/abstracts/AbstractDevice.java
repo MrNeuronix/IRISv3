@@ -19,7 +19,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 
 	@JsonIgnore
 	protected Date date;
-	protected Byte node;
+	protected Short channel;
 	protected String humanReadable;
 	protected String manufacturer;
 	protected String productName;
@@ -122,12 +122,12 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	}
 
 	@Override
-	public Byte getNode() {
-		return node;
+	public Short getChannel() {
+		return channel;
 	}
 
-	public void setNode(Byte node) {
-		this.node = node;
+	public void setChannel(Short channel) {
+		this.channel = channel;
 	}
 
 	@Override
@@ -137,7 +137,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 		AbstractDevice that = (AbstractDevice) o;
 		return id == that.id &&
 				Objects.equals(date, that.date) &&
-				Objects.equals(node, that.node) &&
+				Objects.equals(channel, that.channel) &&
 				Objects.equals(humanReadable, that.humanReadable) &&
 				Objects.equals(manufacturer, that.manufacturer) &&
 				Objects.equals(productName, that.productName) &&
@@ -150,7 +150,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, date, node, humanReadable, manufacturer, productName, source, type, zone, state, values);
+		return Objects.hash(id, date, channel, humanReadable, manufacturer, productName, source, type, zone, state, values);
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 		return "AbstractDevice{" +
 				"id=" + id +
 				", date=" + date +
-				", node='" + node + '\'' +
+				", node='" + channel + '\'' +
 				", humanReadable='" + humanReadable + '\'' +
 				", manufacturer='" + manufacturer + '\'' +
 				", productName='" + productName + '\'' +

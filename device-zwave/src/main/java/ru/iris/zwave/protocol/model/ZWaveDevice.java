@@ -36,7 +36,7 @@ public class ZWaveDevice extends AbstractDevice<ZWaveDeviceValue> {
 				", manufacturer='" + manufacturer + '\'' +
 				", productName='" + productName + '\'' +
 				", homeId=" + homeId +
-				", node=" + node +
+				", channel=" + channel +
 				", source=" + source +
 				", type=" + type +
 				", zone=" + zone +
