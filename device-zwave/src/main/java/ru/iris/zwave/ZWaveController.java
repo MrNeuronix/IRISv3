@@ -12,6 +12,7 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.bus.devices.*;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
@@ -76,23 +77,23 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return event -> {
-			if (event.getData() instanceof ZWaveDeviceOn) {
-				ZWaveDeviceOn z = (ZWaveDeviceOn) event.getData();
-				deviceSetLevel(z.getNode(), 255);
-			} else if (event.getData() instanceof ZWaveDeviceOff) {
-				ZWaveDeviceOff z = (ZWaveDeviceOff) event.getData();
-				deviceSetLevel(z.getNode(), 0);
-			} else if (event.getData() instanceof ZWaveSetValue) {
-				ZWaveSetValue z = (ZWaveSetValue) event.getData();
-				deviceSetLevel(z.getNode(), z.getLabel(), z.getValue());
-			} else if (event.getData() instanceof ZWaveDeviceAddRequest) {
+			if (event.getData() instanceof DeviceOn) {
+				DeviceOn z = (DeviceOn) event.getData();
+				deviceSetLevel(z.getChannel(), 255);
+			} else if (event.getData() instanceof DeviceOff) {
+				DeviceOff z = (DeviceOff) event.getData();
+				deviceSetLevel(z.getChannel(), 0);
+			} else if (event.getData() instanceof DeviceSetValue) {
+				DeviceSetValue z = (DeviceSetValue) event.getData();
+				deviceSetLevel(z.getChannel(), z.getName(), String.valueOf(z.getValue()));
+			} else if (event.getData() instanceof DeviceAdd) {
 				logger.info("Set controller into AddDevice mode");
 				Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);
-			} else if (event.getData() instanceof ZWaveDeviceRemoveRequest) {
-				ZWaveDeviceRemoveRequest z = (ZWaveDeviceRemoveRequest) event.getData();
+			} else if (event.getData() instanceof DeviceRemove) {
+				DeviceRemove z = (DeviceRemove) event.getData();
 				logger.info("Set controller into RemoveDevice mode for node {}", z.getNode());
 				Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, z.getNode());
-			} else if (event.getData() instanceof ZWaveDeviceCancelRequest) {
+			} else if (event.getData() instanceof DeviceCancelRequest) {
 				logger.info("Canceling controller command");
 				Manager.get().cancelControllerCommand(homeId);
 			} else {
@@ -608,11 +609,11 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 		}
 	}
 
-	private void deviceSetLevel(Byte node, int level) {
+	private void deviceSetLevel(Short node, int level) {
 		deviceSetLevel(node, "Level", String.valueOf(level));
 	}
 
-	private void deviceSetLevel(Byte node, String label, String level)
+	private void deviceSetLevel(Short node, String label, String level)
 	{
 		ZWaveDevice device = devices.get(node);
 

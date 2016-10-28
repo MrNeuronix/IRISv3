@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.bus.devices.DeviceAdd;
+import ru.iris.commons.bus.devices.DeviceRemove;
+import ru.iris.commons.bus.devices.DeviceRemoveAll;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
@@ -78,17 +81,17 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return event -> {
-			if (event.getData() instanceof NooliteBindRXChannel) {
-				NooliteBindRXChannel n = (NooliteBindRXChannel) event.getData();
-				logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
-				logger.info("Binding device to RX channel {}", n.getChannel());
-				rx.bindChannel(n.getChannel().byteValue());
-			} else if (event.getData() instanceof NooliteUnbindRXChannel) {
-				NooliteBindRXChannel n = (NooliteBindRXChannel) event.getData();
-				logger.debug("Get UnbindRXChannel advertisement (channel {})",n.getChannel());
-				logger.info("Unbinding device from RX channel {}", n.getChannel());
-				rx.unbindChannel(n.getChannel().byteValue());
-			} else if (event.getData() instanceof NooliteUnbindAllRXChannels) {
+			if (event.getData() instanceof DeviceAdd) {
+				DeviceAdd n = (DeviceAdd) event.getData();
+				logger.debug("Get BindRXChannel advertisement (channel {})", n.getNode());
+				logger.info("Binding device to RX channel {}", n.getNode());
+				rx.bindChannel(n.getNode().byteValue());
+			} else if (event.getData() instanceof DeviceRemove) {
+				DeviceRemove n = (DeviceRemove) event.getData();
+				logger.debug("Get UnbindRXChannel advertisement (channel {})", n.getNode());
+				logger.info("Unbinding device from RX channel {}", n.getNode());
+				rx.unbindChannel(n.getNode().byteValue());
+			} else if (event.getData() instanceof DeviceRemoveAll) {
 				logger.debug("Get UnbindAllRXChannel advertisement");
 				logger.info("Unbinding all RX channels");
 				rx.unbindAllChannels();

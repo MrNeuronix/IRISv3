@@ -10,9 +10,7 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.DeviceOff;
-import ru.iris.commons.bus.devices.DeviceOn;
-import ru.iris.commons.bus.devices.DeviceSetValue;
+import ru.iris.commons.bus.devices.*;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -97,6 +95,16 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 				} else {
 					logger.info("Unknown value passed for NooliteTX: {} -> {}", n.getName(), n.getValue());
 				}
+			} else if (event.getData() instanceof DeviceAdd) {
+				DeviceAdd n = (DeviceAdd) event.getData();
+				logger.info("Incoming bind TX to channel {} request", n.getNode());
+				pc.bindChannel(n.getNode().byteValue());
+			} else if (event.getData() instanceof DeviceRemove) {
+				DeviceRemove n = (DeviceRemove) event.getData();
+				logger.info("Incoming unbind TX from channel {} request", n.getNode());
+				pc.unbindChannel(n.getNode().byteValue());
+			} else if (event.getData() instanceof DeviceRemoveAll) {
+				logger.info("Incoming unbind all TX channels request");
 			} else {
 				// We received unknown request message. Lets make generic log entry.
 				logger.info("Received unknown request for noolitetx service! Class: {}", event.getData().getClass());
