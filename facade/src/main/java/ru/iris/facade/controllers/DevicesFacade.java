@@ -71,7 +71,7 @@ public class DevicesFacade {
 	 * @param channel channel of device
 	 * @return device
 	 */
-	@RequestMapping("/devices/{source}/channel/{channel}")
+	@RequestMapping("/device/{source}/channel/{channel}")
 	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Byte channel) {
 		List<Device> ret = new ArrayList<>();
 		if (source.equals("zwave"))
@@ -94,7 +94,7 @@ public class DevicesFacade {
 	 * @param level   level for set (can be on/off/0-255)
 	 * @return ok or error status
 	 */
-	@RequestMapping("/devices/{source}/channel/{channel}/{level}")
+	@RequestMapping("/device/{source}/channel/{channel}/{level}")
 	public Object onDeviceByChannel(@PathVariable(value = "source") String source,
 	                                @PathVariable(value = "channel") Byte channel,
 	                                @PathVariable(value = "level") String level) {
