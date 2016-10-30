@@ -55,7 +55,7 @@ public class DevicesFacade {
 	 * @param source source protocol (optional)
 	 * @return list of devices
 	 */
-	@RequestMapping(value = "/devices/{source}", method = RequestMethod.GET)
+	@RequestMapping(value = "/api/devices/{source}", method = RequestMethod.GET)
 	public List<Device> getAllDevices(@PathVariable(value="source") String source) {
 
 		List<Device> ret = new ArrayList<>();
@@ -74,7 +74,7 @@ public class DevicesFacade {
 	 * @param channel channel of device
 	 * @return device
 	 */
-	@RequestMapping("/device/{source}/channel/{channel}")
+	@RequestMapping("/api/device/{source}/channel/{channel}")
 	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Short channel) {
 		List<Device> ret = new ArrayList<>();
 		if (zwave != null && (source.equals("all") || source.equals("zwave")))
@@ -97,7 +97,7 @@ public class DevicesFacade {
 	 * @param level   level for set (can be on/off/0-255)
 	 * @return ok or error status
 	 */
-	@RequestMapping("/device/{source}/channel/{channel}/{level}")
+	@RequestMapping("/api/device/{source}/channel/{channel}/{level}")
 	public Object onDeviceByChannel(@PathVariable(value = "source") String source,
 	                                @PathVariable(value = "channel") Short channel,
 	                                @PathVariable(value = "level") String level) {

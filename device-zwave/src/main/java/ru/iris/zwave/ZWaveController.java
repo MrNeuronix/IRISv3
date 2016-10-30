@@ -80,12 +80,15 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			if (event.getData() instanceof DeviceOn) {
 				DeviceOn z = (DeviceOn) event.getData();
 				deviceSetLevel(z.getChannel(), 255);
+				broadcast("event.device.zwave.on", new ZWaveDeviceOn(z.getChannel()));
 			} else if (event.getData() instanceof DeviceOff) {
 				DeviceOff z = (DeviceOff) event.getData();
 				deviceSetLevel(z.getChannel(), 0);
+				broadcast("event.device.zwave.off", new ZWaveDeviceOff(z.getChannel()));
 			} else if (event.getData() instanceof DeviceSetValue) {
 				DeviceSetValue z = (DeviceSetValue) event.getData();
 				deviceSetLevel(z.getChannel(), z.getName(), String.valueOf(z.getValue()));
+				broadcast("event.device.zwave.setlevel", new ZWaveSetValue(z.getChannel(), z.getName(), z.getValue().toString()));
 			} else if (event.getData() instanceof DeviceAdd) {
 				logger.info("Set controller into AddDevice mode");
 				Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);

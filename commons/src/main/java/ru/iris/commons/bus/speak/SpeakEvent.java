@@ -1,4 +1,4 @@
-package ru.iris.speak.model.bus;
+package ru.iris.commons.bus.speak;
 
 import ru.iris.commons.bus.AbstractEvent;
 import ru.iris.commons.database.model.Zone;
