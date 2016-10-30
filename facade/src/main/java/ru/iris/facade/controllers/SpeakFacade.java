@@ -8,9 +8,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import reactor.bus.Event;
 import reactor.bus.EventBus;
-import ru.iris.commons.bus.speak.SpeakEvent;
+import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.commons.service.Speak;
 import ru.iris.facade.status.ErrorStatus;
 import ru.iris.facade.status.OkStatus;
@@ -52,12 +51,12 @@ public class SpeakFacade {
 			all = true;
 
 		if(text != null && !text.isEmpty()) {
-			r.notify("event.speak", Event.wrap(new SpeakEvent(text)));
+			SpeakHelper.say(r, text);
 		}
 		else {
 			new ErrorStatus("empty text passed");
 		}
 
-		return new OkStatus();
+		return new OkStatus("Saying: " + text);
 	}
 }
