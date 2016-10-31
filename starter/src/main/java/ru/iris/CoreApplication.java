@@ -11,8 +11,8 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.config.ReactorConfig;
-import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.service.ProtocolService;
+import ru.iris.commons.service.Service;
 import ru.iris.commons.service.Speak;
 
 import javax.annotation.PostConstruct;
@@ -23,6 +23,7 @@ import javax.annotation.PostConstruct;
 public class CoreApplication {
 
 	private final Speak speak;
+	private final Service events;
 	private final ProtocolService zwave;
 	private final ProtocolService nooliteRx;
 	private final ProtocolService nooliteTx;
@@ -34,13 +35,15 @@ public class CoreApplication {
 			Speak speak,
 			@Qualifier("zwave") ProtocolService zwave,
 			@Qualifier("nooliterx") ProtocolService nooliteRx,
-			@Qualifier("noolitetx") ProtocolService nooliteTx
+			@Qualifier("noolitetx") ProtocolService nooliteTx,
+			@Qualifier("events") Service events
 	)
 	{
 		this.speak = speak;
 		this.zwave = zwave;
 		this.nooliteRx = nooliteRx;
 		this.nooliteTx = nooliteTx;
+		this.events = events;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -55,13 +58,15 @@ public class CoreApplication {
 
 	@PostConstruct
 	private void init() throws Exception {
-		if(speak != null)
+		if (speak != null)
 			speak.run();
-		if(zwave != null)
+		if (events != null)
+			events.run();
+		if (zwave != null)
 			zwave.run();
-		if(nooliteRx != null)
+		if (nooliteRx != null)
 			nooliteRx.run();
-		if(nooliteTx != null)
+		if (nooliteTx != null)
 			nooliteTx.run();
 	}
 }

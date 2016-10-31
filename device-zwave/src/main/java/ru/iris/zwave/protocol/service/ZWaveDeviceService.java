@@ -51,7 +51,6 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	public List<ZWaveDevice> getDevices()
 	{
 		List<ZWaveDevice> ret = new ArrayList<>();
-
 		List<Device> devices = deviceDAO.findBySource(SourceProtocol.ZWAVE);
 
 		for(Device device : devices)
