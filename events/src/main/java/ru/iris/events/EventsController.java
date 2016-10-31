@@ -42,12 +42,14 @@ public class EventsController extends AbstractService {
 
 	@Override
 	public Consumer<Event<?>> handleMessage() throws Exception {
-		return null;
+		return event ->
+				logger.info("event");
 	}
 
 	@Override
 	public void subscribe() throws Exception {
-		addSubscription("*");
+		addSubscription("event.*");
+		addSubscription("command.*");
 	}
 
 	@Override

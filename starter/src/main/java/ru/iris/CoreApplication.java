@@ -22,29 +22,26 @@ import javax.annotation.PostConstruct;
 @Component
 public class CoreApplication {
 
-	private final Speak speak;
-	private final Service events;
-	private final ProtocolService zwave;
-	private final ProtocolService nooliteRx;
-	private final ProtocolService nooliteTx;
-
-	private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
+	@Autowired(required = false)
+	private Speak speak;
 
 	@Autowired(required = false)
-	public CoreApplication(
-			Speak speak,
-			@Qualifier("zwave") ProtocolService zwave,
-			@Qualifier("nooliterx") ProtocolService nooliteRx,
-			@Qualifier("noolitetx") ProtocolService nooliteTx,
-			@Qualifier("events") Service events
-	)
-	{
-		this.speak = speak;
-		this.zwave = zwave;
-		this.nooliteRx = nooliteRx;
-		this.nooliteTx = nooliteTx;
-		this.events = events;
-	}
+	@Qualifier("events")
+	private Service events;
+
+	@Autowired(required = false)
+	@Qualifier("zwave")
+	private ProtocolService zwave;
+
+	@Autowired(required = false)
+	@Qualifier("nooliterx")
+	private ProtocolService nooliteRx;
+
+	@Autowired(required = false)
+	@Qualifier("noolitetx")
+	private ProtocolService nooliteTx;
+
+	private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
 
 	public static void main(String[] args) throws Exception {
 
