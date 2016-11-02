@@ -5,7 +5,7 @@ import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
-public class NooliteDeviceValue extends AbstractDeviceValue<NooliteDeviceValueChange> {
+public class NooliteDeviceValue extends AbstractDeviceValue {
 
 	public NooliteDeviceValue() {
 	}

@@ -5,7 +5,7 @@ import org.zwave4j.ValueId;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
 @JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
-public class ZWaveDeviceValue extends AbstractDeviceValue<ZWaveDeviceValueChange> {
+public class ZWaveDeviceValue extends AbstractDeviceValue {
 
 	private ValueId valueId;
 

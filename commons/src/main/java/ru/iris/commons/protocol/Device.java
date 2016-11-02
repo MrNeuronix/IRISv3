@@ -7,7 +7,7 @@ import ru.iris.commons.protocol.enums.State;
 import java.util.Date;
 import java.util.Map;
 
-public interface Device<T> {
+public interface Device {
 
 	long getId();
 	Date getCreationDate();
@@ -19,7 +19,7 @@ public interface Device<T> {
 	State getState();
 	Zone getZone();
 	DeviceType getType();
-	Map<String, T> getDeviceValues();
-	void setDeviceValues(Map<String, T> values);
+	Map<String, ? extends DeviceValue> getDeviceValues();
+	void setDeviceValues(Map<String, ? extends DeviceValue> values);
 
 }

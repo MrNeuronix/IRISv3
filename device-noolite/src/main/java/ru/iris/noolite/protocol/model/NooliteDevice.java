@@ -1,8 +1,25 @@
 package ru.iris.noolite.protocol.model;
 
+import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.abstracts.AbstractDevice;
 
-public class NooliteDevice extends AbstractDevice<NooliteDeviceValue> {
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class NooliteDevice extends AbstractDevice {
+
+	private Map<String, NooliteDeviceValue> values = new ConcurrentHashMap<>();
+
+	@Override
+	public Map<String, NooliteDeviceValue> getDeviceValues() {
+		return values;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setDeviceValues(Map<String, ? extends DeviceValue> values) {
+		this.values = (Map<String, NooliteDeviceValue>) values;
+	}
 
 	@Override
 	public String toString() {
@@ -20,5 +37,4 @@ public class NooliteDevice extends AbstractDevice<NooliteDeviceValue> {
 				", values=" + values +
 				'}';
 	}
-
 }

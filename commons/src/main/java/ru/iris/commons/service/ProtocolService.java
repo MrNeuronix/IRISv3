@@ -3,8 +3,6 @@ package ru.iris.commons.service;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
 
-import java.util.Map;
-
 /**
  * Created by nix on 26.09.2016.
  */
@@ -18,7 +16,5 @@ public interface ProtocolService<DEVICE> {
 	void subscribe() throws Exception;
 	void broadcast(String queue, Object object);
 	void run() throws Exception;
-
-	Map<Short, DEVICE> getDevices();
-
+	DEVICE getDeviceByChannel(Short channel);
 }

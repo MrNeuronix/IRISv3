@@ -10,19 +10,15 @@ import reactor.fn.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.Map;
 
 import static reactor.bus.selector.Selectors.R;
 
-public abstract class AbstractProtocolService<DEVICE> implements ProtocolService<DEVICE> {
+public abstract class AbstractProtocolService<DEVICE> implements ProtocolService {
 
 	@Autowired
 	private EventBus r;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-	protected Map<Short, DEVICE> devices = new HashMap<>();
 
 	@Override
 	@PostConstruct
@@ -51,14 +47,5 @@ public abstract class AbstractProtocolService<DEVICE> implements ProtocolService
 	protected void addSubscription(String regex) throws Exception {
 		logger.info("Binding on: {}", regex);
 		r.on(R(regex), handleMessage());
-	}
-
-	@Override
-	public Map<Short, DEVICE> getDevices() {
-		return devices;
-	}
-
-	public void setDevices(Map<Short, DEVICE> devices) {
-		this.devices = devices;
 	}
 }

@@ -5,7 +5,7 @@ import ru.iris.commons.protocol.enums.ValueType;
 import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public interface DeviceValue<CHANGE> {
+public interface DeviceValue {
 
 	long getId();
 	Date getDate();
@@ -23,6 +23,6 @@ public interface DeviceValue<CHANGE> {
 	void setType(ValueType type);
 	void setAdditionalData(String json);
 	String getAdditionalData();
-	void setChanges(ConcurrentLinkedQueue<CHANGE> changes);
-	ConcurrentLinkedQueue<CHANGE> getChanges();
+	void setChanges(ConcurrentLinkedQueue<DeviceValueChange> changes);
+	ConcurrentLinkedQueue<DeviceValueChange> getChanges();
 }

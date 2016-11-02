@@ -3,7 +3,6 @@ package ru.iris.facade.controllers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,7 +14,8 @@ import ru.iris.commons.bus.devices.DeviceOff;
 import ru.iris.commons.bus.devices.DeviceOn;
 import ru.iris.commons.bus.devices.DeviceSetValue;
 import ru.iris.commons.protocol.Device;
-import ru.iris.commons.service.ProtocolService;
+import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.status.ErrorStatus;
 import ru.iris.facade.status.OkStatus;
 
@@ -27,21 +27,17 @@ import java.util.Objects;
 @Profile("facade")
 public class DevicesFacade {
 
-	private final ProtocolService<Device> zwave;
-	private final ProtocolService<Device> nooliteRx;
+	private final DeviceRegistry registry;
 	private EventBus r;
 
 	private static final Logger logger = LoggerFactory.getLogger(DevicesFacade.class);
 
 	@Autowired(required = false)
 	public DevicesFacade(
-			@Qualifier("zwave") ProtocolService<Device> zwave,
-			@Qualifier("nooliterx") ProtocolService<Device> nooliteRx,
-			@Qualifier("noolitetx") ProtocolService<Device> nooliteTx
+			DeviceRegistry registry
 	)
 	{
-		this.zwave = zwave;
-		this.nooliteRx = nooliteRx;
+		this.registry = registry;
 	}
 
 	@Autowired
@@ -56,13 +52,13 @@ public class DevicesFacade {
 	 * @return list of devices
 	 */
 	@RequestMapping(value = "/api/devices/{source}", method = RequestMethod.GET)
-	public List<Device> getAllDevices(@PathVariable(value="source") String source) {
+	public List<Object> getAllDevices(@PathVariable(value="source") String source) {
 
-		List<Device> ret = new ArrayList<>();
-		if (zwave != null && (source.equals("all") || source.equals("zwave")))
-			ret.addAll(zwave.getDevices().values());
-		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
-			ret.addAll(nooliteRx.getDevices().values());
+		List<Object> ret = new ArrayList<>();
+		if (source.equals("all") || source.equals("zwave"))
+			ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
+		if (source.equals("all") || source.equals("noolite"))
+			ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
 
 		return ret;
 	}
@@ -76,16 +72,19 @@ public class DevicesFacade {
 	 */
 	@RequestMapping("/api/device/{source}/channel/{channel}")
 	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Short channel) {
-		List<Device> ret = new ArrayList<>();
-		if (zwave != null && (source.equals("all") || source.equals("zwave")))
-			ret.addAll(zwave.getDevices().values());
-		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
-			ret.addAll(nooliteRx.getDevices().values());
 
-		for (Device device : ret) {
-			if (Objects.equals(device.getChannel(), channel))
-				return device;
-		}
+		Object device = null;
+
+		if(source.equals("zwave"))
+			device = registry.getDevice(SourceProtocol.ZWAVE, channel);
+		else if(source.equals("noolite"))
+			device = registry.getDevice(SourceProtocol.NOOLITE, channel);
+		else
+			return new ErrorStatus("protocol unknown");
+
+		if(device != null)
+			return device;
+
 		return new ErrorStatus("device not found");
 	}
 
@@ -101,13 +100,17 @@ public class DevicesFacade {
 	public Object onDeviceByChannel(@PathVariable(value = "source") String source,
 	                                @PathVariable(value = "channel") Short channel,
 	                                @PathVariable(value = "level") String level) {
-		List<Device> ret = new ArrayList<>();
-		if (zwave != null && (source.equals("all") || source.equals("zwave")))
-			ret.addAll(zwave.getDevices().values());
-		if (nooliteRx != null && (source.equals("all") || source.equals("noolite")))
-			ret.addAll(nooliteRx.getDevices().values());
 
-		for (Device device : ret) {
+		List<Object> ret = new ArrayList<>();
+		if (source.equals("all") || source.equals("zwave"))
+			ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
+		if (source.equals("all") || source.equals("noolite"))
+			ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
+
+		for (Object line : ret) {
+
+			Device device = (Device) line;
+
 			if (Objects.equals(device.getChannel(), channel)) {
 				switch (level) {
 					case "on":

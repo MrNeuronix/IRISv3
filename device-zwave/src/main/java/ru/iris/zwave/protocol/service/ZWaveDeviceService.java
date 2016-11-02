@@ -16,6 +16,8 @@ import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
+import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValueChange;
@@ -26,12 +28,14 @@ import java.util.*;
 public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> {
 
 	private final DeviceDAO deviceDAO;
+	private final DeviceRegistry registry;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final Gson gson = new GsonBuilder().create();
 
 	@Autowired
-	public ZWaveDeviceService(DeviceDAO deviceDAO) {
+	public ZWaveDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
+		this.registry = registry;
 	}
 
 	@Override
@@ -58,6 +62,9 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 			ret.add(merge(device, null));
 		}
 
+		// add all devices to registry
+		registry.addOrUpdateDevices(ret);
+
 		return ret;
 	}
 
@@ -65,7 +72,17 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Transactional
 	public ZWaveDevice saveIntoDatabase(ZWaveDevice device)
 	{
-		return merge(deviceDAO.save(mergeForDB(device)), device);
+		device = merge(deviceDAO.save(mergeForDB(device)), device);
+		registry.addOrUpdateDevice(device);
+
+		return device;
+	}
+
+	@Override
+	@Transactional
+	public void saveIntoDatabase() {
+		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
+		devices.forEach(device -> saveIntoDatabase((ZWaveDevice) device));
 	}
 
 	@Transactional
@@ -224,5 +241,9 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		value.setLastUpdated(new Date());
 
 		return value;
+	}
+
+	@Override
+	public void updateValue(ZWaveDevice device, String label, Object value, ValueType type) {
 	}
 }

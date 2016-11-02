@@ -14,6 +14,8 @@ import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.ZoneImpl;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
+import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
@@ -24,11 +26,13 @@ import java.util.*;
 public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
 
 	private final DeviceDAO deviceDAO;
+	private final DeviceRegistry registry;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public NooliteDeviceService(DeviceDAO deviceDAO) {
+	public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
+		this.registry = registry;
 	}
 
 	@Override
@@ -56,6 +60,9 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 			ret.add(merge(device, null));
 		}
 
+		// add all devices to registry
+		registry.addOrUpdateDevices(ret);
+
 		return ret;
 	}
 
@@ -63,7 +70,18 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	@Transactional
 	public NooliteDevice saveIntoDatabase(NooliteDevice device)
 	{
-		return merge(deviceDAO.save(mergeForDB(device)), device);
+		device = merge(deviceDAO.save(mergeForDB(device)), device);
+		registry.addOrUpdateDevice(device);
+
+		return device;
+	}
+
+	@Override
+	@Transactional
+	public void saveIntoDatabase()
+	{
+		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
+		devices.forEach(device -> saveIntoDatabase((NooliteDevice)device));
 	}
 
 	@Transactional
@@ -112,7 +130,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 			// fill values
 			if(nooDevice != null) {
-				NooliteDeviceValue nooValue = nooDevice.getDeviceValues().get(dv.getName());
+				NooliteDeviceValue nooValue = (NooliteDeviceValue) nooDevice.getDeviceValues().get(dv.getName());
 
 				if(nooValue != null) {
 					dv.setCurrentValue(nooValue.getCurrentValue());
@@ -212,5 +230,29 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		value.setLastUpdated(new Date());
 
 		return value;
+	}
+
+	@Override
+	public void updateValue(NooliteDevice device, String label, Object value, ValueType type) {
+		NooliteDeviceValue deviceValue = device.getDeviceValues().get(label);
+
+		if (deviceValue == null) {
+			deviceValue = new NooliteDeviceValue();
+			deviceValue.setName(label);
+			deviceValue.setCurrentValue(value);
+			deviceValue.setType(type);
+			deviceValue.setReadOnly(false);
+
+			device.getDeviceValues().put(label, deviceValue);
+		}
+		else {
+			deviceValue.setCurrentValue(value);
+			device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
+		}
+
+		// update device in registry
+		registry.addOrUpdateDevice(device);
+
+		addChange(deviceValue);
 	}
 }

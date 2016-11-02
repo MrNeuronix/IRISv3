@@ -8,15 +8,14 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
-import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.devices.*;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.ProtocolServiceLayer;
+import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite.protocol.events.NooliteValueChanged;
 import ru.iris.noolite.protocol.model.NooliteDevice;
-import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite4j.sender.PC1132;
 
 @Component
@@ -25,18 +24,17 @@ import ru.iris.noolite4j.sender.PC1132;
 @Scope("singleton")
 public class NooliteTXController extends AbstractProtocolService<NooliteDevice> {
 
-	private final EventBus r;
 	private final ConfigLoader config;
-	private final ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> service;
+	private final DeviceRegistry registry;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private PC1132 pc;
 
 	@Autowired
-	public NooliteTXController(@Qualifier("nooliteDeviceService") ProtocolServiceLayer service, EventBus r, ConfigLoader config) {
-		this.service = service;
-		this.r = r;
+	public NooliteTXController(ConfigLoader config,
+	                           DeviceRegistry registry) {
 		this.config = config;
+		this.registry = registry;
 	}
 
 	@Override
@@ -44,12 +42,6 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 		logger.info("NooliteRXController started");
 		if(!config.loadPropertiesFormCfgDirectory("noolite"))
 			logger.error("Cant load noolite-specific configs. Check noolite.property if exists");
-
-		for(NooliteDevice device : service.getDevices()) {
-			devices.put(device.getChannel(), device);
-		}
-
-		logger.debug("Load {} Noolite devices from database", devices.size());
 
 		pc = new PC1132();
 		pc.open();
@@ -71,6 +63,11 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 	@Override
 	public void run() {
 
+	}
+
+	@Override
+	public NooliteDevice getDeviceByChannel(Short channel) {
+		return (NooliteDevice) registry.getDevice(SourceProtocol.NOOLITE, channel);
 	}
 
 	@Override

@@ -9,11 +9,9 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
-public abstract class AbstractDevice<T> implements Device<T> {
+public abstract class AbstractDevice implements Device {
 
 	protected long id;
 
@@ -27,7 +25,7 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	protected DeviceType type;
 	protected Zone zone;
 	protected State state;
-	protected Map<String, T> values = new ConcurrentHashMap<>();
+
 
 	@Override
 	public long getId() {
@@ -73,16 +71,6 @@ public abstract class AbstractDevice<T> implements Device<T> {
 	@Override
 	public DeviceType getType() {
 		return type;
-	}
-
-	@Override
-	public Map<String, T> getDeviceValues() {
-		return values;
-	}
-
-	@Override
-	public void setDeviceValues(Map<String, T> values) {
-		this.values = values;
 	}
 
 	public void setId(long id) {
@@ -144,13 +132,12 @@ public abstract class AbstractDevice<T> implements Device<T> {
 				source == that.source &&
 				type == that.type &&
 				Objects.equals(zone, that.zone) &&
-				state == that.state &&
-				Objects.equals(values, that.values);
+				state == that.state;
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(id, date, channel, humanReadable, manufacturer, productName, source, type, zone, state, values);
+		return Objects.hash(id, date, channel, humanReadable, manufacturer, productName, source, type, zone, state);
 	}
 
 	@Override
@@ -166,7 +153,6 @@ public abstract class AbstractDevice<T> implements Device<T> {
 				", type=" + type +
 				", zone=" + zone +
 				", state=" + state +
-				", values=" + values +
 				'}';
 	}
 }

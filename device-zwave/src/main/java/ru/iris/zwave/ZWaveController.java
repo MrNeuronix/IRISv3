@@ -16,8 +16,10 @@ import ru.iris.commons.bus.devices.*;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
+import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.zwave.protocol.events.*;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
@@ -35,6 +37,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 	private final EventBus r;
 	private final ConfigLoader config;
+	private final DeviceRegistry registry;
 	private final ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> service;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -42,10 +45,14 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 	private boolean ready = false;
 
 	@Autowired
-	public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolServiceLayer service, EventBus r, ConfigLoader config) {
+	public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolServiceLayer service,
+	                       EventBus r,
+	                       ConfigLoader config,
+	                       DeviceRegistry registry) {
 		this.service = service;
 		this.r = r;
 		this.config = config;
+		this.registry = registry;
 	}
 
 	@Override
@@ -53,19 +60,13 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 		logger.info("ZWaveController started");
 		if(!config.loadPropertiesFormCfgDirectory("zwave"))
 			logger.error("Cant load zwave-specific configs. Check zwave.property if exists");
-
-		for(ZWaveDevice device : service.getDevices()) {
-			devices.put(device.getChannel(), device);
-		}
-
-		logger.debug("Load {} ZWave devices from database", devices.size());
 	}
 
 	@Override
 	public void onShutdown() {
 		logger.info("ZWaveController stopping");
 		logger.info("Saving ZWave devices state into database");
-		saveIntoDB();
+		service.saveIntoDatabase();
 		logger.info("Saved");
 	}
 
@@ -290,7 +291,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					break;
 				case VALUE_REMOVED:
 
-					device = devices.get(node);
+					device = getDeviceByChannel(node);
 
 					if (device == null) {
 						logger.info("Remove ZWave value requested, but node {} not found", node);
@@ -315,7 +316,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					break;
 				case VALUE_CHANGED:
 
-					device = devices.get(node);
+					device = getDeviceByChannel(node);
 
 					if (device == null) {
 						logger.info("Change ZWave value requested, but node {} not found", node);
@@ -351,7 +352,9 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 					device.getDeviceValues().remove(label);
 					device.getDeviceValues().put(label, value);
-					devices.replace(node, device);
+
+					// update
+					registry.addOrUpdateDevice(device);
 
 					ZWaveValueChanged changed = new ZWaveValueChanged(
 							node,
@@ -384,13 +387,12 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			logger.info("Still waiting");
 		}
 
-		saveIntoDB();
+		service.saveIntoDatabase();
 	}
 
-	private void saveIntoDB() {
-		for(ZWaveDevice device : devices.values()) {
-			devices.replace(device.getChannel(), device, service.saveIntoDatabase(device));
-		}
+	@Override
+	public ZWaveDevice getDeviceByChannel(Short channel) {
+		return (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, channel);
 	}
 
 	private ZWaveDevice addZWaveDeviceOrValue(DeviceType type, Notification notification) {
@@ -399,7 +401,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 		String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
 		String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
 		Short node = notification.getNodeId();
-		ZWaveDevice device = devices.get(node);
+		ZWaveDevice device = (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, node);
 		boolean listen = false;
 		ValueId valueId = notification.getValueId();
 
@@ -448,8 +450,8 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			values.put("beaming", beaming);
 			device.setDeviceValues(values);
 
-			// add new device to pool
-			devices.put(node, device);
+			// update
+			registry.addOrUpdateDevice(device);
 
 			logger.info("Adding device " + type + " (node: " + node + ") to system");
 		}
@@ -487,8 +489,8 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			device.getDeviceValues().remove(label);
 			device.getDeviceValues().put(label, value);
 
-			// replace
-			devices.replace(node, device);
+			// update
+			registry.addOrUpdateDevice(device);
 		}
 
 		return device;
@@ -618,7 +620,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
 	private void deviceSetLevel(Short node, String label, String level)
 	{
-		ZWaveDevice device = devices.get(node);
+		ZWaveDevice device = (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, node);
 
 		if(device == null)
 		{

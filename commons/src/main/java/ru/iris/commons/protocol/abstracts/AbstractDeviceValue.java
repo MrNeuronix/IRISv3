@@ -2,12 +2,13 @@ package ru.iris.commons.protocol.abstracts;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import ru.iris.commons.protocol.DeviceValue;
+import ru.iris.commons.protocol.DeviceValueChange;
 import ru.iris.commons.protocol.enums.ValueType;
 
 import java.util.Date;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
+public abstract class AbstractDeviceValue implements DeviceValue {
 
 	protected long id;
 
@@ -23,7 +24,7 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	protected boolean readOnly = false;
 	protected ValueType type;
 	protected String additionalData;
-	protected ConcurrentLinkedQueue<T> changes = new ConcurrentLinkedQueue<>();
+	protected ConcurrentLinkedQueue<DeviceValueChange> changes = new ConcurrentLinkedQueue<>();
 
 	@Override
 	public Date getLastUpdated() {
@@ -113,11 +114,11 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 	}
 
 	@Override
-	public ConcurrentLinkedQueue<T> getChanges() {
+	public ConcurrentLinkedQueue<DeviceValueChange> getChanges() {
 		return changes;
 	}
 
-	public void setChanges(ConcurrentLinkedQueue<T> changes) {
+	public void setChanges(ConcurrentLinkedQueue<DeviceValueChange> changes) {
 		this.changes = changes;
 	}
 
@@ -141,7 +142,7 @@ public abstract class AbstractDeviceValue<T> implements DeviceValue<T> {
 		if (this == o) return true;
 		if (!(o instanceof AbstractDeviceValue)) return false;
 
-		AbstractDeviceValue<?> that = (AbstractDeviceValue<?>) o;
+		AbstractDeviceValue that = (AbstractDeviceValue) o;
 
 		if (id != that.id) return false;
 		if (readOnly != that.readOnly) return false;
