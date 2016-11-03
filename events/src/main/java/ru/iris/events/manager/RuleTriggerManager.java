@@ -8,6 +8,7 @@ import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.iris.commons.protocol.Device;
 import ru.iris.events.types.*;
 
 import java.util.*;
@@ -74,16 +75,8 @@ public class RuleTriggerManager {
 		return result;
 	}
 
-	/**
-	 * Returns all rules for which the trigger condition is true for the given type, item and state.
-	 * 
-	 * @param triggerType
-	 * @param item
-	 * @param state
-	 * @return all rules for which the trigger condition is true
-	 */
-	public Iterable<Rule> getRules(TriggerType triggerType, Object event) {
-		return internalGetRules(triggerType, event);
+	public Iterable<Rule> getRules(TriggerType triggerType, Device device) {
+		return internalGetRules(triggerType, device);
 	}
 
 
@@ -102,9 +95,9 @@ public class RuleTriggerManager {
 		}
 	}
 
-	private Iterable<Rule> internalGetRules(TriggerType triggerType, Object event) {
+	private Iterable<Rule> internalGetRules(TriggerType triggerType, Device device) {
 		List<Rule> result = Lists.newArrayList();
-		Iterable<Rule> rules = getAllRules(triggerType, item.getName());
+		Iterable<Rule> rules = getAllRules(triggerType, device.getHumanReadableName());
 		if (rules == null) {
 			rules = Lists.newArrayList();
 		}
@@ -117,25 +110,21 @@ public class RuleTriggerManager {
 			return timerEventTriggeredRules;
 		case UPDATE:
 		case CHANGE:
-			if (newType instanceof State) {
 				for (Rule rule : rules) {
 					for (EventTrigger t : rule.getEventTrigger()) {
-						if (t.evaluate(item, (State) oldType, (State) newType, null, triggerType)) {
-							result.add(rule);
-							break; // break from eventTrigger iteration
-						}
-					}
-				}
-			}
-			break;
-		case COMMAND:
-			if (newType instanceof Command) {
-				for (Rule rule : rules) {
-					for (EventTrigger t : rule.getEventTrigger()) {
-						if (t.evaluate(item, null, null, (Command) newType, triggerType)) {
+						if (t.evaluate(device, triggerType)) {
 							result.add(rule);
 							break;
 						}
+					}
+				}
+			break;
+		case COMMAND:
+			for (Rule rule : rules) {
+				for (EventTrigger t : rule.getEventTrigger()) {
+					if (t.evaluate(device, triggerType)) {
+						result.add(rule);
+						break;
 					}
 				}
 			}

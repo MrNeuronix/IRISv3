@@ -12,7 +12,9 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.*;
+import ru.iris.commons.bus.devices.DeviceChangeEvent;
+import ru.iris.commons.bus.devices.DeviceCommandEvent;
+import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.ProtocolServiceLayer;
 import ru.iris.commons.protocol.enums.DeviceType;
@@ -21,7 +23,6 @@ import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
-import ru.iris.zwave.protocol.events.*;
 import ru.iris.zwave.protocol.model.ZWaveDevice;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 
@@ -78,31 +79,41 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return event -> {
-			if (event.getData() instanceof DeviceOn) {
-				DeviceOn z = (DeviceOn) event.getData();
-				deviceSetLevel(z.getChannel(), 255);
-				broadcast("event.device.zwave.on", new ZWaveDeviceOn(z.getChannel()));
-			} else if (event.getData() instanceof DeviceOff) {
-				DeviceOff z = (DeviceOff) event.getData();
-				deviceSetLevel(z.getChannel(), 0);
-				broadcast("event.device.zwave.off", new ZWaveDeviceOff(z.getChannel()));
-			} else if (event.getData() instanceof DeviceSetValue) {
-				DeviceSetValue z = (DeviceSetValue) event.getData();
-				deviceSetLevel(z.getChannel(), z.getName(), String.valueOf(z.getValue()));
-				broadcast("event.device.zwave.setlevel", new ZWaveSetValue(z.getChannel(), z.getName(), z.getValue().toString()));
-			} else if (event.getData() instanceof DeviceAdd) {
-				logger.info("Set controller into AddDevice mode");
-				Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);
-			} else if (event.getData() instanceof DeviceRemove) {
-				DeviceRemove z = (DeviceRemove) event.getData();
-				logger.info("Set controller into RemoveDevice mode for node {}", z.getNode());
-				Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, z.getNode());
-			} else if (event.getData() instanceof DeviceCancelRequest) {
-				logger.info("Canceling controller command");
-				Manager.get().cancelControllerCommand(homeId);
-			} else {
-				// We received unknown request message. Lets make generic log entry.
-				logger.info("Received unknown request for zwave service! Class: {}", event.getData().getClass());
+			if (event.getData() instanceof DeviceCommandEvent) {
+				DeviceCommandEvent z = (DeviceCommandEvent) event.getData();
+
+				switch (z.getLabel()) {
+					case "TurnOn":
+						logger.info("Turn ON device on channel {}", z.getChannel());
+						deviceSetLevel(z.getChannel(), 255);
+						broadcast("event.device.zwave.on", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 255, ValueType.INT));
+						break;
+					case "TurnOff":
+						logger.info("Turn OFF device on channel {}", z.getChannel());
+						deviceSetLevel(z.getChannel(), 0);
+						broadcast("event.device.zwave.off", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 0, ValueType.INT));
+						break;
+					case "SetLevel":
+						logger.info("Set level {} on channel {}", z.getTo(), z.getChannel());
+						deviceSetLevel(z.getChannel(), z.getLabel(), String.valueOf(z.getTo()));
+						broadcast("event.device.zwave.setlevel", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", z.getTo(), ValueType.INT));
+						break;
+					case "Bind":
+						logger.info("Set controller into AddDevice mode");
+						Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);
+						break;
+					case "Unbind":
+						logger.info("Set controller into RemoveDevice mode for node {}", z.getChannel());
+						Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, z.getChannel());
+						break;
+					case "Cancel":
+						logger.info("Canceling controller command");
+						Manager.get().cancelControllerCommand(homeId);
+						break;
+					default:
+						logger.info("Received unknown request for zwave service! Class: {}", event.getData().getClass());
+						break;
+				}
 			}
 		};
 	}
@@ -129,94 +140,90 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 				case DRIVER_READY:
 					homeId = notification.getHomeId();
 					logger.info("Driver ready. Home ID: {}", homeId);
-					broadcast("event.device.zwave", new ZWaveDriverReady(homeId));
+					broadcast("event.device.zwave.driver.ready", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "DriverReady", homeId, ValueType.INT));
 					break;
 				case DRIVER_FAILED:
 					logger.info("Driver failed");
-					broadcast("event.device.zwave", new ZWaveDriverFailed());
+					broadcast("event.device.zwave.driver.failed", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "DriverFailed"));
 					break;
 				case DRIVER_RESET:
 					logger.info("Driver reset");
-					broadcast("event.device.zwave", new ZWaveDriverReset());
+					broadcast("event.device.zwave.driver.reset", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "DriverReset"));
 					break;
 				case AWAKE_NODES_QUERIED:
 					logger.info("Awake nodes queried");
 					ready = true;
-					broadcast("event.device.zwave", new ZWaveAwakeNodesQueried());
+					broadcast("event.device.zwave.awake.nodes.queried", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "AwakeNodesQueried"));
 					break;
 				case ALL_NODES_QUERIED:
 					logger.info("All node queried");
 					manager.writeConfig(homeId);
 					ready = true;
-					broadcast("event.device.zwave", new ZWaveAllNodesQueried());
+					broadcast("event.device.zwave.all.nodes.queried", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "AllNodesQueried"));
 					break;
 				case ALL_NODES_QUERIED_SOME_DEAD:
 					logger.info("All node queried, some dead");
 					manager.writeConfig(homeId);
-					broadcast("event.device.zwave", new ZWaveAllNodesQueriedSomeDead());
+					broadcast("event.device.zwave.all.nodes.queried.some.dead", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "AllNodesQueriedSomeDead"));
 					break;
 				case POLLING_ENABLED:
 					logger.info("Polling enabled");
-					broadcast("event.device.zwave", new ZWavePollingEnabled(notification.getNodeId()));
+					broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", true, ValueType.BOOL));
 					break;
 				case POLLING_DISABLED:
 					logger.info("Polling disabled");
-					broadcast("event.device.zwave", new ZWavePollingDisabled(notification.getNodeId()));
+					broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", false, ValueType.BOOL));
 					break;
 				case NODE_NEW:
-					broadcast("event.device.zwave", new ZWaveNodeNew(notification.getNodeId()));
+					broadcast("event.device.zwave.node.new", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "NewNode", node, ValueType.SHORT));
 					break;
 				case NODE_ADDED:
-					broadcast("event.device.zwave", new ZWaveNodeAdded(notification.getNodeId()));
+					broadcast("event.device.zwave.node.added", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "AddedNode", node, ValueType.SHORT));
 					break;
 				case NODE_REMOVED:
-					broadcast("event.device.zwave", new ZWaveNodeRemoved(notification.getNodeId()));
+					broadcast("event.device.zwave.node.removed", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "RemovedNode", node, ValueType.SHORT));
 					break;
 				case ESSENTIAL_NODE_QUERIES_COMPLETE:
-					broadcast("event.device.zwave", new ZWaveEssentialsNodeQueriesComplete());
+					broadcast("event.device.zwave.essential.node.queries.complete", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "EssentialNodeQueriesComplete"));
 					break;
 				case NODE_QUERIES_COMPLETE:
-					broadcast("event.device.zwave", new ZWaveNodeQueriesComplete());
+					broadcast("event.device.zwave.node.queries.complete", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "NodeQueriesComplete"));
 					break;
 				case NODE_EVENT:
 					logger.info("Update info for node " + node);
 					manager.refreshNodeInfo(homeId, node);
-					broadcast("event.device.zwave", new ZWaveNodeEvent(notification.getNodeId()));
+					broadcast("event.device.zwave.node.event", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "EventNode", node, ValueType.SHORT));
 					break;
 				case NODE_NAMING:
-					broadcast("event.devices.zwave", new ZWaveNodeNaming(notification.getNodeId()));
+					broadcast("event.device.zwave.node.naming", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "NamingNode", node, ValueType.SHORT));
 					break;
 				case NODE_PROTOCOL_INFO:
-					broadcast("event.devices.zwave", new ZWaveNodeProtocolInfo(notification.getNodeId()));
+					broadcast("event.device.zwave.node.info", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "InfoNode", node, ValueType.SHORT));
 					break;
 				case VALUE_REFRESHED:
-					broadcast("event.device.zwave", new ZWaveValueRefreshed(notification.getNodeId()));
-					logger.info("Node " + node + ": Value refreshed (" +
-							" command class: " + notification.getValueId().getCommandClassId() + ", " +
-							" instance: " + notification.getValueId().getInstance() + ", " +
-							" index: " + notification.getValueId().getIndex() + ", " +
-							" value: " + notification.getValueId());
+					broadcast("event.device.zwave.node.refreshed", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "RefreshedNode", node, ValueType.SHORT));
+					logger.info("Node {} refreshed", node);
 					break;
 				case GROUP:
-					broadcast("event.device.zwave", new ZWaveGroup(notification.getNodeId()));
+					broadcast("event.device.zwave.group", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "Group", node, ValueType.SHORT));
 					break;
 				case SCENE_EVENT:
-					broadcast("event.device.zwave", new ZWaveScene(notification.getNodeId()));
+					broadcast("event.device.zwave.scene.event", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "SceneEvent", node, ValueType.SHORT));
 					break;
 				case CREATE_BUTTON:
-					broadcast("event.device.zwave", new ZWaveCreateButton(notification.getNodeId()));
+					broadcast("event.device.zwave.button.create", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "ButtonCreate", node, ValueType.SHORT));
 					break;
 				case DELETE_BUTTON:
-					broadcast("event.device.zwave", new ZWaveDeleteButton(notification.getNodeId()));
+					broadcast("event.device.zwave.button.delete", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "ButtonDelete", node, ValueType.SHORT));
 					break;
 				case BUTTON_ON:
-					broadcast("event.device.zwave", new ZWaveButtonOn(notification.getNodeId()));
+					broadcast("event.device.zwave.button.on", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "ButtonOn", node, ValueType.SHORT));
 					break;
 				case BUTTON_OFF:
-					broadcast("event.device.zwave", new ZWaveButtonOff(notification.getNodeId()));
+					broadcast("event.device.zwave.button.off", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "ButtonOff", node, ValueType.SHORT));
 					break;
 				case NOTIFICATION:
-					broadcast("event.device.zwave", new ZWaveNotification(notification.getNodeId()));
+					broadcast("event.device.zwave.notification", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "Notification", node, ValueType.SHORT));
 					break;
 				case VALUE_ADDED:
 
@@ -276,13 +283,14 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 							);
 
 							// finnaly, create message and sent
-							ZWaveValueAdded created = new ZWaveValueAdded(
-									node,
-									Manager.get().getValueLabel(notification.getValueId()),
-									getValue(notification.getValueId())
+							broadcast("event.device.zwave.value.added",
+									new DeviceChangeEvent(node,
+											SourceProtocol.ZWAVE,
+											Manager.get().getValueLabel(notification.getValueId()),
+											getValue(notification.getValueId()),
+											getValueType(notification.getValueId())
+									)
 							);
-
-							broadcast("event.device.zwave", created);
 					}
 
 					// enable value polling TODO
@@ -301,13 +309,14 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					// remove value from device
 					device.getDeviceValues().remove(Manager.get().getValueLabel(notification.getValueId()));
 
-					ZWaveValueRemoved removed = new ZWaveValueRemoved(
-							node,
-							Manager.get().getValueLabel(notification.getValueId()),
-							getValue(notification.getValueId())
+					broadcast("event.device.zwave.value.removed",
+							new DeviceChangeEvent(node,
+									SourceProtocol.ZWAVE,
+									Manager.get().getValueLabel(notification.getValueId()),
+									null,
+									getValueType(notification.getValueId())
+							)
 					);
-
-					broadcast("event.device.zwave", removed);
 
 					if (!manager.getValueLabel(notification.getValueId()).isEmpty()) {
 						logger.info("Node {}: Value \"{}\" removed", device.getChannel(), manager.getValueLabel(notification.getValueId()));
@@ -356,13 +365,14 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					// update
 					registry.addOrUpdateDevice(device);
 
-					ZWaveValueChanged changed = new ZWaveValueChanged(
-							node,
-							Manager.get().getValueLabel(notification.getValueId()),
-							getValue(notification.getValueId())
+					broadcast("event.device.zwave.value.changed",
+							new DeviceChangeEvent(node,
+									SourceProtocol.ZWAVE,
+									Manager.get().getValueLabel(notification.getValueId()),
+									getValue(notification.getValueId()),
+									getValueType(notification.getValueId())
+							)
 					);
-
-					broadcast("event.device.zwave", changed);
 
 					break;
 				default:

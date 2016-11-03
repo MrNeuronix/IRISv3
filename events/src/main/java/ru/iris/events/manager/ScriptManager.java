@@ -10,6 +10,7 @@ package ru.iris.events.manager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.events.types.*;
 
@@ -29,10 +30,11 @@ import java.util.List;
  * and listens for script changes (which lead to script reloading)
  * 
  * @author Simon Merschjohann
- * @since 1.7.0
  */
 public class ScriptManager {
-	static private final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
+
+	private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
+	private final ConfigLoader config;
 
 	public HashMap<String, Script> scripts = new HashMap<>();
 	public HashMap<Rule, Script> ruleMap = new HashMap<>();
@@ -44,8 +46,9 @@ public class ScriptManager {
 
 	private static ScriptManager instance;
 
-	public ScriptManager(RuleTriggerManager triggerManager, DeviceRegistry itemRegistry) {
+	public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry) {
 		this.triggerManager = triggerManager;
+		this.config = config;
 		instance = this;
 		logger.info("Available engines:");
 		for (ScriptEngineFactory f : new ScriptEngineManager().getEngineFactories()) {
@@ -124,13 +127,13 @@ public class ScriptManager {
 		this.registry = itemRegistry;
 	}
 
-	public synchronized void executeRules(Rule[] rules, org.openhab.core.jsr223.internal.shared.Event event) {
+	public synchronized void executeRules(Rule[] rules, Event event) {
 		for (Rule rule : rules) {
 			ruleMap.get(rule).executeRule(rule, event);
 		}
 	}
 
-	public synchronized void executeRules(Iterable<Rule> rules, org.openhab.core.jsr223.internal.shared.Event event) {
+	public synchronized void executeRules(Iterable<Rule> rules, Event event) {
 		for (Rule rule : rules) {
 			ruleMap.get(rule).executeRule(rule, event);
 		}
@@ -144,8 +147,7 @@ public class ScriptManager {
 	 * @return the corresponding {@link File}
 	 */
 	private File getFolder(String foldername) {
-		File folder = new File(ConfigDispatcher.getConfigFolder() + File.separator + foldername);
-		return folder;
+		return new File("." + File.separator + "scripts" + File.separator + foldername);
 	}
 
 	public Script getScript(Rule rule) {
@@ -191,7 +193,7 @@ public class ScriptManager {
 				}
 			}
 			if (toTrigger.size() > 0)
-				executeRules(toTrigger, new Event(TriggerType.STARTUP, null, null, null, null));
+				executeRules(toTrigger, new Event(TriggerType.STARTUP, null));
 		}
 	}
 

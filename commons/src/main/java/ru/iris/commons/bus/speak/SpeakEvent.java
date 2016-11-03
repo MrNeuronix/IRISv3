@@ -1,9 +1,9 @@
 package ru.iris.commons.bus.speak;
 
-import ru.iris.commons.bus.AbstractEvent;
+import ru.iris.commons.bus.devices.AbstractDeviceEvent;
 import ru.iris.commons.database.model.Zone;
 
-public class SpeakEvent extends AbstractEvent {
+public class SpeakEvent extends AbstractDeviceEvent {
 
 	private String text;
 	private Zone zone;

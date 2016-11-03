@@ -9,12 +9,13 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.*;
+import ru.iris.commons.bus.devices.DeviceChangeEvent;
+import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
-import ru.iris.noolite.protocol.events.NooliteValueChanged;
 import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite4j.sender.PC1132;
 
@@ -73,38 +74,38 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
 	@Override
 	public Consumer<Event<?>> handleMessage() {
 		return event -> {
-			if (event.getData() instanceof DeviceOn) {
-				DeviceOn n = (DeviceOn) event.getData();
-				logger.info("Turn ON device on channel {}", n.getChannel());
-				pc.turnOn(n.getChannel().byteValue());
-				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (short) 255));
-			} else if (event.getData() instanceof DeviceOff) {
-				DeviceOff n = (DeviceOff) event.getData();
-				logger.info("Turn OFF device on channel {}", n.getChannel());
-				pc.turnOff(n.getChannel().byteValue());
-				broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (short) 0));
-			} else if (event.getData() instanceof DeviceSetValue) {
-				DeviceSetValue n = (DeviceSetValue) event.getData();
-				if (n.getName().equals("level")) {
-					logger.info("Set level {} on channel {}", n.getValue(), n.getChannel());
-					pc.setLevel(n.getChannel().byteValue(), ((Short) n.getValue()).byteValue());
-					broadcast("event.device.noolite.rx", new NooliteValueChanged(n.getChannel(), (Short) n.getValue()));
-				} else {
-					logger.info("Unknown value passed for NooliteTX: {} -> {}", n.getName(), n.getValue());
+			if (event.getData() instanceof DeviceCommandEvent) {
+
+				DeviceCommandEvent n = (DeviceCommandEvent) event.getData();
+
+				switch (n.getLabel()) {
+					case "TurnOn":
+						logger.info("Turn ON device on channel {}", n.getChannel());
+						pc.turnOn(n.getChannel().byteValue());
+						broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
+						break;
+					case "TurnOff":
+						logger.info("Turn OFF device on channel {}", n.getChannel());
+						pc.turnOff(n.getChannel().byteValue());
+						broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
+						break;
+					case "SetLevel":
+						logger.info("Set level {} on channel {}", n.getTo(), n.getChannel());
+						pc.setLevel(n.getChannel().byteValue(), ((Short) n.getTo()).byteValue());
+						broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", n.getTo(), ValueType.INT));
+						break;
+					case "BindTX":
+						logger.info("Incoming bind TX to channel {} request", n.getChannel());
+						pc.bindChannel(n.getChannel().byteValue());
+						break;
+					case "UnbindTX":
+						logger.info("Incoming unbind TX from channel {} request", n.getChannel());
+						pc.unbindChannel(n.getChannel().byteValue());
+						break;
+					default:
+						logger.info("Received unknown request for noolitetx service! Class: {}", event.getData().getClass());
+						break;
 				}
-			} else if (event.getData() instanceof DeviceAdd) {
-				DeviceAdd n = (DeviceAdd) event.getData();
-				logger.info("Incoming bind TX to channel {} request", n.getNode());
-				pc.bindChannel(n.getNode().byteValue());
-			} else if (event.getData() instanceof DeviceRemove) {
-				DeviceRemove n = (DeviceRemove) event.getData();
-				logger.info("Incoming unbind TX from channel {} request", n.getNode());
-				pc.unbindChannel(n.getNode().byteValue());
-			} else if (event.getData() instanceof DeviceRemoveAll) {
-				logger.info("Incoming unbind all TX channels request");
-			} else {
-				// We received unknown request message. Lets make generic log entry.
-				logger.info("Received unknown request for noolitetx service! Class: {}", event.getData().getClass());
 			}
 		};
 	}

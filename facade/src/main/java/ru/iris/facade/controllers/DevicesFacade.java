@@ -10,18 +10,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
-import ru.iris.commons.bus.devices.DeviceOff;
-import ru.iris.commons.bus.devices.DeviceOn;
-import ru.iris.commons.bus.devices.DeviceSetValue;
+import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.protocol.Device;
 import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.status.ErrorStatus;
 import ru.iris.facade.status.OkStatus;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @RestController
 @Profile("facade")
@@ -101,43 +99,44 @@ public class DevicesFacade {
 	                                @PathVariable(value = "channel") Short channel,
 	                                @PathVariable(value = "level") String level) {
 
-		List<Object> ret = new ArrayList<>();
-		if (source.equals("all") || source.equals("zwave"))
-			ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
-		if (source.equals("all") || source.equals("noolite"))
-			ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
-
-		for (Object line : ret) {
-
-			Device device = (Device) line;
-
-			if (Objects.equals(device.getChannel(), channel)) {
-				switch (level) {
-					case "on":
-					case "255":
-						setDeviceLevel(device, new DeviceOn(device.getChannel()));
-						break;
-					case "off":
-					case "0":
-						setDeviceLevel(device, new DeviceOff(device.getChannel()));
-						break;
-					default:
-						try {
-							Short bLevel = Short.valueOf(level);
-
-							if (bLevel > 0 && bLevel < 255)
-								setDeviceLevel(device, new DeviceSetValue(device.getChannel(), "level", bLevel));
-							else
-								return new ErrorStatus("incorrect value level");
-						} catch (NumberFormatException ex) {
-							return new ErrorStatus("parse error");
-						}
-						break;
-				}
-				return new OkStatus("message sent");
-			}
+		SourceProtocol sourceProtocol;
+		switch (source) {
+			case "zwave":
+				sourceProtocol = SourceProtocol.ZWAVE;
+				break;
+			case "noolite":
+				sourceProtocol = SourceProtocol.NOOLITE;
+				break;
+			default:
+				return new ErrorStatus("protocol unknown");
 		}
-		return new ErrorStatus("device not found");
+
+		Device device = (Device) registry.getDevice(sourceProtocol, channel);
+
+		switch (level) {
+			case "on":
+			case "255":
+				setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), sourceProtocol, "TurnOn"));
+				break;
+			case "off":
+			case "0":
+				setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), sourceProtocol, "TurnOff"));
+				break;
+			default:
+				try {
+					Short bLevel = Short.valueOf(level);
+
+					if (bLevel > 0 && bLevel < 255)
+						setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), sourceProtocol, "SetLevel", bLevel, ValueType.INT));
+					else
+						return new ErrorStatus("incorrect value level");
+				} catch (NumberFormatException ex) {
+					return new ErrorStatus("parse error");
+				}
+				break;
+		}
+
+		return new OkStatus("message sent");
 	}
 
 	// sent message

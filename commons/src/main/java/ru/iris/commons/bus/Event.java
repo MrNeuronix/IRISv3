@@ -1,5 +1,5 @@
 package ru.iris.commons.bus;
 
-public interface GenericEvent {
+public interface Event {
 
 }

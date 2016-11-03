@@ -35,7 +35,7 @@ public class TimeTriggerJob implements Job {
 
 		ScriptManager manager = ScriptManager.getInstance();
 
-		manager.executeRules(new Rule[] { rule }, new Event(TriggerType.TIMER, null, null, null, null));
+		manager.executeRules(new Rule[] { rule }, new Event(TriggerType.TIMER, null));
 	}
 
 	public void setRule(Rule rule) {
