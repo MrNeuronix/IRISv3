@@ -21,6 +21,9 @@ import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service("nooliteDeviceService")
 public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
@@ -36,6 +39,10 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 		// load all noolite devices to registry
 		getDevices();
+
+		// schedule periodic save into database
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+		scheduler.scheduleAtFixedRate(new SaveIntoDatabaseRunner(), 60, 60, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -84,7 +91,11 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	public void saveIntoDatabase()
 	{
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
-		devices.forEach(device -> registry.addOrUpdateDevice(saveIntoDatabase((NooliteDevice)device)));
+		devices.forEach(device -> {
+			device = saveIntoDatabase((NooliteDevice)device);
+			((NooliteDevice) device).getDeviceValues().values().forEach(nooliteDeviceValue -> nooliteDeviceValue.getChanges().clear());
+			registry.addOrUpdateDevice((ru.iris.commons.protocol.Device) device);
+		});
 	}
 
 	@Transactional
@@ -133,7 +144,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 			// fill values
 			if(nooDevice != null) {
-				NooliteDeviceValue nooValue = (NooliteDeviceValue) nooDevice.getDeviceValues().get(dv.getName());
+				NooliteDeviceValue nooValue = nooDevice.getDeviceValues().get(dv.getName());
 
 				if(nooValue != null) {
 					dv.setCurrentValue(nooValue.getCurrentValue());
@@ -263,5 +274,14 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		registry.addOrUpdateDevice(device);
 
 		addChange(deviceValue);
+	}
+
+	private class SaveIntoDatabaseRunner implements Runnable {
+		@Override
+		public void run() {
+			logger.debug("Running save noolite devices into database thread");
+			saveIntoDatabase();
+			logger.debug("Done saving thread");
+		}
 	}
 }

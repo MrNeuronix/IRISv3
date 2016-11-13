@@ -7,7 +7,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.zwave4j.ValueId;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValueChange;
@@ -23,6 +22,9 @@ import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValueChange;
 
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service("zwaveDeviceService")
 public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> {
@@ -39,6 +41,10 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 
 		// load all zwave devices to registry
 		getDevices();
+
+		// schedule periodic save into database
+		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+		scheduler.scheduleAtFixedRate(new SaveIntoDatabaseRunner(), 60, 60, TimeUnit.SECONDS);
 	}
 
 	@Override
@@ -85,7 +91,11 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Transactional
 	public void saveIntoDatabase() {
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.ZWAVE);
-		devices.forEach(device -> registry.addOrUpdateDevice(saveIntoDatabase((ZWaveDevice) device)));
+		devices.forEach(device -> {
+			device = saveIntoDatabase((ZWaveDevice)device);
+			((ZWaveDevice) device).getDeviceValues().values().forEach(zwaveDeviceValue -> zwaveDeviceValue.getChanges().clear());
+			registry.addOrUpdateDevice((ru.iris.commons.protocol.Device) device);
+		});
 	}
 
 	@Transactional
@@ -250,5 +260,14 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 
 	@Override
 	public void updateValue(ZWaveDevice device, String label, Object value, ValueType type) {
+	}
+
+	private class SaveIntoDatabaseRunner implements Runnable {
+		@Override
+		public void run() {
+			logger.debug("Running save zwave devices into database thread");
+			saveIntoDatabase();
+			logger.debug("Done saving thread");
+		}
 	}
 }
