@@ -36,6 +36,9 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	public ZWaveDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
 		this.registry = registry;
+
+		// load all zwave devices to registry
+		getDevices();
 	}
 
 	@Override
@@ -81,7 +84,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Override
 	@Transactional
 	public void saveIntoDatabase() {
-		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
+		List<Object> devices = registry.getDevicesByProto(SourceProtocol.ZWAVE);
 		devices.forEach(device -> saveIntoDatabase((ZWaveDevice) device));
 	}
 

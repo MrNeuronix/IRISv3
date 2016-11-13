@@ -33,6 +33,9 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
 		this.registry = registry;
+
+		// load all noolite devices to registry
+		getDevices();
 	}
 
 	@Override
