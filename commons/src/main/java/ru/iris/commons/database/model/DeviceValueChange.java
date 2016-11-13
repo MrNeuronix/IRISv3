@@ -1,7 +1,5 @@
 package ru.iris.commons.database.model;
 
-import org.hibernate.annotations.CreationTimestamp;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -13,7 +11,6 @@ public class DeviceValueChange {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 
-	@CreationTimestamp
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date date;
 

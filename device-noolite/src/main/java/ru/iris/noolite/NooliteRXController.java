@@ -115,6 +115,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 
 				if (device != null && device.getDeviceValues().get("level") != null) {
 					device.getDeviceValues().get("level").setCurrentValue(n.getTo());
+					service.updateValue(device, "level", n.getTo(), ValueType.INT);
 					registry.addOrUpdateDevice(device);
 				}
 			} else {

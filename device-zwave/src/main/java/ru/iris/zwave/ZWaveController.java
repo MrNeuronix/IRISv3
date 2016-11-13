@@ -394,10 +394,8 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			} catch (InterruptedException e) {
 				logger.error("Error: {}", e.getLocalizedMessage());
 			}
-			logger.info("Still waiting");
+			logger.info("Still waiting for ZWave controller ready");
 		}
-
-		service.saveIntoDatabase();
 	}
 
 	@Override

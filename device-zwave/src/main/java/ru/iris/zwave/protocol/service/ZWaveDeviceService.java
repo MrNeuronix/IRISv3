@@ -85,7 +85,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Transactional
 	public void saveIntoDatabase() {
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.ZWAVE);
-		devices.forEach(device -> saveIntoDatabase((ZWaveDevice) device));
+		devices.forEach(device -> registry.addOrUpdateDevice(saveIntoDatabase((ZWaveDevice) device)));
 	}
 
 	@Transactional
@@ -213,16 +213,16 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 
 				DeviceValueChange changeDB = new DeviceValueChange();
 
-				changeDB.setDeviceValue(dv);
-
-				if(deviceValue.getCurrentValue() != null)
-					changeDB.setValue(deviceValue.getCurrentValue().toString());
-				else
+				if(change.getValue() == null)
 					logger.debug("Skipping null ZWave value change");
+				else {
+					changeDB.setDeviceValue(dv);
+					changeDB.setDate(change.getDate());
+					changeDB.setValue(change.getValue().toString());
+					changeDB.setAdditionalData(change.getAdditionalData());
 
-				changeDB.setAdditionalData(gson.toJson(deviceValue.getValueId(), ValueId.class));
-
-				dv.getChanges().add(changeDB);
+					dv.getChanges().add(changeDB);
+				}
 			});
 
 			values.put(dv.getName(), dv);
@@ -239,9 +239,11 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		ZWaveDeviceValueChange add = new ZWaveDeviceValueChange();
 		add.setValueId(value.getValueId());
 		add.setValue(value.getCurrentValue());
-		value.getChanges().add(add);
-
+		add.setAdditionalData(gson.toJson(value.getValueId()));
+		add.setDate(new Date());
 		value.setLastUpdated(new Date());
+
+		value.getChanges().add(add);
 
 		return value;
 	}

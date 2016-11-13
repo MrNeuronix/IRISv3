@@ -84,7 +84,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	public void saveIntoDatabase()
 	{
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
-		devices.forEach(device -> saveIntoDatabase((NooliteDevice)device));
+		devices.forEach(device -> registry.addOrUpdateDevice(saveIntoDatabase((NooliteDevice)device)));
 	}
 
 	@Transactional
@@ -207,11 +207,16 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 				DeviceValueChange changeDB = new DeviceValueChange();
 
-				changeDB.setDeviceValue(dv);
-				changeDB.setValue(deviceValue.getCurrentValue().toString());
-				changeDB.setAdditionalData(deviceValue.getAdditionalData());
+				if(change.getValue() == null)
+					logger.debug("Skipping null Noolite value change");
+				else {
+					changeDB.setDeviceValue(dv);
+					changeDB.setDate(change.getDate());
+					changeDB.setValue(change.getValue().toString());
+					changeDB.setAdditionalData(change.getAdditionalData());
 
-				dv.getChanges().add(changeDB);
+					dv.getChanges().add(changeDB);
+				}
 			});
 
 			values.put(dv.getName(), dv);
@@ -228,9 +233,10 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		NooliteDeviceValueChange add = new NooliteDeviceValueChange();
 		add.setAdditionalData(value.getAdditionalData());
 		add.setValue(value.getCurrentValue());
-		value.getChanges().add(add);
-
+		add.setDate(new Date());
 		value.setLastUpdated(new Date());
+
+		value.getChanges().add(add);
 
 		return value;
 	}
