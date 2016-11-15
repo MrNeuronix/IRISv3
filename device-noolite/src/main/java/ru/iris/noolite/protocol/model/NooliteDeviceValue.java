@@ -1,11 +1,15 @@
 package ru.iris.noolite.protocol.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+import ru.iris.commons.protocol.DeviceValueChange;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
 public class NooliteDeviceValue extends AbstractDeviceValue {
+
+	private Deque<NooliteDeviceValueChange> changes = new ConcurrentLinkedDeque<>();
 
 	public NooliteDeviceValue() {
 	}
@@ -14,6 +18,17 @@ public class NooliteDeviceValue extends AbstractDeviceValue {
 		super.name = name;
 		super.currentValue = value;
 		super.type = type;
+	}
+
+	@Override
+	public Deque<NooliteDeviceValueChange> getChanges() {
+		return changes;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setChanges(Deque<? extends DeviceValueChange> changes) {
+		this.changes = (Deque<NooliteDeviceValueChange>) changes;
 	}
 
 	@Override

@@ -24,7 +24,6 @@ public abstract class AbstractDeviceValue implements DeviceValue {
 	protected boolean readOnly = false;
 	protected ValueType type;
 	protected String additionalData;
-	protected ConcurrentLinkedQueue<DeviceValueChange> changes = new ConcurrentLinkedQueue<>();
 
 	@Override
 	public Date getLastUpdated() {
@@ -114,15 +113,6 @@ public abstract class AbstractDeviceValue implements DeviceValue {
 	}
 
 	@Override
-	public ConcurrentLinkedQueue<DeviceValueChange> getChanges() {
-		return changes;
-	}
-
-	public void setChanges(ConcurrentLinkedQueue<DeviceValueChange> changes) {
-		this.changes = changes;
-	}
-
-	@Override
 	public String toString() {
 		return "AbstractDeviceValue{" +
 				"id=" + id +
@@ -133,27 +123,35 @@ public abstract class AbstractDeviceValue implements DeviceValue {
 				", readOnly=" + readOnly +
 				", type=" + type +
 				", additionalData='" + additionalData + '\'' +
-				", changes=" + changes +
 				'}';
 	}
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof AbstractDeviceValue)) return false;
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
 
 		AbstractDeviceValue that = (AbstractDeviceValue) o;
 
-		if (id != that.id) return false;
-		if (readOnly != that.readOnly) return false;
-		if (date != null ? !date.equals(that.date) : that.date != null) return false;
-		if (name != null ? !name.equals(that.name) : that.name != null) return false;
-		if (currentValue != null ? !currentValue.equals(that.currentValue) : that.currentValue != null) return false;
-		if (units != null ? !units.equals(that.units) : that.units != null) return false;
-		if (type != that.type) return false;
-		if (additionalData != null ? !additionalData.equals(that.additionalData) : that.additionalData != null)
+		if (id != that.id)
 			return false;
-		return changes != null ? changes.equals(that.changes) : that.changes == null;
+		if (readOnly != that.readOnly)
+			return false;
+		if (date != null ? !date.equals(that.date) : that.date != null)
+			return false;
+		if (lastUpdated != null ? !lastUpdated.equals(that.lastUpdated) : that.lastUpdated != null)
+			return false;
+		if (name != null ? !name.equals(that.name) : that.name != null)
+			return false;
+		if (currentValue != null ? !currentValue.equals(that.currentValue) : that.currentValue != null)
+			return false;
+		if (units != null ? !units.equals(that.units) : that.units != null)
+			return false;
+		if (type != that.type)
+			return false;
+		return additionalData != null ? additionalData.equals(that.additionalData) : that.additionalData == null;
 
 	}
 
@@ -167,7 +165,6 @@ public abstract class AbstractDeviceValue implements DeviceValue {
 		result = 31 * result + (readOnly ? 1 : 0);
 		result = 31 * result + (type != null ? type.hashCode() : 0);
 		result = 31 * result + (additionalData != null ? additionalData.hashCode() : 0);
-		result = 31 * result + (changes != null ? changes.hashCode() : 0);
 		return result;
 	}
 }

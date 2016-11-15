@@ -379,6 +379,8 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 					logger.info(notification.getType().name());
 					break;
 			}
+
+
 		};
 
 		manager.addWatcher(watcher, null);
@@ -451,8 +453,8 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			beaming.setCurrentValue(Manager.get().isNodeBeamingDevice(homeId, node));
 			beaming.setReadOnly(true);
 
-			service.addChange(beaming);
-			service.addChange(value);
+			beaming = service.addChange(beaming);
+			value = service.addChange(value);
 
 			values.put(label, value);
 			values.put("beaming", beaming);
@@ -492,7 +494,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 			value.setCurrentValue(getValue(valueId));
 			value.setValueId(valueId);
 
-			service.addChange(value);
+			value = service.addChange(value);
 
 			device.getDeviceValues().remove(label);
 			device.getDeviceValues().put(label, value);

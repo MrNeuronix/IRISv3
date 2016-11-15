@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.validation.constraints.Size;
+
 @Entity
 @Table(name = "device_values")
 public class DeviceValue {
@@ -36,9 +38,10 @@ public class DeviceValue {
 
 	private String additionalData;
 
-	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
-	@BatchSize(size=200)
+	// get only 10 history points
+	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "deviceValue")
 	@OrderBy(clause = "date desc")
+	@Size(max = 5)
 	private List<DeviceValueChange> changes = new ArrayList<>();
 
 	public DeviceValue() {

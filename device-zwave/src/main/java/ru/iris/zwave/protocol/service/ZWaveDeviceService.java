@@ -22,6 +22,8 @@ import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 import ru.iris.zwave.protocol.model.ZWaveDeviceValueChange;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -91,11 +93,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	@Transactional
 	public void saveIntoDatabase() {
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.ZWAVE);
-		devices.forEach(device -> {
-			device = saveIntoDatabase((ZWaveDevice)device);
-			((ZWaveDevice) device).getDeviceValues().values().forEach(zwaveDeviceValue -> zwaveDeviceValue.getChanges().clear());
-			registry.addOrUpdateDevice((ru.iris.commons.protocol.Device) device);
-		});
+		devices.forEach(device -> saveIntoDatabase((ZWaveDevice)device));
 	}
 
 	@Transactional
@@ -159,6 +157,19 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 				}
 			}
 
+			// fill changes
+			for(DeviceValueChange change : deviceValue.getChanges())
+			{
+				ZWaveDeviceValueChange zchange = new ZWaveDeviceValueChange();
+
+				zchange.setDate(change.getDate());
+				zchange.setId(change.getId());
+				zchange.setValue(change.getValue());
+				zchange.setAdditionalData(change.getAdditionalData());
+
+				dv.getChanges().add(zchange);
+			}
+
 			values.put(dv.getName(), dv);
 		}
 
@@ -219,13 +230,14 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 			dv.setReadOnly(deviceValue.isReadOnly());
 			dv.setType(deviceValue.getType());
 
-			deviceValue.getChanges().stream().filter(change -> change.getId() == 0L).forEach(change -> {
+			deviceValue.getChanges().forEach(change -> {
 
 				DeviceValueChange changeDB = new DeviceValueChange();
 
 				if(change.getValue() == null)
 					logger.debug("Skipping null ZWave value change");
 				else {
+					changeDB.setId(change.getId());
 					changeDB.setDeviceValue(dv);
 					changeDB.setDate(change.getDate());
 					changeDB.setValue(change.getValue().toString());
@@ -253,7 +265,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		add.setDate(new Date());
 		value.setLastUpdated(new Date());
 
-		value.getChanges().add(add);
+		value.getChanges().addFirst(add);
 
 		return value;
 	}

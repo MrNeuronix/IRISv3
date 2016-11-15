@@ -1,13 +1,17 @@
 package ru.iris.zwave.protocol.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.zwave4j.ValueId;
+
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+
+import ru.iris.commons.protocol.DeviceValueChange;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
-@JsonIgnoreProperties(ignoreUnknown = true, value = {"changes"})
 public class ZWaveDeviceValue extends AbstractDeviceValue {
 
 	private ValueId valueId;
+	private Deque<ZWaveDeviceValueChange> changes = new ConcurrentLinkedDeque<>();
 
 	public ValueId getValueId() {
 		return valueId;
@@ -15,6 +19,17 @@ public class ZWaveDeviceValue extends AbstractDeviceValue {
 
 	public void setValueId(ValueId valueId) {
 		this.valueId = valueId;
+	}
+
+	@Override
+	public Deque<ZWaveDeviceValueChange> getChanges() {
+		return changes;
+	}
+
+	@Override
+	@SuppressWarnings("unchecked")
+	public void setChanges(Deque<? extends DeviceValueChange> changes) {
+		this.changes = (Deque<ZWaveDeviceValueChange>) changes;
 	}
 
 	@Override

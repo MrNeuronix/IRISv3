@@ -3,6 +3,8 @@ package ru.iris.commons.protocol;
 import ru.iris.commons.protocol.enums.ValueType;
 
 import java.util.Date;
+import java.util.Deque;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public interface DeviceValue {
@@ -23,6 +25,6 @@ public interface DeviceValue {
 	void setType(ValueType type);
 	void setAdditionalData(String json);
 	String getAdditionalData();
-	void setChanges(ConcurrentLinkedQueue<DeviceValueChange> changes);
-	ConcurrentLinkedQueue<DeviceValueChange> getChanges();
+	void setChanges(Deque<? extends DeviceValueChange> changes);
+	Deque<? extends DeviceValueChange> getChanges();
 }

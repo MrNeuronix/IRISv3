@@ -21,6 +21,8 @@ import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -91,11 +93,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	public void saveIntoDatabase()
 	{
 		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
-		devices.forEach(device -> {
-			device = saveIntoDatabase((NooliteDevice)device);
-			((NooliteDevice) device).getDeviceValues().values().forEach(nooliteDeviceValue -> nooliteDeviceValue.getChanges().clear());
-			registry.addOrUpdateDevice((ru.iris.commons.protocol.Device) device);
-		});
+		devices.forEach(device -> saveIntoDatabase((NooliteDevice)device));
 	}
 
 	@Transactional
@@ -154,6 +152,20 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 					logger.error("Cannot found device value for " + dv.getName());
 				}
 			}
+
+			// fill changes
+			for(DeviceValueChange change : deviceValue.getChanges())
+			{
+				NooliteDeviceValueChange noochange = new NooliteDeviceValueChange();
+
+				noochange.setDate(change.getDate());
+				noochange.setId(change.getId());
+				noochange.setValue(change.getValue());
+				noochange.setAdditionalData(change.getAdditionalData());
+
+				dv.getChanges().add(noochange);
+			}
+
 			values.put(dv.getName(), dv);
 		}
 
@@ -214,13 +226,14 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 			dv.setReadOnly(deviceValue.isReadOnly());
 			dv.setType(deviceValue.getType());
 
-			deviceValue.getChanges().stream().filter(change -> change.getId() == 0L).forEach(change -> {
+			deviceValue.getChanges().forEach(change -> {
 
 				DeviceValueChange changeDB = new DeviceValueChange();
 
-				if(change.getValue() == null)
+				if (change.getValue() == null)
 					logger.debug("Skipping null Noolite value change");
 				else {
+					changeDB.setId(change.getId());
 					changeDB.setDeviceValue(dv);
 					changeDB.setDate(change.getDate());
 					changeDB.setValue(change.getValue().toString());
@@ -247,7 +260,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		add.setDate(new Date());
 		value.setLastUpdated(new Date());
 
-		value.getChanges().add(add);
+		value.getChanges().addFirst(add);
 
 		return value;
 	}
@@ -269,9 +282,6 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 			deviceValue.setCurrentValue(value);
 			device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
 		}
-
-		// update device in registry
-		registry.addOrUpdateDevice(device);
 
 		addChange(deviceValue);
 	}
