@@ -2,16 +2,14 @@ package ru.iris.zwave.protocol.model;
 
 import org.zwave4j.ValueId;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
+import ru.iris.commons.LIFO;
 import ru.iris.commons.protocol.DeviceValueChange;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 
 public class ZWaveDeviceValue extends AbstractDeviceValue {
 
 	private ValueId valueId;
-	private Deque<ZWaveDeviceValueChange> changes = new ConcurrentLinkedDeque<>();
+	private LIFO<ZWaveDeviceValueChange> changes = new LIFO<>(5);
 
 	public ValueId getValueId() {
 		return valueId;
@@ -22,14 +20,14 @@ public class ZWaveDeviceValue extends AbstractDeviceValue {
 	}
 
 	@Override
-	public Deque<ZWaveDeviceValueChange> getChanges() {
+	public LIFO<ZWaveDeviceValueChange> getChanges() {
 		return changes;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void setChanges(Deque<? extends DeviceValueChange> changes) {
-		this.changes = (Deque<ZWaveDeviceValueChange>) changes;
+	public void setChanges(LIFO<? extends DeviceValueChange> changes) {
+		this.changes = (LIFO<ZWaveDeviceValueChange>) changes;
 	}
 
 	@Override

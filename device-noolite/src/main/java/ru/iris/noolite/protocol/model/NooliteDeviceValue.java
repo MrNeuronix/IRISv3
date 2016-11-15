@@ -1,15 +1,13 @@
 package ru.iris.noolite.protocol.model;
 
-import java.util.Deque;
-import java.util.concurrent.ConcurrentLinkedDeque;
-
+import ru.iris.commons.LIFO;
 import ru.iris.commons.protocol.DeviceValueChange;
 import ru.iris.commons.protocol.abstracts.AbstractDeviceValue;
 import ru.iris.commons.protocol.enums.ValueType;
 
 public class NooliteDeviceValue extends AbstractDeviceValue {
 
-	private Deque<NooliteDeviceValueChange> changes = new ConcurrentLinkedDeque<>();
+	private LIFO<NooliteDeviceValueChange> changes = new LIFO<>(5);
 
 	public NooliteDeviceValue() {
 	}
@@ -21,14 +19,14 @@ public class NooliteDeviceValue extends AbstractDeviceValue {
 	}
 
 	@Override
-	public Deque<NooliteDeviceValueChange> getChanges() {
+	public LIFO<NooliteDeviceValueChange> getChanges() {
 		return changes;
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void setChanges(Deque<? extends DeviceValueChange> changes) {
-		this.changes = (Deque<NooliteDeviceValueChange>) changes;
+	public void setChanges(LIFO<? extends DeviceValueChange> changes) {
+		this.changes = (LIFO<NooliteDeviceValueChange>) changes;
 	}
 
 	@Override

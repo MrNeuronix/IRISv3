@@ -158,8 +158,13 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 			}
 
 			// fill changes
-			for(DeviceValueChange change : deviceValue.getChanges())
+			Iterator<DeviceValueChange> changeIterator = deviceValue.getChanges().iterator();
+			for(byte count = 1; count <= 5; count++)
 			{
+				if(!changeIterator.hasNext())
+					break;
+
+				DeviceValueChange change = changeIterator.next();
 				ZWaveDeviceValueChange zchange = new ZWaveDeviceValueChange();
 
 				zchange.setDate(change.getDate());
@@ -167,7 +172,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 				zchange.setValue(change.getValue());
 				zchange.setAdditionalData(change.getAdditionalData());
 
-				dv.getChanges().add(zchange);
+				dv.getChanges().addLast(zchange);
 			}
 
 			values.put(dv.getName(), dv);

@@ -1,5 +1,6 @@
 package ru.iris.commons.protocol;
 
+import ru.iris.commons.LIFO;
 import ru.iris.commons.protocol.enums.ValueType;
 
 import java.util.Date;
@@ -25,6 +26,6 @@ public interface DeviceValue {
 	void setType(ValueType type);
 	void setAdditionalData(String json);
 	String getAdditionalData();
-	void setChanges(Deque<? extends DeviceValueChange> changes);
-	Deque<? extends DeviceValueChange> getChanges();
+	void setChanges(LIFO<? extends DeviceValueChange> changes);
+	LIFO<? extends DeviceValueChange> getChanges();
 }

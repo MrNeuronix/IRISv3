@@ -154,8 +154,13 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 			}
 
 			// fill changes
-			for(DeviceValueChange change : deviceValue.getChanges())
+			Iterator<DeviceValueChange> changeIterator = deviceValue.getChanges().iterator();
+			for(byte count = 1; count <= 5; count++)
 			{
+				if(!changeIterator.hasNext())
+					break;
+
+				DeviceValueChange change = changeIterator.next();
 				NooliteDeviceValueChange noochange = new NooliteDeviceValueChange();
 
 				noochange.setDate(change.getDate());
@@ -163,7 +168,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 				noochange.setValue(change.getValue());
 				noochange.setAdditionalData(change.getAdditionalData());
 
-				dv.getChanges().add(noochange);
+				dv.getChanges().addLast(noochange);
 			}
 
 			values.put(dv.getName(), dv);
