@@ -1,23 +1,23 @@
 package ru.iris.facade.model;
 
-import java.util.Date;
+import ru.iris.commons.protocol.enums.SourceProtocol;
 
 /**
  * Created by nix on 15.11.2016.
  */
 public class HistoryRequest {
 
-	private String source;
+	private SourceProtocol source;
 	private Short channel;
-	private Date startDate;
-	private Date endDate;
+	private String startDate;
+	private String endDate;
 	private String label;
 
-	public String getSource() {
+	public SourceProtocol getSource() {
 		return source;
 	}
 
-	public void setSource(String source) {
+	public void setSource(SourceProtocol source) {
 		this.source = source;
 	}
 
@@ -29,19 +29,19 @@ public class HistoryRequest {
 		this.channel = channel;
 	}
 
-	public Date getStartDate() {
+	public String getStartDate() {
 		return startDate;
 	}
 
-	public void setStartDate(Date startDate) {
+	public void setStartDate(String startDate) {
 		this.startDate = startDate;
 	}
 
-	public Date getEndDate() {
+	public String getEndDate() {
 		return endDate;
 	}
 
-	public void setEndDate(Date endDate) {
+	public void setEndDate(String endDate) {
 		this.endDate = endDate;
 	}
 

@@ -16,6 +16,15 @@ public class LIFO<T> extends LinkedBlockingDeque<T> {
 	}
 
 	@Override
+	public synchronized boolean add(T e) {
+
+		if(super.remainingCapacity() == 0)
+			super.removeLast();
+
+		return super.add(e);
+	}
+
+	@Override
 	public synchronized void addFirst(T e) {
 
 		if(super.remainingCapacity() == 0)

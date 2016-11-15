@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import reactor.bus.EventBus;
@@ -44,12 +43,11 @@ public class ValuesHistoryFacade {
 	 * @param request request
 	 * @return list of changes
 	 */
+	@SuppressWarnings("unchecked")
 	@RequestMapping(value = "/api/history", method = RequestMethod.POST)
 	public List<Object> getHistory(@RequestBody HistoryRequest request) {
-
-		List<Object> ret = new ArrayList<>();
-
-		return ret;
+		return registry.getHistory(request.getSource(), request.getChannel(), request.getLabel(), request.getStartDate(),
+		                          request.getEndDate());
 	}
 
 }
