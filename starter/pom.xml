@@ -56,8 +56,6 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <!-- <classpathPrefix>lib</classpathPrefix> -->
-                            <!-- <mainClass>test.org.Cliente</mainClass> -->
                         </manifest>
                         <manifestEntries>
                             <Class-Path>lib/</Class-Path>

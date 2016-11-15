@@ -1,18 +1,15 @@
-package ru.iris.facade.status;
+package ru.iris.facade.model.status;
 
-public class OkStatus {
+public class ErrorStatus {
 
 	private String text;
 
-	public OkStatus() {
-	}
-
-	public OkStatus(String text) {
+	public ErrorStatus(String text) {
 		this.text = text;
 	}
 
 	public String getStatus() {
-		return "OK";
+		return "ERROR";
 	}
 
 	public String getText() {

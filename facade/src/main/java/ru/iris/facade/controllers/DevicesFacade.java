@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,10 +16,13 @@ import ru.iris.commons.protocol.Device;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.facade.status.ErrorStatus;
-import ru.iris.facade.status.OkStatus;
+import ru.iris.facade.model.DeviceInfoRequest;
+import ru.iris.facade.model.DeviceSetLevelRequest;
+import ru.iris.facade.model.status.ErrorStatus;
+import ru.iris.facade.model.status.OkStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -44,63 +48,73 @@ public class DevicesFacade {
 	}
 
 	/**
-	 * Return all devices (by source if specified)
+	 * Return all devices (by source) or device on speficied channel and source
 	 *
-	 * @param source source protocol (optional)
+	 * @param request request
 	 * @return list of devices
 	 */
-	@RequestMapping(value = "/api/devices/{source}", method = RequestMethod.GET)
-	public List<Object> getAllDevices(@PathVariable(value="source") String source) {
+	@RequestMapping(value = "/api/device/get", method = RequestMethod.POST)
+	public List<Object> getAllDevices(@RequestBody DeviceInfoRequest request) {
 
 		List<Object> ret = new ArrayList<>();
-		if (source.equals("all") || source.equals("zwave"))
-			ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
-		if (source.equals("all") || source.equals("noolite"))
-			ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
+
+		if(request.getChannel() == null && request.getSource() != null) {
+
+			switch (request.getSource()) {
+				case "all":
+					ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
+					ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
+					break;
+				case "zwave":
+					ret.addAll(registry.getDevicesByProto(SourceProtocol.ZWAVE));
+					break;
+				case "noolite":
+					ret.addAll(registry.getDevicesByProto(SourceProtocol.NOOLITE));
+					break;
+				default:
+					return Collections.singletonList(new ErrorStatus("Unknown source: " + request.getSource()));
+			}
+		}
+		else if(request.getChannel() != null && request.getSource() != null)
+		{
+			Object device;
+
+			switch (request.getSource()) {
+				case "zwave":
+					device = registry.getDevice(SourceProtocol.ZWAVE, request.getChannel());
+					break;
+				case "noolite":
+					device = registry.getDevice(SourceProtocol.NOOLITE, request.getChannel());
+					break;
+				default:
+					return Collections.singletonList(new ErrorStatus("Unknown source: " + request.getSource()));
+			}
+
+			return Collections.singletonList(device);
+		}
+		else if(request.getSource() == null && request.getChannel() == null)
+		{
+			return Collections.singletonList(new ErrorStatus("Specify source (and channel)"));
+		}
+		else if(request.getSource() == null && request.getChannel() != null)
+		{
+			return Collections.singletonList(new ErrorStatus("Specify source"));
+		}
 
 		return ret;
 	}
 
 	/**
-	 * Return device by source and channel
-	 *
-	 * @param source  source protocol
-	 * @param channel channel of device
-	 * @return device
-	 */
-	@RequestMapping("/api/device/{source}/channel/{channel}")
-	public Object getDeviceByChannel(@PathVariable(value = "source") String source, @PathVariable(value = "channel") Short channel) {
-
-		Object device = null;
-
-		if(source.equals("zwave"))
-			device = registry.getDevice(SourceProtocol.ZWAVE, channel);
-		else if(source.equals("noolite"))
-			device = registry.getDevice(SourceProtocol.NOOLITE, channel);
-		else
-			return new ErrorStatus("protocol unknown");
-
-		if(device != null)
-			return device;
-
-		return new ErrorStatus("device not found");
-	}
-
-	/**
 	 * Set on/off/level on device by source and channel
 	 *
-	 * @param source  source protocol
-	 * @param channel channel of device
-	 * @param level   level for set (can be on/off/0-255)
+	 * @param request request
 	 * @return ok or error status
 	 */
-	@RequestMapping("/api/device/{source}/channel/{channel}/{level}")
-	public Object onDeviceByChannel(@PathVariable(value = "source") String source,
-	                                @PathVariable(value = "channel") Short channel,
-	                                @PathVariable(value = "level") String level) {
+	@RequestMapping("/api/device/set")
+	public Object onDeviceByChannel(@RequestBody DeviceSetLevelRequest request) {
 
 		SourceProtocol sourceProtocol;
-		switch (source) {
+		switch (request.getSource()) {
 			case "zwave":
 				sourceProtocol = SourceProtocol.ZWAVE;
 				break;
@@ -111,9 +125,12 @@ public class DevicesFacade {
 				return new ErrorStatus("protocol unknown");
 		}
 
-		Device device = (Device) registry.getDevice(sourceProtocol, channel);
+		Device device = (Device) registry.getDevice(sourceProtocol, request.getChannel());
 
-		switch (level) {
+		if(device == null)
+			return new ErrorStatus("device not found");
+
+		switch (request.getLevel()) {
 			case "on":
 			case "255":
 				setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), sourceProtocol, "TurnOn"));
@@ -124,7 +141,7 @@ public class DevicesFacade {
 				break;
 			default:
 				try {
-					Short bLevel = Short.valueOf(level);
+					Short bLevel = Short.valueOf(request.getLevel());
 
 					if (bLevel > 0 && bLevel < 255)
 						setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), sourceProtocol, "SetLevel", bLevel, ValueType.INT));
