@@ -64,6 +64,9 @@ public class ValuesHistoryFacade {
 		if(request.getChannel() == null || request.getChannel() <= 0)
 			return Collections.singletonList(new ErrorStatus("channel is null or <= 0"));
 
+		if(request.getSource() == null || request.getSource().isEmpty())
+			return Collections.singletonList(new ErrorStatus("source field is empty or null"));
+
 		SourceProtocol sourceProtocol;
 		switch (request.getSource()) {
 			case "zwave":
@@ -87,7 +90,7 @@ public class ValuesHistoryFacade {
 			if(request.getEndDate() != null && !request.getEndDate().isEmpty())
 				stopDate = format.parse(request.getEndDate());
 		} catch (ParseException e) {
-			return Collections.singletonList(new ErrorStatus("Date parse error"));
+			return Collections.singletonList(new ErrorStatus("Date parse error. Use date in format: yyyy-MM-dd HH:mm:ss"));
 		}
 
 		List<DeviceValueChange> dbList = registry.getHistory(sourceProtocol, request.getChannel(), request.getLabel(),

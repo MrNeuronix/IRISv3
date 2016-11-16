@@ -113,6 +113,9 @@ public class DevicesFacade {
 	@RequestMapping("/api/device/set")
 	public Object onDeviceByChannel(@RequestBody DeviceSetLevelRequest request) {
 
+		if(request.getSource() == null || request.getSource().isEmpty())
+			return new ErrorStatus("source field is empty or null");
+
 		SourceProtocol sourceProtocol;
 		switch (request.getSource()) {
 			case "zwave":
