@@ -75,12 +75,12 @@ public class DeviceRegistry {
 	// HISTORY
 	/////////////////////////////////////////////////////////////////
 
-	public List getHistory(SourceProtocol proto, Short channel, String label, String start)
+	public List getHistory(SourceProtocol proto, Short channel, String label, Date start)
 	{
 		return getHistory(proto, channel, label, start, null);
 	}
 
-	public List getHistory(SourceProtocol proto, Short channel, String label, String start, String stop)
+	public List getHistory(SourceProtocol proto, Short channel, String label, Date start, Date stop)
 	{
 		Device device = (Device) getDevice(proto, channel);
 
@@ -92,32 +92,19 @@ public class DeviceRegistry {
 		return null;
 	}
 
-	private List getHistory(long id, String start, String stop)
+	private List getHistory(long id, Date startDate, Date stopDate)
 	{
-		DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
-		Date startDate = null;
-		Date stopDate = null;
-		try {
-			if(start != null && !start.isEmpty())
-				startDate = format.parse(start);
-			if(stop != null && !stop.isEmpty())
-				stopDate = format.parse(stop);
-		} catch (ParseException e) {
-			logger.error("Date parse error");
-			return null;
-		}
-
 		String SQL = "FROM DeviceValueChange AS c WHERE c.deviceValue.id = :id AND c.date BETWEEN :stDate AND";
 
-		if(stop == null) {
-			SQL += " current_date";
+		if(stopDate == null) {
+			SQL += " current_date order by c.date desc";
 			return em.createQuery(SQL)
 					.setParameter("id", id)
 					.setParameter("stDate", startDate)
 					.getResultList();
 		}
 		else{
-			SQL += " :enDate";
+			SQL += " :enDate order by c.date desc";
 			return em.createQuery(SQL)
 					.setParameter("id", id)
 					.setParameter("stDate", startDate)

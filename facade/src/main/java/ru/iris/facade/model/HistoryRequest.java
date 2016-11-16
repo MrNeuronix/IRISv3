@@ -1,5 +1,7 @@
 package ru.iris.facade.model;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
 import ru.iris.commons.protocol.enums.SourceProtocol;
 
 /**
@@ -7,17 +9,20 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
  */
 public class HistoryRequest {
 
-	private SourceProtocol source;
+	@NotEmpty
+	private String source;
+	@NotEmpty
 	private Short channel;
 	private String startDate;
 	private String endDate;
+	@NotEmpty
 	private String label;
 
-	public SourceProtocol getSource() {
+	public String getSource() {
 		return source;
 	}
 
-	public void setSource(SourceProtocol source) {
+	public void setSource(@NotEmpty String source) {
 		this.source = source;
 	}
 
@@ -25,7 +30,7 @@ public class HistoryRequest {
 		return channel;
 	}
 
-	public void setChannel(Short channel) {
+	public void setChannel(@NotEmpty Short channel) {
 		this.channel = channel;
 	}
 
@@ -49,7 +54,7 @@ public class HistoryRequest {
 		return label;
 	}
 
-	public void setLabel(String label) {
+	public void setLabel(@NotEmpty String label) {
 		this.label = label;
 	}
 }
