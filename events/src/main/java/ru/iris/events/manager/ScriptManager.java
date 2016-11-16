@@ -1,15 +1,12 @@
-/**
- * Copyright (c) 2010-2015, openHAB.org and others.
- *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package ru.iris.events.manager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.events.types.*;
@@ -24,20 +21,13 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * Main component of script engine. It checks for available Script engines, 
- * loads scripts from the scripts directory
- * and listens for script changes (which lead to script reloading)
- * 
- * @author Simon Merschjohann
- */
 public class ScriptManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
 	private final ConfigLoader config;
 
-	public HashMap<String, Script> scripts = new HashMap<>();
-	public HashMap<Rule, Script> ruleMap = new HashMap<>();
+	private HashMap<String, Script> scripts = new HashMap<>();
+	private HashMap<Rule, Script> ruleMap = new HashMap<>();
 
 	private RuleTriggerManager triggerManager;
 	private DeviceRegistry registry;
@@ -57,7 +47,10 @@ public class ScriptManager {
 
 		this.setItemRegistry(itemRegistry);
 
-		File folder = getFolder("scripts");
+		if(!config.loadPropertiesFormCfgDirectory("events"))
+			logger.error("Cant load events-specific configs. Check events.properties if exists");
+
+		File folder = getFolder(config.get("scriptsDirectory"));
 
 		if (folder.exists() && folder.isDirectory()) {
 			loadScripts(folder);
@@ -65,7 +58,7 @@ public class ScriptManager {
 			scriptUpdateWatcher = new Thread(new ScriptUpdateWatcher(this, folder));
 			scriptUpdateWatcher.start();
 		} else {
-			logger.warn("Script directory: jsr_scripts missing, no scripts will be added!");
+			logger.warn("Script directory: scripts missing, no scripts will be added!");
 		}
 	}
 
@@ -147,7 +140,7 @@ public class ScriptManager {
 	 * @return the corresponding {@link File}
 	 */
 	private File getFolder(String foldername) {
-		return new File("." + File.separator + "scripts" + File.separator + foldername);
+		return new File("." + File.separator + foldername);
 	}
 
 	public Script getScript(Rule rule) {

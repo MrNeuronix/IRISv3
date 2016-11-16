@@ -5,9 +5,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import ru.iris.commons.protocol.Device;
 import ru.iris.events.types.*;
 
@@ -16,17 +20,9 @@ import java.util.*;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-/**
- * This is a helper class which deals with everything about rule triggers. It keeps lists of which rule must be executed
- * for which trigger and takes over the evaluation of states and trigger conditions for the rule engine.
- * 
- * @author Kai Kreuzer
- * @author Simon Merschjohann
- * 
- */
+@Component
+@Scope("singleton")
 public class RuleTriggerManager {
-	public static final String SCRIPT_FILE = "scriptFile";
-	public static final String RULE_NAME = "ruleName";
 
 	private static final Logger logger = LoggerFactory.getLogger(RuleTriggerManager.class);
 
@@ -40,8 +36,14 @@ public class RuleTriggerManager {
 	// the scheduler used for timer events
 	private Scheduler scheduler;
 
-	public RuleTriggerManager(Scheduler scheduler) {
-		this.scheduler = scheduler;
+	public RuleTriggerManager() {
+
+		try {
+			scheduler = StdSchedulerFactory.getDefaultScheduler();
+			scheduler.start();
+		} catch (SchedulerException e) {
+			logger.error("initializing scheduler throws exception", e);
+		}
 	}
 
 	/**

@@ -5,16 +5,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import ru.iris.commons.protocol.Device;
-import ru.iris.commons.protocol.DeviceValue;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,6 +20,7 @@ import javax.persistence.PersistenceContext;
 public class DeviceRegistry {
 
 	private Map<String, Object> registry = new ConcurrentHashMap<>();
+	private Map<String, String> humanReadable = new ConcurrentHashMap<>();
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@PersistenceContext
@@ -37,9 +33,15 @@ public class DeviceRegistry {
 			return;
 		}
 
-		Object tmp = registry.replace(device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel(), device);
+		String ident = device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel();
+
+		if(!humanReadable.containsValue(ident))
+			if(device.getHumanReadableName() != null && !device.getHumanReadableName().isEmpty())
+				humanReadable.put(device.getHumanReadableName(), ident);
+
+		Object tmp = registry.replace(ident, device);
 		if(tmp == null)
-			registry.put(device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel(), device);
+			registry.put(ident, device);
 	}
 
 	public void addOrUpdateDevices(List<? extends Device> devices) {
@@ -50,9 +52,15 @@ public class DeviceRegistry {
 				return;
 			}
 
-			Object tmp = registry.replace(device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel(), device);
+			String ident = device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel();
+
+			if(!humanReadable.containsValue(ident))
+				if(device.getHumanReadableName() != null && !device.getHumanReadableName().isEmpty())
+					humanReadable.put(device.getHumanReadableName(), ident);
+
+			Object tmp = registry.replace(ident, device);
 			if(tmp == null)
-				registry.put(device.getSourceProtocol().name().toLowerCase()+"/channel/"+device.getChannel(), device);
+				registry.put(ident, device);
 		});
 	}
 
@@ -71,9 +79,43 @@ public class DeviceRegistry {
 		return registry.get(protocol.name().toLowerCase()+"/channel/"+channel);
 	}
 
+	public Object getDevice(String humanReadableIdent) {
+
+		String ident = humanReadable.get(humanReadableIdent);
+
+		if(ident != null)
+			return registry.get(ident);
+		else
+			return null;
+	}
+
 	/////////////////////////////////////////////////////////////////
 	// HISTORY
 	/////////////////////////////////////////////////////////////////
+
+	public List getHistory(String humanReadableIdent, String label, Date start)
+	{
+		String ident = humanReadable.get(humanReadableIdent);
+
+		if(ident != null) {
+			Device device = (Device) registry.get(ident);
+			return getHistory(device.getSourceProtocol(), device.getChannel(), label, start, null);
+		}
+		else
+			return null;
+	}
+
+	public List getHistory(String humanReadableIdent, String label, Date start, Date stop)
+	{
+		String ident = humanReadable.get(humanReadableIdent);
+
+		if(ident != null) {
+			Device device = (Device) registry.get(ident);
+			return getHistory(device.getSourceProtocol(), device.getChannel(), label, start, stop);
+		}
+		else
+			return null;
+	}
 
 	public List getHistory(SourceProtocol proto, Short channel, String label, Date start)
 	{

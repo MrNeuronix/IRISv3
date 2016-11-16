@@ -74,5 +74,12 @@
                 <include>*/**</include>
             </includes>
         </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../events/src/main/resources</directory>
+            <outputDirectory>/config</outputDirectory>
+            <includes>
+                <include>events.properties</include>
+            </includes>
+        </fileSet>
     </fileSets>
 </assembly>

@@ -159,6 +159,7 @@ public class NooliteRXController extends AbstractProtocolService<NooliteDevice> 
 			device.setHumanReadable("noolite/channel/" + channel);
 			device.setState(State.ACTIVE);
 			device.setType(DeviceType.UNKNOWN);
+			device.setState(State.NOT_SUPPORTED);
 			device.setManufacturer("Nootechnika");
 			device.setChannel(channel);
 

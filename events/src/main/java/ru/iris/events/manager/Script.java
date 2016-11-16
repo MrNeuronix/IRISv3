@@ -67,16 +67,16 @@ public class Script {
 		try {
 			
 			logger.info("initializeSciptGlobals for : " + engine.getFactory().getEngineName());
-			engine.eval("RuleSet 				= Java.type('org.openhab.core.jsr223.internal.shared.RuleSet'),\n"
-				+"Rule 					= Java.type('org.openhab.core.jsr223.internal.shared.Rule'),\n"
-				+"ChangedEventTrigger 	= Java.type('org.openhab.core.jsr223.internal.shared.ChangedEventTrigger'),\n"
-				+"CommandEventTrigger 	= Java.type('org.openhab.core.jsr223.internal.shared.CommandEventTrigger'),\n"
-				+"Event 				= Java.type('org.openhab.core.jsr223.internal.shared.Event'),\n"
-				+"EventTrigger			= Java.type('org.openhab.core.jsr223.internal.shared.EventTrigger'),\n"
-				+"ShutdownTrigger 		= Java.type('org.openhab.core.jsr223.internal.shared.ShutdownTrigger'),\n"
-				+"StartupTrigger 		= Java.type('org.openhab.core.jsr223.internal.shared.StartupTrigger'),\n"
-				+"TimerTrigger 			= Java.type('org.openhab.core.jsr223.internal.shared.TimerTrigger'),\n"
-				+"TriggerType 			= Java.type('org.openhab.core.jsr223.internal.shared.TriggerType'),\n"
+			engine.eval("RuleSet 				= Java.type('ru.iris.events.types.RuleSet'),\n"
+				+"Rule 					= Java.type('ru.iris.events.types.Rule'),\n"
+				+"ChangedEventTrigger 	= Java.type('ru.iris.events.types.ChangedEventTrigger'),\n"
+				+"CommandEventTrigger 	= Java.type('ru.iris.events.types.CommandEventTrigger'),\n"
+				+"Event 				= Java.type('ru.iris.events.types.Event'),\n"
+				+"EventTrigger			= Java.type('ru.iris.events.types.EventTrigger'),\n"
+				+"ShutdownTrigger 		= Java.type('ru.iris.events.types.ShutdownTrigger'),\n"
+				+"StartupTrigger 		= Java.type('ru.iris.events.types.StartupTrigger'),\n"
+				+"TimerTrigger 			= Java.type('ru.iris.events.types.TimerTrigger'),\n"
+				+"TriggerType 			= Java.type('ru.iris.events.types.TriggerType'),\n"
 				+"URLEncoder 			= Java.type('java.net.URLEncoder'),\n"
 				
 				//System

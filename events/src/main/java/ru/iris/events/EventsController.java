@@ -1,8 +1,5 @@
 package ru.iris.events;
 
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,33 +31,23 @@ public class EventsController extends AbstractService {
 	private final EventBus r;
 	private final ConfigLoader config;
 	private final DeviceRegistry registry;
-	private RuleTriggerManager triggerManager;
+	private final RuleTriggerManager triggerManager;
 	private ScriptManager scriptManager;
-
-	private Scheduler scheduler;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public EventsController(EventBus r, ConfigLoader config, DeviceRegistry registry) {
+	public EventsController(EventBus r, ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager) {
 		this.r = r;
 		this.config = config;
 		this.registry = registry;
+		this.triggerManager = triggerManager;
 	}
 
 	@Override
 	public void onStartup() throws InterruptedException {
 		logger.info("EventsController starting");
-
-		try {
-			scheduler = StdSchedulerFactory.getDefaultScheduler();
-		} catch (SchedulerException e) {
-			logger.error("initializing scheduler throws exception", e);
-		}
-
-		triggerManager = new RuleTriggerManager(scheduler);
 		scriptManager = new ScriptManager(triggerManager, config, registry);
-
 		logger.info("EventsController started");
 
 		runStartupRules();
