@@ -1,8 +1,9 @@
 'use strict';
 
-print("\n################# E X A M P L E S ##################\n");
+print("\nTimer task test script\n");
 
-var timetask = new Rule(){
+var timetask = new Rule()
+{
     getEventTrigger: function(){
         return [
             new TimerTrigger("0/15 * * * * ?")
@@ -10,8 +11,12 @@ var timetask = new Rule(){
     },
     execute: function(event){
         print("\nTimerTest\n");
+        var temp = DeviceRegistry.getDeviceValue(SourceProtocol.NOOLITE, 7, "temperature");
+        print("\n" + temp.getName() + ": " + temp.getCurrentValue() +"\n");
     }
-};
+}
 
 // enable rules
-function getRules(){return new RuleSet([timetask]);}
+function getRules(){
+    return new RuleSet([timetask]);
+}

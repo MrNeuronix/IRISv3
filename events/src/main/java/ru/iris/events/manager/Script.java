@@ -5,6 +5,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
+
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.events.types.*;
 
 import javax.script.Invocable;
@@ -32,11 +34,13 @@ public class Script {
 	private ArrayList<Rule> rules = new ArrayList<>();
 	private ScriptManager scriptManager;
 	private ScriptEngine engine = null;
+	private DeviceRegistry registry;
 	private String fileName;
 
-	public Script(ScriptManager scriptManager, File file) throws FileNotFoundException, ScriptException, NoSuchMethodException {
+	public Script(ScriptManager scriptManager, File file, DeviceRegistry registry) throws FileNotFoundException, ScriptException, NoSuchMethodException {
 		this.scriptManager = scriptManager;
 		this.fileName = file.getName();
+		this.registry = registry;
 		loadScript(file);
 	}
 
@@ -67,6 +71,8 @@ public class Script {
 		try {
 			
 			logger.info("initializeSciptGlobals for : " + engine.getFactory().getEngineName());
+
+			engine.put("DeviceRegistry", registry);
 			engine.eval("RuleSet 				= Java.type('ru.iris.events.types.RuleSet'),\n"
 				+"Rule 					= Java.type('ru.iris.events.types.Rule'),\n"
 				+"ChangedEventTrigger 	= Java.type('ru.iris.events.types.ChangedEventTrigger'),\n"
@@ -78,7 +84,16 @@ public class Script {
 				+"TimerTrigger 			= Java.type('ru.iris.events.types.TimerTrigger'),\n"
 				+"TriggerType 			= Java.type('ru.iris.events.types.TriggerType'),\n"
 				+"URLEncoder 			= Java.type('java.net.URLEncoder'),\n"
-				
+
+				// Devices
+			  +"Device 			= Java.type('ru.iris.commons.protocol.Device'),\n"
+			  +"DeviceValue 			= Java.type('ru.iris.commons.protocol.DeviceValue'),\n"
+			  +"DeviceValueChange 			= Java.type('ru.iris.commons.protocol.DeviceValueChange'),\n"
+
+			  +"Zone			= Java.type('ru.iris.commons.protocol.Zone'),\n"
+
+			  +"SourceProtocol			= Java.type('ru.iris.commons.protocol.enums.SourceProtocol'),\n"
+
 				//System
 				+"FileUtils 			= Java.type('org.apache.commons.io.FileUtils'),\n"
 				+"FilenameUtils			= Java.type('org.apache.commons.io.FilenameUtils'),\n"
@@ -95,7 +110,6 @@ public class Script {
 		engine.put("RuleSet", 				RuleSet.class);
 		engine.put("Rule", 					Rule.class);
 		engine.put("ChangedEventTrigger", 	ChangedEventTrigger.class);
-		engine.put("UpdatedEventTrigger", 	UpdatedEventTrigger.class);
 		engine.put("CommandEventTrigger", 	CommandEventTrigger.class);
 		engine.put("Event", 				Event.class);
 		engine.put("EventTrigger", 			EventTrigger.class);

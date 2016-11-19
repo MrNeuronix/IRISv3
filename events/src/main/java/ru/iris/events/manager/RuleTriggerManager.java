@@ -99,7 +99,9 @@ public class RuleTriggerManager {
 
 	private Iterable<Rule> internalGetRules(TriggerType triggerType, Device device) {
 		List<Rule> result = Lists.newArrayList();
-		Iterable<Rule> rules = getAllRules(triggerType, device.getHumanReadableName());
+		String ident = device == null ? "undef" : device.getHumanReadableName();
+
+		Iterable<Rule> rules = getAllRules(triggerType, ident);
 		if (rules == null) {
 			rules = Lists.newArrayList();
 		}
@@ -110,7 +112,6 @@ public class RuleTriggerManager {
 			return systemShutdownTriggeredRules;
 		case TIMER:
 			return timerEventTriggeredRules;
-		case UPDATE:
 		case CHANGE:
 				for (Rule rule : rules) {
 					for (EventTrigger t : rule.getEventTrigger()) {
@@ -171,7 +172,6 @@ public class RuleTriggerManager {
 	public void clearAll() {
 		clear(TriggerType.STARTUP);
 		clear(TriggerType.SHUTDOWN);
-		clear(TriggerType.UPDATE);
 		clear(TriggerType.CHANGE);
 		clear(TriggerType.COMMAND);
 		clear(TriggerType.TIMER);

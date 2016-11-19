@@ -89,6 +89,35 @@ public class DeviceRegistry {
 			return null;
 	}
 
+	public Object getDeviceValue(SourceProtocol protocol, Short channel, String value) {
+		Device device = (Device) registry.get(protocol.name().toLowerCase()+"/channel/"+channel);
+
+		if(device == null)
+			return null;
+
+		if(device.getDeviceValues().containsKey(value))
+			return device.getDeviceValues().get(value);
+		else
+			return null;
+	}
+
+	public Object getDeviceValue(String humanReadableIdent, String value) {
+
+		String ident = humanReadable.get(humanReadableIdent);
+
+		if(ident != null)
+		{
+			Device device = (Device) registry.get(ident);
+
+			if(device.getDeviceValues().containsKey(value))
+				return device.getDeviceValues().get(value);
+			else
+				return null;
+		}
+		else
+			return null;
+	}
+
 	/////////////////////////////////////////////////////////////////
 	// HISTORY
 	/////////////////////////////////////////////////////////////////
