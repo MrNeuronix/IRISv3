@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.helpers.DeviceHelper;
+import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.events.types.*;
 
@@ -31,14 +33,19 @@ public class ScriptManager {
 
 	private RuleTriggerManager triggerManager;
 	private DeviceRegistry registry;
+	private SpeakHelper speakHelper;
+	private DeviceHelper deviceHelper;
 
 	private Thread scriptUpdateWatcher;
 
 	private static ScriptManager instance;
 
-	public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry) {
+	public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry,
+	                     SpeakHelper speakHelper, DeviceHelper deviceHelper) {
 		this.triggerManager = triggerManager;
 		this.config = config;
+		this.speakHelper = speakHelper;
+		this.deviceHelper = deviceHelper;
 		instance = this;
 		logger.info("Available engines:");
 		for (ScriptEngineFactory f : new ScriptEngineManager().getEngineFactories()) {
@@ -75,7 +82,7 @@ public class ScriptManager {
 			if(!file.isFile() || file.getName().startsWith(".") || getFileExtension(file) == null){
 				return null;
 			}
-			script = new Script(this, file, registry);
+			script = new Script(this, file, registry, speakHelper, deviceHelper);
 			if(script.getEngine() == null){
 				logger.warn("No Engine found for File: {}", file.getName());
 				return null;

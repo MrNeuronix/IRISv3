@@ -21,22 +21,14 @@ import ru.iris.facade.model.status.OkStatus;
 @Profile("facade")
 public class SpeakFacade {
 
-	private final Speak speak;
-	private EventBus r;
-
-	private static final Logger logger = LoggerFactory.getLogger(SpeakFacade.class);
-
-	@Autowired(required = false)
-	public SpeakFacade(
-			Speak speak
-	)
-	{
-		this.speak = speak;
-	}
+	private final SpeakHelper helper;
 
 	@Autowired
-	public void setR(EventBus r) {
-		this.r = r;
+	public SpeakFacade(
+	    SpeakHelper helper
+	)
+	{
+		this.helper = helper;
 	}
 
 	/**
@@ -49,7 +41,7 @@ public class SpeakFacade {
 	public Object sayAtZone(@RequestBody SpeakRequest request) {
 
 		if(request.getText() != null && !request.getText().isEmpty()) {
-			SpeakHelper.say(r, request.getText());
+			helper.say(request.getText());
 		}
 		else {
 			new ErrorStatus("empty text passed");

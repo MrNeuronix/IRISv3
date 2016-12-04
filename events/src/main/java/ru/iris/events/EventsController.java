@@ -14,6 +14,8 @@ import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.helpers.DeviceHelper;
+import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.commons.protocol.Device;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractService;
@@ -33,21 +35,26 @@ public class EventsController extends AbstractService {
 	private final DeviceRegistry registry;
 	private final RuleTriggerManager triggerManager;
 	private ScriptManager scriptManager;
+	private SpeakHelper speakHelper;
+	private DeviceHelper deviceHelper;
 
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public EventsController(EventBus r, ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager) {
+	public EventsController(EventBus r, ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager,
+	                        SpeakHelper speakHelper, DeviceHelper deviceHelper) {
 		this.r = r;
 		this.config = config;
 		this.registry = registry;
 		this.triggerManager = triggerManager;
+		this.speakHelper = speakHelper;
+		this.deviceHelper = deviceHelper;
 	}
 
 	@Override
 	public void onStartup() throws InterruptedException {
 		logger.info("EventsController starting");
-		scriptManager = new ScriptManager(triggerManager, config, registry);
+		scriptManager = new ScriptManager(triggerManager, config, registry, speakHelper, deviceHelper);
 		logger.info("EventsController started");
 
 		runStartupRules();

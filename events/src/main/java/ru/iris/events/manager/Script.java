@@ -4,9 +4,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import ru.iris.commons.helpers.DeviceHelper;
+import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.commons.service.Speak;
 import ru.iris.events.types.*;
 
 import javax.script.Invocable;
@@ -36,11 +41,16 @@ public class Script {
 	private ScriptEngine engine = null;
 	private DeviceRegistry registry;
 	private String fileName;
+	private SpeakHelper speakHelper;
+	private DeviceHelper deviceHelper;
 
-	public Script(ScriptManager scriptManager, File file, DeviceRegistry registry) throws FileNotFoundException, ScriptException, NoSuchMethodException {
+	public Script(ScriptManager scriptManager, File file, DeviceRegistry registry,
+	              SpeakHelper speakHelper, DeviceHelper deviceHelper) throws FileNotFoundException, ScriptException, NoSuchMethodException {
 		this.scriptManager = scriptManager;
 		this.fileName = file.getName();
 		this.registry = registry;
+		this.speakHelper = speakHelper;
+		this.deviceHelper = deviceHelper;
 		loadScript(file);
 	}
 
@@ -73,6 +83,9 @@ public class Script {
 			logger.info("initializeSciptGlobals for : " + engine.getFactory().getEngineName());
 
 			engine.put("DeviceRegistry", registry);
+			engine.put("DeviceHelper", deviceHelper);
+			engine.put("SpeakHelper", speakHelper);
+
 			engine.eval("RuleSet 				= Java.type('ru.iris.events.types.RuleSet'),\n"
 				+"Rule 					= Java.type('ru.iris.events.types.Rule'),\n"
 				+"ChangedEventTrigger 	= Java.type('ru.iris.events.types.ChangedEventTrigger'),\n"
@@ -93,6 +106,10 @@ public class Script {
 			  +"Zone			= Java.type('ru.iris.commons.protocol.Zone'),\n"
 
 			  +"SourceProtocol			= Java.type('ru.iris.commons.protocol.enums.SourceProtocol'),\n"
+
+			  // Helpers
+			  //+"SpeakHelper			= Java.type('ru.iris.commons.helpers.SpeakHelper'),\n"
+			  //+"DeviceHelper		= Java.type('ru.iris.commons.helpers.DeviceHelper'),\n"
 
 				//System
 				+"FileUtils 			= Java.type('org.apache.commons.io.FileUtils'),\n"

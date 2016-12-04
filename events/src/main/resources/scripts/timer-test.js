@@ -1,12 +1,8 @@
-'use strict';
-
-print("\nTimer task test script\n");
-
 var timetask = new Rule()
 {
     getEventTrigger: function(){
         return [
-            new TimerTrigger("0/15 * * * * ?")
+            new TimerTrigger("0 0 */1 * * ?")
         ];
     },
     execute: function(event){
