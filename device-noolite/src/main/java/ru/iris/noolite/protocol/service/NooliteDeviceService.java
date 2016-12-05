@@ -27,6 +27,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceContextType;
+
 @Service("nooliteDeviceService")
 public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
 
@@ -34,11 +39,18 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	private final DeviceRegistry registry;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+	@PersistenceContext(type = PersistenceContextType.EXTENDED)
+	private EntityManager entityManager;
+
 	@Autowired
 	public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
 		this.registry = registry;
+	}
 
+	@PostConstruct
+	@Transactional
+	public void init() {
 		// load all noolite devices to registry
 		getDevices();
 
@@ -132,6 +144,7 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 		for(DeviceValue deviceValue : device.getValues().values())
 		{
 			NooliteDeviceValue dv = new NooliteDeviceValue();
+			deviceValue = entityManager.merge(deviceValue);
 
 			dv.setId(deviceValue.getId());
 			dv.setDate(deviceValue.getDate());

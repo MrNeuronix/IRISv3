@@ -371,9 +371,10 @@ public class YandexController extends AbstractService implements Speak {
 	 * @author Aaron Gokaslan (Skylion)
 	 */
 	private class MP3DataFetcher implements Callable<InputStream> {
+
 		private String synthText;
 
-		public MP3DataFetcher(String synthText) {
+		MP3DataFetcher(String synthText) {
 			this.synthText = synthText;
 		}
 

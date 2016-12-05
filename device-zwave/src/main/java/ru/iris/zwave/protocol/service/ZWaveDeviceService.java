@@ -28,6 +28,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.PersistenceContextType;
+
 @Service("zwaveDeviceService")
 public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> {
 
@@ -36,11 +41,18 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	private final Gson gson = new GsonBuilder().create();
 
+	@PersistenceContext(type = PersistenceContextType.EXTENDED)
+	private EntityManager entityManager;
+
 	@Autowired
 	public ZWaveDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
 		this.registry = registry;
+	}
 
+	@PostConstruct
+	@Transactional
+	public void init() {
 		// load all zwave devices to registry
 		getDevices();
 
@@ -132,6 +144,7 @@ public class ZWaveDeviceService implements ProtocolServiceLayer<ZWaveDevice, ZWa
 		for(ru.iris.commons.database.model.DeviceValue deviceValue : device.getValues().values())
 		{
 			ZWaveDeviceValue dv = new ZWaveDeviceValue();
+			deviceValue = entityManager.merge(deviceValue);
 
 			dv.setId(deviceValue.getId());
 			dv.setDate(deviceValue.getDate());

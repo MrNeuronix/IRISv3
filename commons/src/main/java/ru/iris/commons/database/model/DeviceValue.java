@@ -37,7 +37,7 @@ public class DeviceValue {
 	private String additionalData;
 
 	// get only 15 history points by batch
-	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "deviceValue")
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
 	@OrderBy(clause = "date desc")
 	@BatchSize(size = 15)
 	private List<DeviceValueChange> changes = new ArrayList<>();
