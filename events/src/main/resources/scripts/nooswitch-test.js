@@ -3,34 +3,39 @@ var timer = new Timer("turnOffLaterTimer", true);
 
 var lock = false;
 
-var koridor = new Rule()
+var autoOff = new Rule()
 {
     getEventTrigger: function(){
         return [
-            new ChangedEventTrigger("noolite/channel/1")
+            new ChangedEventTrigger("noolite/channel/1"),
+            new ChangedEventTrigger("noolite/channel/2"),
+            new ChangedEventTrigger("noolite/channel/4")
         ];
     },
     execute: function(event){
-        var current = DeviceRegistry.getDeviceValue(SourceProtocol.NOOLITE, 1, "level");
+        var current = DeviceRegistry.getDeviceValue(event.getDevice().getHumanReadableName(), "level");
+
+        if(current == null)
+            return;
 
         if(current.getCurrentValue() == 255 && !lock) {
             lock = true;
-            print("\nLight turned ON, timer setted\n");
+            print("\nLight turned ON on channel " + event.getDevice().getChannel() + ", timer setted\n");
 
             // turn off past 20 minutes
             timer.schedule(function () {
                 if(lock) {
-                    print("\nTimes up. Turning off!\n");
-                    DeviceHelper.off("noolite/channel/1")
+                    print("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
+                    DeviceHelper.off(event.getDevice().getHumanReadableName())
                 }
-            }, 10000);
+            }, 1200000);
         }
         else if (current.getCurrentValue() == 255 && lock) {
             print("\nTimer already set!\n");
         }
         else if (current.getCurrentValue() == 0 && lock) {
             lock = false;
-            print("\nLight turned OFF. Unset lock!\n");
+            print("\nLight turned OFF on channel " + event.getDevice().getChannel() + ". Unset lock!\n");
         }
         else {
             //skip
@@ -40,5 +45,5 @@ var koridor = new Rule()
 
 // enable rules
 function getRules(){
-    return new RuleSet([koridor]);
+    return new RuleSet([autoOff]);
 }

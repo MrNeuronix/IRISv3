@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2010-2015, openHAB.org and others.
- *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package ru.iris.events.actions;
 
 import org.joda.time.DateTime;
@@ -19,19 +11,10 @@ import java.util.Date;
 
 import static org.quartz.TriggerBuilder.newTrigger;
 
-/**
- * This is an implementation of the {@link Timer} interface using the Quartz library for scheduling.
- * 
- * @author Kai Kreuzer
- * @author Simon Merschjohann
- * @since 1.7.0
- * 
- */
 public class Timer {
-	private static final Logger logger = LoggerFactory.getLogger(Timer.class);
 
-	// the scheduler used for timer events
-	public static Scheduler scheduler;
+	private static final Logger logger = LoggerFactory.getLogger(Timer.class);
+	private static Scheduler scheduler;
 
 	static {
 		try {
@@ -61,7 +44,7 @@ public class Timer {
 				cancelled = true;
 			}
 		} catch (SchedulerException e) {
-			logger.warn("An error occured while cancelling the job '{}': {}", new String[] { jobKey.toString(), e.getMessage() });
+			logger.warn("An error occured while cancelling the job '{}': {}", jobKey.toString(), e.getMessage());
 		}
 		return cancelled;
 	}
@@ -77,7 +60,7 @@ public class Timer {
 				return true;
 			}
 		} catch (SchedulerException e) {
-			logger.warn("An error occured while rescheduling the job '{}': {}", new String[] { jobKey.toString(), e.getMessage() });
+			logger.warn("An error occured while rescheduling the job '{}': {}", jobKey.toString(), e.getMessage());
 		}
 		return false;
 	}

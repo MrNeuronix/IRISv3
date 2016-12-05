@@ -1,11 +1,3 @@
-/**
- * Copyright (c) 2010-2015, openHAB.org and others.
- *
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
- */
 package ru.iris.events.manager;
 
 import org.slf4j.Logger;
@@ -19,21 +11,13 @@ import java.util.HashMap;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
-/**
- * Watches the given directory for file updates. It notifies the <code>ScriptManager</code>, if a change is detected.
- * 
- * @author Simon Merschjohann
- * @since 1.7.0
- * 
- */
 public class ScriptUpdateWatcher implements Runnable {
 	static private final Logger logger = LoggerFactory.getLogger(ScriptUpdateWatcher.class);
 
 	private ScriptManager scriptManager;
-	private WatchService watcher;
 	private File folder;
 
-	private HashMap<File, Long> lastUpdate = new HashMap<File, Long>();
+	private HashMap<File, Long> lastUpdate = new HashMap<>();
 
 	public ScriptUpdateWatcher(ScriptManager scriptManager, File folder) {
 		this.scriptManager = scriptManager;
@@ -43,7 +27,7 @@ public class ScriptUpdateWatcher implements Runnable {
 	@Override
 	public void run() {
 		try {
-			watcher = FileSystems.getDefault().newWatchService();
+			WatchService watcher = FileSystems.getDefault().newWatchService();
 
 			Path dir = Paths.get(folder.getAbsolutePath());
 			dir.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
@@ -60,9 +44,9 @@ public class ScriptUpdateWatcher implements Runnable {
 
 				long currentTime = System.currentTimeMillis();
 
-				ArrayList<File> removedScripts = new ArrayList<File>();
-				ArrayList<File> addedScripts = new ArrayList<File>();
-				ArrayList<File> modifiedScripts = new ArrayList<File>();
+				ArrayList<File> removedScripts = new ArrayList<>();
+				ArrayList<File> addedScripts = new ArrayList<>();
+				ArrayList<File> modifiedScripts = new ArrayList<>();
 
 				for (WatchEvent<?> event : key.pollEvents()) {
 

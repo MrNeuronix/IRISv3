@@ -25,14 +25,6 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A Script holds information about a script-file.
- * 
- * @author Simon Merschjohann
- * @author Helmut Lehmeyer
- * @author Nikolay Viguro
- */
-
 public class Script {
 
 	private static final Logger logger = LoggerFactory.getLogger(Script.class);
@@ -54,7 +46,7 @@ public class Script {
 		loadScript(file);
 	}
 
-	public void loadScript(File file) throws FileNotFoundException, ScriptException, NoSuchMethodException {
+	private void loadScript(File file) throws FileNotFoundException, ScriptException, NoSuchMethodException {
 		logger.info("Loading Script " + file.getName());
 		String extension = getFileExtension(file);
 		ScriptEngineManager factory = new ScriptEngineManager();

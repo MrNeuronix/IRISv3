@@ -12,17 +12,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * This class holds all rules implemented by a script
- * 
- * @author Simon Merschjohann
- * 
- */
 public class RuleSet {
+
 	private List<Rule> rules;
 
 	public RuleSet() {
-		this.rules = new ArrayList<Rule>();
+		this.rules = new ArrayList<>();
 	}
 
 	public RuleSet(Rule... rules) {

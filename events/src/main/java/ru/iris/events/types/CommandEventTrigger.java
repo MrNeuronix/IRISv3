@@ -2,11 +2,6 @@ package ru.iris.events.types;
 
 import ru.iris.commons.protocol.Device;
 
-/**
- * CommandEventTrigger is used by a Script to listen for (specific) commands
- * 
- * @author Simon Merschjohann
- */
 public class CommandEventTrigger implements EventTrigger {
 
 	private String itemName;

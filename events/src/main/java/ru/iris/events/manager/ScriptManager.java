@@ -26,7 +26,6 @@ import java.util.List;
 public class ScriptManager {
 
 	private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
-	private final ConfigLoader config;
 
 	private HashMap<String, Script> scripts = new HashMap<>();
 	private HashMap<Rule, Script> ruleMap = new HashMap<>();
@@ -36,14 +35,11 @@ public class ScriptManager {
 	private SpeakHelper speakHelper;
 	private DeviceHelper deviceHelper;
 
-	private Thread scriptUpdateWatcher;
-
 	private static ScriptManager instance;
 
 	public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry,
 	                     SpeakHelper speakHelper, DeviceHelper deviceHelper) {
 		this.triggerManager = triggerManager;
-		this.config = config;
 		this.speakHelper = speakHelper;
 		this.deviceHelper = deviceHelper;
 		instance = this;
@@ -62,17 +58,18 @@ public class ScriptManager {
 		if (folder.exists() && folder.isDirectory()) {
 			loadScripts(folder);
 
-			scriptUpdateWatcher = new Thread(new ScriptUpdateWatcher(this, folder));
+			Thread scriptUpdateWatcher = new Thread(new ScriptUpdateWatcher(this, folder));
 			scriptUpdateWatcher.start();
 		} else {
 			logger.warn("Script directory: scripts missing, no scripts will be added!");
 		}
 	}
 
-	public void loadScripts(File folder) {
-		for (File file : folder.listFiles()) {
-			loadScript(file);
-		}
+	private void loadScripts(File folder) {
+		if(folder != null)
+			for (File file : folder.listFiles()) {
+				loadScript(file);
+			}
 	}
 
 	private Script loadScript(File file) {

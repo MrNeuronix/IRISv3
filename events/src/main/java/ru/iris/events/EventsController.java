@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
-import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
@@ -30,7 +29,6 @@ import ru.iris.events.types.TriggerType;
 @Scope("singleton")
 public class EventsController extends AbstractService {
 
-	private final EventBus r;
 	private final ConfigLoader config;
 	private final DeviceRegistry registry;
 	private final RuleTriggerManager triggerManager;
@@ -41,9 +39,8 @@ public class EventsController extends AbstractService {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Autowired
-	public EventsController(EventBus r, ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager,
+	public EventsController(ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager,
 	                        SpeakHelper speakHelper, DeviceHelper deviceHelper) {
-		this.r = r;
 		this.config = config;
 		this.registry = registry;
 		this.triggerManager = triggerManager;

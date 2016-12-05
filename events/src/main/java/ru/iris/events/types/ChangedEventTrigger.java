@@ -2,11 +2,6 @@ package ru.iris.events.types;
 
 import ru.iris.commons.protocol.Device;
 
-/**
- * ChangedEventTrigger is used by a Script to listen for item changes
- * 
- * @author Simon Merschjohann
- */
 public class ChangedEventTrigger implements EventTrigger {
 	private String itemName;
 	private Object from;
