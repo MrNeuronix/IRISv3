@@ -39,9 +39,6 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 	private final DeviceRegistry registry;
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@PersistenceContext(type = PersistenceContextType.EXTENDED)
-	private EntityManager em;
-
 	@Autowired
 	public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
 		this.deviceDAO = deviceDAO;
@@ -110,8 +107,6 @@ public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice,
 
 	@Transactional
 	private NooliteDevice merge(Device device, NooliteDevice nooDevice) {
-
-		device = em.merge(device);
 
 		if (!device.getSource().equals(SourceProtocol.NOOLITE)) {
 			logger.error("Specified device is not Noolite device!");
