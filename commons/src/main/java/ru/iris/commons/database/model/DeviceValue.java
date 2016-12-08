@@ -8,7 +8,6 @@ import javax.persistence.*;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import javax.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,9 +38,9 @@ public class DeviceValue {
 	private String additionalData;
 
 	// get only 15 history points by batch
-	@OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL, mappedBy = "deviceValue")
+	@OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
 	@OrderBy(clause = "date desc")
-	@Size(max = 15)
+	@BatchSize(size = 15)
 	private List<DeviceValueChange> changes = new ArrayList<>();
 
 	public DeviceValue() {
