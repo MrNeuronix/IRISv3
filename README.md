@@ -26,18 +26,16 @@ Please remember that this project is in deep alpha and now is mostly for develop
 
 **mvn package**
 
-In project root directory you will find assembled **IRISv2-linux-release.zip**. Unpack them.
+In project root directory you will find assembled **IRISv3-linux-release.zip**. Unpack them.
 Database for IRISv2 will be created dynamically at first run.
 
 ## Configuration
 
-* Rename **main.property.example** to **main.property** in **/conf** directory
-* Rename **log4j2.property.example** to **log4j2.property** in **/conf** directory
-* Change what you need in **main.property** and **log4j2.property**
+* Change what you need in **/conf** directory
 
 ## Run
 
-Type in command line: **java -jar iris.jar** or use **conf/irisd** script
+Type in command line: **./start.sh** or use **conf/irisd** script
 
 ## Licence
 
