@@ -9,12 +9,17 @@ import reactor.fn.Consumer;
 
 public interface ProtocolService<DEVICE> {
 
-	void onStartup() throws InterruptedException;
-	void onShutdown();
+    void onStartup() throws InterruptedException;
 
-	Consumer<Event<?>> handleMessage() throws Exception;
-	void subscribe() throws Exception;
-	void broadcast(String queue, Object object);
-	void run() throws Exception;
-	DEVICE getDeviceByChannel(Short channel);
+    void onShutdown();
+
+    Consumer<Event<?>> handleMessage() throws Exception;
+
+    void subscribe() throws Exception;
+
+    void broadcast(String queue, Object object);
+
+    void run() throws Exception;
+
+    DEVICE getDeviceByChannel(Short channel);
 }

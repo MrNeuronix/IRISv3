@@ -2,22 +2,22 @@ package ru.iris.commons.protocol.enums;
 
 public enum SourceProtocol {
 
-	ZWAVE("zwave"),
-	NOOLITE("noolite"),
-	UNKNOWN("unknown");
+    ZWAVE("zwave"),
+    NOOLITE("noolite"),
+    UNKNOWN("unknown");
 
-	private final String name;
+    private final String name;
 
-	SourceProtocol(String name) {
-		this.name = name;
-	}
+    SourceProtocol(String name) {
+        this.name = name;
+    }
 
-	public boolean equalsName(String otherName) {
-		return otherName != null && name.equals(otherName);
-	}
+    public boolean equalsName(String otherName) {
+        return otherName != null && name.equals(otherName);
+    }
 
-	public String toString() {
-		return this.name;
-	}
+    public String toString() {
+        return this.name;
+    }
 
 }

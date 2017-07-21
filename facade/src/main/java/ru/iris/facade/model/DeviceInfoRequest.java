@@ -5,22 +5,22 @@ package ru.iris.facade.model;
  */
 public class DeviceInfoRequest {
 
-	private String source;
-	private Short channel;
+    private String source;
+    private Short channel;
 
-	public String getSource() {
-		return source;
-	}
+    public String getSource() {
+        return source;
+    }
 
-	public void setSource(String source) {
-		this.source = source;
-	}
+    public void setSource(String source) {
+        this.source = source;
+    }
 
-	public Short getChannel() {
-		return channel;
-	}
+    public Short getChannel() {
+        return channel;
+    }
 
-	public void setChannel(Short channel) {
-		this.channel = channel;
-	}
+    public void setChannel(Short channel) {
+        this.channel = channel;
+    }
 }

@@ -7,59 +7,59 @@ import java.util.Date;
 @Table(name = "device_values_change")
 public class DeviceValueChange {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private long id;
 
-	@Temporal(TemporalType.TIMESTAMP)
-	private Date date;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date date;
 
-	@ManyToOne
-	private DeviceValue deviceValue;
+    @ManyToOne
+    private DeviceValue deviceValue;
 
-	private String value;
-	private String additionalData;
+    private String value;
+    private String additionalData;
 
-	public DeviceValueChange() {
-	}
+    public DeviceValueChange() {
+    }
 
-	public long getId() {
-		return id;
-	}
+    public long getId() {
+        return id;
+    }
 
-	public void setId(long id) {
-		this.id = id;
-	}
+    public void setId(long id) {
+        this.id = id;
+    }
 
-	public Date getDate() {
-		return date;
-	}
+    public Date getDate() {
+        return date;
+    }
 
-	public void setDate(Date date) {
-		this.date = date;
-	}
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getAdditionalData() {
-		return additionalData;
-	}
+    public String getAdditionalData() {
+        return additionalData;
+    }
 
-	public void setAdditionalData(String additionalData) {
-		this.additionalData = additionalData;
-	}
+    public void setAdditionalData(String additionalData) {
+        this.additionalData = additionalData;
+    }
 
-	public DeviceValue getDeviceValue() {
-		return deviceValue;
-	}
+    public DeviceValue getDeviceValue() {
+        return deviceValue;
+    }
 
-	public void setDeviceValue(DeviceValue deviceValue) {
-		this.deviceValue = deviceValue;
-	}
+    public void setDeviceValue(DeviceValue deviceValue) {
+        this.deviceValue = deviceValue;
+    }
 }

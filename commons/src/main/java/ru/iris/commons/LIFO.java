@@ -8,53 +8,53 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class LIFO<T> extends LinkedBlockingDeque<T> {
 
-	private final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
-	public LIFO() {
-		super(5);
-	}
+    public LIFO() {
+        super(5);
+    }
 
-	public LIFO(int capacity) {
-		super(capacity);
-	}
+    public LIFO(int capacity) {
+        super(capacity);
+    }
 
-	@Override
-	public synchronized boolean add(T e) {
+    @Override
+    public synchronized boolean add(T e) {
 
-		final ReentrantLock lock = this.lock;
-		lock.lock();
-		try {
-			if(super.remainingCapacity() == 0)
-				super.removeLast();
-			return super.add(e);
-		} finally {
-			lock.unlock();
-		}
-	}
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            if (super.remainingCapacity() == 0)
+                super.removeLast();
+            return super.add(e);
+        } finally {
+            lock.unlock();
+        }
+    }
 
-	@Override
-	public synchronized void addFirst(T e) {
-		final ReentrantLock lock = this.lock;
-		lock.lock();
-		try {
-			if(super.remainingCapacity() == 0)
-				super.removeLast();
-			super.addFirst(e);
-		} finally {
-			lock.unlock();
-		}
-	}
+    @Override
+    public synchronized void addFirst(T e) {
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            if (super.remainingCapacity() == 0)
+                super.removeLast();
+            super.addFirst(e);
+        } finally {
+            lock.unlock();
+        }
+    }
 
-	@Override
-	public synchronized void addLast(T e) {
-		final ReentrantLock lock = this.lock;
-		lock.lock();
-		try {
-			if(super.remainingCapacity() == 0)
-				super.removeLast();
-			super.addLast(e);
-		} finally {
-			lock.unlock();
-		}
-	}
+    @Override
+    public synchronized void addLast(T e) {
+        final ReentrantLock lock = this.lock;
+        lock.lock();
+        try {
+            if (super.remainingCapacity() == 0)
+                super.removeLast();
+            super.addLast(e);
+        } finally {
+            lock.unlock();
+        }
+    }
 }

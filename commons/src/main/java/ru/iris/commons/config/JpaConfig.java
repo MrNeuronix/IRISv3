@@ -13,9 +13,9 @@ import java.sql.SQLException;
 @ConfigurationProperties(prefix = "spring.datasource")
 public class JpaConfig extends HikariConfig {
 
-	@Bean
-	public DataSource dataSource() throws SQLException {
-		return new HikariDataSource(this);
-	}
+    @Bean
+    public DataSource dataSource() throws SQLException {
+        return new HikariDataSource(this);
+    }
 
 }

@@ -5,26 +5,27 @@ var lock = false;
 
 var autoOff = new Rule()
 {
-    getEventTrigger: function(){
+    getEventTrigger: function () {
         return [
             new ChangedEventTrigger("noolite/channel/1"),
             new ChangedEventTrigger("noolite/channel/2"),
             new ChangedEventTrigger("noolite/channel/4")
         ];
-    },
-    execute: function(event){
+    }
+,
+    execute: function (event) {
         var current = DeviceRegistry.getDeviceValue(event.getDevice().getHumanReadableName(), "level");
 
-        if(current == null)
+        if (current == null)
             return;
 
-        if(current.getCurrentValue() == 255 && !lock) {
+        if (current.getCurrentValue() == 255 && !lock) {
             lock = true;
             print("\nLight turned ON on channel " + event.getDevice().getChannel() + ", timer setted\n");
 
             // turn off past 20 minutes
             timer.schedule(function () {
-                if(lock) {
+                if (lock) {
                     print("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
                     DeviceHelper.off(event.getDevice().getHumanReadableName())
                 }
@@ -44,6 +45,6 @@ var autoOff = new Rule()
 }
 
 // enable rules
-function getRules(){
+function getRules() {
     return new RuleSet([autoOff]);
 }

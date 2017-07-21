@@ -7,5 +7,5 @@ import javax.transaction.Transactional;
 
 @Transactional
 public interface ZoneDAO extends CrudRepository<Zone, Long> {
-	Zone findByName(String name);
+    Zone findByName(String name);
 }

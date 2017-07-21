@@ -13,13 +13,13 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 @Profile("tests")
 public class TestJpaConfig {
 
-	@Bean(name = "dataSource")
-	public DriverManagerDataSource getDataSource() {
+    @Bean(name = "dataSource")
+    public DriverManagerDataSource getDataSource() {
 
-		DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
-		driverManagerDataSource.setDriverClassName("org.h2.Driver");
-		driverManagerDataSource.setUrl("jdbc:h2:mem:mylivedata;IGNORECASE=TRUE;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
+        DriverManagerDataSource driverManagerDataSource = new DriverManagerDataSource();
+        driverManagerDataSource.setDriverClassName("org.h2.Driver");
+        driverManagerDataSource.setUrl("jdbc:h2:mem:mylivedata;IGNORECASE=TRUE;DB_CLOSE_ON_EXIT=FALSE;DB_CLOSE_DELAY=-1");
 
-		return driverManagerDataSource;
-	}
+        return driverManagerDataSource;
+    }
 }

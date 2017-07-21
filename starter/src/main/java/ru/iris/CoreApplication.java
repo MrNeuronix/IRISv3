@@ -22,48 +22,43 @@ import javax.annotation.PostConstruct;
 @Component
 public class CoreApplication {
 
-	@Autowired(required = false)
-	private Speak speak;
+    private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
+    @Autowired(required = false)
+    private Speak speak;
+    @Autowired(required = false)
+    @Qualifier("events")
+    private Service events;
+    @Autowired(required = false)
+    @Qualifier("zwave")
+    private ProtocolService zwave;
+    @Autowired(required = false)
+    @Qualifier("nooliterx")
+    private ProtocolService nooliteRx;
+    @Autowired(required = false)
+    @Qualifier("noolitetx")
+    private ProtocolService nooliteTx;
 
-	@Autowired(required = false)
-	@Qualifier("events")
-	private Service events;
+    public static void main(String[] args) throws Exception {
 
-	@Autowired(required = false)
-	@Qualifier("zwave")
-	private ProtocolService zwave;
+        ConfigurableApplicationContext context = SpringApplication.run(new Class<?>[]{
+                CoreApplication.class,
+                JpaConfig.class,
+                ReactorConfig.class
+        }, args);
 
-	@Autowired(required = false)
-	@Qualifier("nooliterx")
-	private ProtocolService nooliteRx;
+    }
 
-	@Autowired(required = false)
-	@Qualifier("noolitetx")
-	private ProtocolService nooliteTx;
-
-	private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
-
-	public static void main(String[] args) throws Exception {
-
-		ConfigurableApplicationContext context = SpringApplication.run(new Class<?>[] {
-				CoreApplication.class,
-				JpaConfig.class,
-				ReactorConfig.class
-		}, args);
-
-	}
-
-	@PostConstruct
-	private void init() throws Exception {
-		if (speak != null)
-			speak.run();
-		if (events != null)
-			events.run();
-		if (zwave != null)
-			zwave.run();
-		if (nooliteRx != null)
-			nooliteRx.run();
-		if (nooliteTx != null)
-			nooliteTx.run();
-	}
+    @PostConstruct
+    private void init() throws Exception {
+        if (speak != null)
+            speak.run();
+        if (events != null)
+            events.run();
+        if (zwave != null)
+            zwave.run();
+        if (nooliteRx != null)
+            nooliteRx.run();
+        if (nooliteTx != null)
+            nooliteTx.run();
+    }
 }

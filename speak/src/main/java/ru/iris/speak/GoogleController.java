@@ -20,43 +20,42 @@ import java.io.InputStream;
 @Scope("singleton")
 public class GoogleController extends AbstractService implements Speak {
 
-	@Autowired
-	private EventBus r;
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private EventBus r;
 
-	@Override
-	public void onStartup() {
-		r.notify("speak.say", Event.wrap("Starting Google Speak service"));
-	}
+    @Override
+    public void onStartup() {
+        r.notify("speak.say", Event.wrap("Starting Google Speak service"));
+    }
 
-	@Override
-	public void onShutdown()
-	{
-		r.notify("speak.say", Event.wrap("Shutdown Google Speak service"));
-	}
+    @Override
+    public void onShutdown() {
+        r.notify("speak.say", Event.wrap("Shutdown Google Speak service"));
+    }
 
-	@Override
-	public void subscribe() throws Exception {
-		addSubscription("speak.say");
-	}
+    @Override
+    public void subscribe() throws Exception {
+        addSubscription("speak.say");
+    }
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
 
-	}
+    }
 
-	@Override
-	public Consumer<Event<?>> handleMessage() {
-		return log -> logger.info("Saying (Google): {}", log.getData());
-	}
+    @Override
+    public Consumer<Event<?>> handleMessage() {
+        return log -> logger.info("Saying (Google): {}", log.getData());
+    }
 
-	@Override
-	public void setLanguage(String language) {
+    @Override
+    public void setLanguage(String language) {
 
-	}
+    }
 
-	@Override
-	public InputStream getMP3Data(String text) throws IOException {
-		return null;
-	}
+    @Override
+    public InputStream getMP3Data(String text) throws IOException {
+        return null;
+    }
 }

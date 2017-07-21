@@ -15,37 +15,36 @@ import static reactor.bus.selector.Selectors.R;
 
 public abstract class AbstractService implements Service {
 
-	@Autowired
-	private EventBus r;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private EventBus r;
 
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Override
+    @PostConstruct
+    public abstract void onStartup() throws InterruptedException;
 
-	@Override
-	@PostConstruct
-	public abstract void onStartup() throws InterruptedException;
+    @Override
+    @PreDestroy
+    public abstract void onShutdown();
 
-	@Override
-	@PreDestroy
-	public abstract void onShutdown();
+    @Override
+    public abstract Consumer<Event<?>> handleMessage() throws Exception;
 
-	@Override
-	public abstract Consumer<Event<?>> handleMessage() throws Exception;
+    @Override
+    @PostConstruct
+    public abstract void subscribe() throws Exception;
 
-	@Override
-	@PostConstruct
-	public abstract void subscribe() throws Exception;
+    @Override
+    @Async
+    public abstract void run();
 
-	@Override
-	@Async
-	public abstract void run();
+    @Override
+    public void broadcast(String queue, Object object) {
+        r.notify(queue, Event.wrap(object));
+    }
 
-	@Override
-	public void broadcast(String queue, Object object) {
-		r.notify(queue, Event.wrap(object));
-	}
-
-	protected void addSubscription(String regex) throws Exception {
-		logger.info("Binding on: {}", regex);
-		r.on(R(regex), handleMessage());
-	}
+    protected void addSubscription(String regex) throws Exception {
+        logger.info("Binding on: {}", regex);
+        r.on(R(regex), handleMessage());
+    }
 }

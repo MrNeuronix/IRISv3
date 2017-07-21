@@ -20,292 +20,270 @@ import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite.protocol.model.NooliteDeviceValue;
 import ru.iris.noolite.protocol.model.NooliteDeviceValueChange;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.PersistenceContextType;
-
 @Service("nooliteDeviceService")
 public class NooliteDeviceService implements ProtocolServiceLayer<NooliteDevice, NooliteDeviceValue> {
 
-	private final DeviceDAO deviceDAO;
-	private final DeviceRegistry registry;
-	private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final DeviceDAO deviceDAO;
+    private final DeviceRegistry registry;
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	@Autowired
-	public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
-		this.deviceDAO = deviceDAO;
-		this.registry = registry;
-	}
+    @Autowired
+    public NooliteDeviceService(DeviceDAO deviceDAO, DeviceRegistry registry) {
+        this.deviceDAO = deviceDAO;
+        this.registry = registry;
+    }
 
-	@PostConstruct
-	@Transactional
-	public void init() {
-		// load all noolite devices to registry
-		getDevices();
+    @PostConstruct
+    @Transactional
+    public void init() {
+        // load all noolite devices to registry
+        getDevices();
 
-		// schedule periodic save into database
-		ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-		scheduler.scheduleAtFixedRate(new SaveIntoDatabaseRunner(), 60, 60, TimeUnit.SECONDS);
-	}
+        // schedule periodic save into database
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(new SaveIntoDatabaseRunner(), 60, 60, TimeUnit.SECONDS);
+    }
 
-	@Override
-	@Transactional(readOnly = true)
-	public NooliteDevice getDeviceById(long id)
-	{
-		Device dbDevice = deviceDAO.findOne(id);
+    @Override
+    @Transactional(readOnly = true)
+    public NooliteDevice getDeviceById(long id) {
+        Device dbDevice = deviceDAO.findOne(id);
 
-		if(dbDevice == null)
-			return null;
+        if (dbDevice == null)
+            return null;
 
-		return merge(dbDevice, null);
-	}
+        return merge(dbDevice, null);
+    }
 
-	@Override
-	@Transactional(readOnly = true)
-	public List<NooliteDevice> getDevices()
-	{
-		List<NooliteDevice> ret = new ArrayList<>();
+    @Override
+    @Transactional(readOnly = true)
+    public List<NooliteDevice> getDevices() {
+        List<NooliteDevice> ret = new ArrayList<>();
+        List<Device> devices = deviceDAO.findBySource(SourceProtocol.NOOLITE);
 
-		List<Device> devices = deviceDAO.findBySource(SourceProtocol.NOOLITE);
+        for (Device device : devices) {
+            ret.add(merge(device, null));
+        }
 
-		for(Device device : devices)
-		{
-			ret.add(merge(device, null));
-		}
+        // add all devices to registry
+        registry.addOrUpdateDevices(ret);
 
-		// add all devices to registry
-		registry.addOrUpdateDevices(ret);
+        return ret;
+    }
 
-		return ret;
-	}
+    @Override
+    @Transactional
+    public NooliteDevice saveIntoDatabase(NooliteDevice device) {
+        device = merge(deviceDAO.save(mergeForDB(device)), device);
+        registry.addOrUpdateDevice(device);
 
-	@Override
-	@Transactional
-	public NooliteDevice saveIntoDatabase(NooliteDevice device)
-	{
-		device = merge(deviceDAO.save(mergeForDB(device)), device);
-		registry.addOrUpdateDevice(device);
+        return device;
+    }
 
-		return device;
-	}
+    @Override
+    @Transactional
+    public void saveIntoDatabase() {
+        List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
+        devices.forEach(device -> saveIntoDatabase((NooliteDevice) device));
+    }
 
-	@Override
-	@Transactional
-	public void saveIntoDatabase()
-	{
-		List<Object> devices = registry.getDevicesByProto(SourceProtocol.NOOLITE);
-		devices.forEach(device -> saveIntoDatabase((NooliteDevice)device));
-	}
+    @Transactional
+    NooliteDevice merge(Device device, NooliteDevice nooDevice) {
 
-	@Transactional
-	private NooliteDevice merge(Device device, NooliteDevice nooDevice) {
+        if (!device.getSource().equals(SourceProtocol.NOOLITE)) {
+            logger.error("Specified device is not Noolite device!");
+            return null;
+        }
 
-		if (!device.getSource().equals(SourceProtocol.NOOLITE)) {
-			logger.error("Specified device is not Noolite device!");
-			return null;
-		}
+        NooliteDevice ret = new NooliteDevice();
 
-		NooliteDevice ret = new NooliteDevice();
+        ret.setId(device.getId());
+        ret.setDate(device.getDate());
+        ret.setHumanReadable(device.getHumanReadable());
+        ret.setChannel(device.getChannel());
+        ret.setManufacturer(device.getManufacturer());
+        ret.setProductName(device.getProductName());
+        ret.setType(device.getType());
+        ret.setSource(SourceProtocol.NOOLITE);
+        ret.setState(State.UNKNOWN);
 
-		ret.setId(device.getId());
-		ret.setDate(device.getDate());
-		ret.setHumanReadable(device.getHumanReadable());
-		ret.setChannel(device.getChannel());
-		ret.setManufacturer(device.getManufacturer());
-		ret.setProductName(device.getProductName());
-		ret.setType(device.getType());
-		ret.setSource(SourceProtocol.NOOLITE);
-		ret.setState(State.UNKNOWN);
+        if (device.getZone() != null) {
+            ZoneImpl zone = new ZoneImpl();
+            zone.setId(device.getZone().getId());
+            zone.setDate(device.getZone().getDate());
+            zone.setName(device.getZone().getName());
+            ret.setZone(zone);
+        }
 
-		if(device.getZone() != null) {
+        Map<String, NooliteDeviceValue> values = new HashMap<>();
 
-			ZoneImpl zone = new ZoneImpl();
+        for (DeviceValue deviceValue : device.getValues().values()) {
+            NooliteDeviceValue dv = new NooliteDeviceValue();
 
-			zone.setId(device.getZone().getId());
-			zone.setDate(device.getZone().getDate());
-			zone.setName(device.getZone().getName());
+            dv.setId(deviceValue.getId());
+            dv.setDate(deviceValue.getDate());
+            dv.setName(deviceValue.getName());
+            dv.setUnits(deviceValue.getUnits());
+            dv.setReadOnly(deviceValue.getReadOnly());
+            dv.setType(deviceValue.getType());
 
-			ret.setZone(zone);
-		}
+            // fill values
+            if (nooDevice != null) {
+                NooliteDeviceValue nooValue = nooDevice.getDeviceValues().get(dv.getName());
 
-		Map<String, NooliteDeviceValue> values = new HashMap<>();
+                if (nooValue != null) {
+                    dv.setCurrentValue(nooValue.getCurrentValue());
+                    dv.setAdditionalData(nooValue.getAdditionalData());
+                } else {
+                    logger.error("Cannot found device value for " + dv.getName());
+                }
+            }
 
-		for(DeviceValue deviceValue : device.getValues().values())
-		{
-			NooliteDeviceValue dv = new NooliteDeviceValue();
+            // fill changes
+            Iterator<DeviceValueChange> changeIterator = deviceValue.getChanges().iterator();
+            for (byte count = 1; count <= 5; count++) {
+                if (!changeIterator.hasNext())
+                    break;
 
-			dv.setId(deviceValue.getId());
-			dv.setDate(deviceValue.getDate());
-			dv.setName(deviceValue.getName());
-			dv.setUnits(deviceValue.getUnits());
-			dv.setReadOnly(deviceValue.getReadOnly());
-			dv.setType(deviceValue.getType());
+                DeviceValueChange change = changeIterator.next();
+                NooliteDeviceValueChange noochange = new NooliteDeviceValueChange();
 
-			// fill values
-			if(nooDevice != null) {
-				NooliteDeviceValue nooValue = nooDevice.getDeviceValues().get(dv.getName());
+                noochange.setDate(change.getDate());
+                noochange.setId(change.getId());
+                noochange.setValue(change.getValue());
+                noochange.setAdditionalData(change.getAdditionalData());
 
-				if(nooValue != null) {
-					dv.setCurrentValue(nooValue.getCurrentValue());
-					dv.setAdditionalData(nooValue.getAdditionalData());
-				}
-				else {
-					logger.error("Cannot found device value for " + dv.getName());
-				}
-			}
+                dv.getChanges().addLast(noochange);
+            }
 
-			// fill changes
-			Iterator<DeviceValueChange> changeIterator = deviceValue.getChanges().iterator();
-			for(byte count = 1; count <= 5; count++)
-			{
-				if(!changeIterator.hasNext())
-					break;
+            values.put(dv.getName(), dv);
+        }
 
-				DeviceValueChange change = changeIterator.next();
-				NooliteDeviceValueChange noochange = new NooliteDeviceValueChange();
+        ret.setDeviceValues(values);
 
-				noochange.setDate(change.getDate());
-				noochange.setId(change.getId());
-				noochange.setValue(change.getValue());
-				noochange.setAdditionalData(change.getAdditionalData());
+        return ret;
+    }
 
-				dv.getChanges().addLast(noochange);
-			}
+    @Transactional
+    Device mergeForDB(NooliteDevice device) {
 
-			values.put(dv.getName(), dv);
-		}
+        Device ret = deviceDAO.findOne(device.getId());
+        boolean creating = false;
 
-		ret.setDeviceValues(values);
+        if (ret == null) {
+            logger.debug("Noolite device with id {} not found in DB. Creating.", device.getId());
+            creating = true;
+            ret = new Device();
+        }
 
-		return ret;
-	}
+        if (!creating) {
+            ret.setId(device.getId());
+            ret.setDate(device.getCreationDate());
+        }
 
-	@Transactional
-	private Device mergeForDB(NooliteDevice device) {
+        ret.setHumanReadable(device.getHumanReadableName());
+        ret.setChannel(device.getChannel());
+        ret.setManufacturer(device.getManufacturer());
+        ret.setProductName(device.getProductName());
+        ret.setType(device.getType());
+        ret.setSource(SourceProtocol.NOOLITE);
 
-		Device ret = deviceDAO.findOne(device.getId());
-		boolean creating = false;
+        if (creating && device.getZone() != null) {
+            Zone zone = new Zone();
 
-		if(ret == null)
-		{
-			logger.debug("Noolite device with id {} not found in DB. Creating.", device.getId());
-			creating = true;
-			ret = new Device();
-		}
+            zone.setId(device.getZone().getId());
+            zone.setDate(device.getZone().getDate());
+            zone.setName(device.getZone().getName());
 
-		if(!creating) {
-			ret.setId(device.getId());
-			ret.setDate(device.getCreationDate());
-		}
+            ret.setZone(zone);
+        }
 
-		ret.setHumanReadable(device.getHumanReadableName());
-		ret.setChannel(device.getChannel());
-		ret.setManufacturer(device.getManufacturer());
-		ret.setProductName(device.getProductName());
-		ret.setType(device.getType());
-		ret.setSource(SourceProtocol.NOOLITE);
+        Map<String, ru.iris.commons.database.model.DeviceValue> values = new HashMap<>();
 
-		if(creating && device.getZone() != null)
-		{
-			Zone zone = new Zone();
+        for (NooliteDeviceValue deviceValue : device.getDeviceValues().values()) {
+            ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
 
-			zone.setId(device.getZone().getId());
-			zone.setDate(device.getZone().getDate());
-			zone.setName(device.getZone().getName());
+            if (deviceValue.getId() != 0L)
+                dv.setId(deviceValue.getId());
 
-			ret.setZone(zone);
-		}
+            dv.setDevice(ret);
+            dv.setDate(deviceValue.getDate());
+            dv.setName(deviceValue.getName());
+            dv.setUnits(deviceValue.getUnits());
+            dv.setReadOnly(deviceValue.isReadOnly());
+            dv.setType(deviceValue.getType());
 
-		Map<String, ru.iris.commons.database.model.DeviceValue> values = new HashMap<>();
+            deviceValue.getChanges().forEach(change -> {
 
-		for(NooliteDeviceValue deviceValue : device.getDeviceValues().values())
-		{
-			ru.iris.commons.database.model.DeviceValue dv = new ru.iris.commons.database.model.DeviceValue();
+                DeviceValueChange changeDB = new DeviceValueChange();
 
-			if(deviceValue.getId() != 0L)
-				dv.setId(deviceValue.getId());
+                if (change.getValue() == null)
+                    logger.debug("Skipping null Noolite value change");
+                else {
+                    changeDB.setId(change.getId());
+                    changeDB.setDeviceValue(dv);
+                    changeDB.setDate(change.getDate());
+                    changeDB.setValue(change.getValue().toString());
+                    changeDB.setAdditionalData(change.getAdditionalData());
 
-			dv.setDevice(ret);
-			dv.setDate(deviceValue.getDate());
-			dv.setName(deviceValue.getName());
-			dv.setUnits(deviceValue.getUnits());
-			dv.setReadOnly(deviceValue.isReadOnly());
-			dv.setType(deviceValue.getType());
+                    dv.getChanges().add(changeDB);
+                }
+            });
 
-			deviceValue.getChanges().forEach(change -> {
+            values.put(dv.getName(), dv);
+        }
 
-				DeviceValueChange changeDB = new DeviceValueChange();
+        ret.setValues(values);
 
-				if (change.getValue() == null)
-					logger.debug("Skipping null Noolite value change");
-				else {
-					changeDB.setId(change.getId());
-					changeDB.setDeviceValue(dv);
-					changeDB.setDate(change.getDate());
-					changeDB.setValue(change.getValue().toString());
-					changeDB.setAdditionalData(change.getAdditionalData());
+        return ret;
+    }
 
-					dv.getChanges().add(changeDB);
-				}
-			});
+    @Override
+    public NooliteDeviceValue addChange(NooliteDeviceValue value) {
 
-			values.put(dv.getName(), dv);
-		}
+        NooliteDeviceValueChange add = new NooliteDeviceValueChange();
+        add.setAdditionalData(value.getAdditionalData());
+        add.setValue(value.getCurrentValue());
+        add.setDate(new Date());
+        value.setLastUpdated(new Date());
 
-		ret.setValues(values);
+        value.getChanges().addFirst(add);
 
-		return ret;
-	}
+        return value;
+    }
 
-	@Override
-	public NooliteDeviceValue addChange(NooliteDeviceValue value) {
+    @Override
+    public void updateValue(NooliteDevice device, String label, Object value, ValueType type) {
+        NooliteDeviceValue deviceValue = device.getDeviceValues().get(label);
 
-		NooliteDeviceValueChange add = new NooliteDeviceValueChange();
-		add.setAdditionalData(value.getAdditionalData());
-		add.setValue(value.getCurrentValue());
-		add.setDate(new Date());
-		value.setLastUpdated(new Date());
+        if (deviceValue == null) {
+            deviceValue = new NooliteDeviceValue();
+            deviceValue.setName(label);
+            deviceValue.setCurrentValue(value);
+            deviceValue.setType(type);
+            deviceValue.setReadOnly(false);
 
-		value.getChanges().addFirst(add);
+            device.getDeviceValues().put(label, deviceValue);
+        } else {
+            deviceValue.setCurrentValue(value);
+            device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
+        }
 
-		return value;
-	}
+        addChange(deviceValue);
+    }
 
-	@Override
-	public void updateValue(NooliteDevice device, String label, Object value, ValueType type) {
-		NooliteDeviceValue deviceValue = device.getDeviceValues().get(label);
-
-		if (deviceValue == null) {
-			deviceValue = new NooliteDeviceValue();
-			deviceValue.setName(label);
-			deviceValue.setCurrentValue(value);
-			deviceValue.setType(type);
-			deviceValue.setReadOnly(false);
-
-			device.getDeviceValues().put(label, deviceValue);
-		}
-		else {
-			deviceValue.setCurrentValue(value);
-			device.getDeviceValues().replace(label, device.getDeviceValues().get(label), deviceValue);
-		}
-
-		addChange(deviceValue);
-	}
-
-	private class SaveIntoDatabaseRunner implements Runnable {
-		@Override
-		public void run() {
-			logger.debug("Running save noolite devices into database thread");
-			saveIntoDatabase();
-			logger.debug("Done saving thread");
-		}
-	}
+    private class SaveIntoDatabaseRunner implements Runnable {
+        @Override
+        public void run() {
+            logger.debug("Running save noolite devices into database thread");
+            saveIntoDatabase();
+            logger.debug("Done saving thread");
+        }
+    }
 }

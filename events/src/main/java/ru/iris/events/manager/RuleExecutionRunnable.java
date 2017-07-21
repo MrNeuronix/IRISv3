@@ -6,23 +6,23 @@ import ru.iris.events.types.Event;
 import ru.iris.events.types.Rule;
 
 public class RuleExecutionRunnable implements Runnable {
-	static private final Logger logger = LoggerFactory.getLogger(RuleExecutionRunnable.class);
+    static private final Logger logger = LoggerFactory.getLogger(RuleExecutionRunnable.class);
 
-	private Rule rule;
-	private Event event;
+    private Rule rule;
+    private Event event;
 
-	public RuleExecutionRunnable(Rule rule, Event event) {
-		this.rule = rule;
-		this.event = event;
-	}
+    public RuleExecutionRunnable(Rule rule, Event event) {
+        this.rule = rule;
+        this.event = event;
+    }
 
-	@Override
-	public void run() {
-		try {
-			this.rule.execute(event);
-		} catch (Exception e) {
-			logger.error("Error while executing rule: " + rule, e);
-		}
-	}
+    @Override
+    public void run() {
+        try {
+            this.rule.execute(event);
+        } catch (Exception e) {
+            logger.error("Error while executing rule: " + rule, e);
+        }
+    }
 
 }

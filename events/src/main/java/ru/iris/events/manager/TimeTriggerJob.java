@@ -11,21 +11,21 @@ import ru.iris.events.types.TriggerType;
 
 public class TimeTriggerJob implements Job {
 
-	private static final Logger logger = LoggerFactory.getLogger(TimeTriggerJob.class);
-	private Rule rule;
+    private static final Logger logger = LoggerFactory.getLogger(TimeTriggerJob.class);
+    private Rule rule;
 
-	@Override
-	public void execute(JobExecutionContext context) throws JobExecutionException {
-		String scriptName = ScriptManager.getInstance().getScript(rule).getFileName();
-		logger.info("TimeTrigger for rule: " + rule + ", scriptName: " + scriptName);
+    @Override
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        String scriptName = ScriptManager.getInstance().getScript(rule).getFileName();
+        logger.info("TimeTrigger for rule: " + rule + ", scriptName: " + scriptName);
 
-		ScriptManager manager = ScriptManager.getInstance();
+        ScriptManager manager = ScriptManager.getInstance();
 
-		manager.executeRules(new Rule[] { rule }, new Event(TriggerType.TIMER, null));
-	}
+        manager.executeRules(new Rule[]{rule}, new Event(TriggerType.TIMER, null));
+    }
 
-	public void setRule(Rule rule) {
-		this.rule = rule;
-	}
+    public void setRule(Rule rule) {
+        this.rule = rule;
+    }
 
 }

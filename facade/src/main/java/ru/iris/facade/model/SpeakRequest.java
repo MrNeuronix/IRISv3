@@ -5,22 +5,22 @@ package ru.iris.facade.model;
  */
 public class SpeakRequest {
 
-	private String text;
-	private String zone;
+    private String text;
+    private String zone;
 
-	public String getText() {
-		return text;
-	}
+    public String getText() {
+        return text;
+    }
 
-	public void setText(String text) {
-		this.text = text;
-	}
+    public void setText(String text) {
+        this.text = text;
+    }
 
-	public String getZone() {
-		return zone;
-	}
+    public String getZone() {
+        return zone;
+    }
 
-	public void setZone(String zone) {
-		this.zone = zone;
-	}
+    public void setZone(String zone) {
+        this.zone = zone;
+    }
 }

@@ -4,8 +4,10 @@ import java.util.Date;
 
 public interface Zone {
 
-	long getId();
-	Date getDate();
-	String getName();
+    long getId();
+
+    Date getDate();
+
+    String getName();
 
 }

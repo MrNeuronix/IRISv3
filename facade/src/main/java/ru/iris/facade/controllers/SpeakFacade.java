@@ -15,32 +15,30 @@ import ru.iris.facade.model.status.OkStatus;
 @Profile("facade")
 public class SpeakFacade {
 
-	private final SpeakHelper helper;
+    private final SpeakHelper helper;
 
-	@Autowired
-	public SpeakFacade(
-	    SpeakHelper helper
-	)
-	{
-		this.helper = helper;
-	}
+    @Autowired
+    public SpeakFacade(
+            SpeakHelper helper
+    ) {
+        this.helper = helper;
+    }
 
-	/**
-	 * Say something on specified zone (or at all zones)
-	 *
-	 * @param request request
-	 * @return ok or error status
-	 */
-	@RequestMapping(value = "/api/speak", method = RequestMethod.POST)
-	public Object sayAtZone(@RequestBody SpeakRequest request) {
+    /**
+     * Say something on specified zone (or at all zones)
+     *
+     * @param request request
+     * @return ok or error status
+     */
+    @RequestMapping(value = "/api/speak", method = RequestMethod.POST)
+    public Object sayAtZone(@RequestBody SpeakRequest request) {
 
-		if(request.getText() != null && !request.getText().isEmpty()) {
-			helper.say(request.getText());
-		}
-		else {
-			return new ErrorStatus("empty text passed");
-		}
+        if (request.getText() != null && !request.getText().isEmpty()) {
+            helper.say(request.getText());
+        } else {
+            return new ErrorStatus("empty text passed");
+        }
 
-		return new OkStatus("Saying: " + request.getText());
-	}
+        return new OkStatus("Saying: " + request.getText());
+    }
 }

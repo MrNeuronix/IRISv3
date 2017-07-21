@@ -7,5 +7,5 @@ import javax.transaction.Transactional;
 
 @Transactional
 public interface SpeakDAO extends CrudRepository<Speaks, Long> {
-	Speaks findByCache(Integer cache);
+    Speaks findByCache(Integer cache);
 }

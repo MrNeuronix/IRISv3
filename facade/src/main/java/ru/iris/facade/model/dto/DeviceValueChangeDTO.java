@@ -9,41 +9,41 @@ import java.util.Date;
  */
 public class DeviceValueChangeDTO {
 
-	private long id;
-	@JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
-	private Date date;
-	private String value;
-	private String additionalData;
+    private long id;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private Date date;
+    private String value;
+    private String additionalData;
 
-	public long getId() {
-		return id;
-	}
+    public long getId() {
+        return id;
+    }
 
-	public void setId(long id) {
-		this.id = id;
-	}
+    public void setId(long id) {
+        this.id = id;
+    }
 
-	public Date getDate() {
-		return date;
-	}
+    public Date getDate() {
+        return date;
+    }
 
-	public void setDate(Date date) {
-		this.date = date;
-	}
+    public void setDate(Date date) {
+        this.date = date;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getAdditionalData() {
-		return additionalData;
-	}
+    public String getAdditionalData() {
+        return additionalData;
+    }
 
-	public void setAdditionalData(String additionalData) {
-		this.additionalData = additionalData;
-	}
+    public void setAdditionalData(String additionalData) {
+        this.additionalData = additionalData;
+    }
 }

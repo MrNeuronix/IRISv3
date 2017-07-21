@@ -2,11 +2,6 @@ package ru.iris.events.manager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
@@ -25,186 +20,182 @@ import java.util.List;
 
 public class ScriptManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
+    private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
+    private static ScriptManager instance;
+    private HashMap<String, Script> scripts = new HashMap<>();
+    private HashMap<Rule, Script> ruleMap = new HashMap<>();
+    private RuleTriggerManager triggerManager;
+    private DeviceRegistry registry;
+    private SpeakHelper speakHelper;
+    private DeviceHelper deviceHelper;
 
-	private HashMap<String, Script> scripts = new HashMap<>();
-	private HashMap<Rule, Script> ruleMap = new HashMap<>();
+    public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry,
+                         SpeakHelper speakHelper, DeviceHelper deviceHelper) {
+        this.triggerManager = triggerManager;
+        this.speakHelper = speakHelper;
+        this.deviceHelper = deviceHelper;
+        instance = this;
+        logger.info("Available engines:");
+        for (ScriptEngineFactory f : new ScriptEngineManager().getEngineFactories()) {
+            logger.info(f.getEngineName());
+        }
 
-	private RuleTriggerManager triggerManager;
-	private DeviceRegistry registry;
-	private SpeakHelper speakHelper;
-	private DeviceHelper deviceHelper;
+        this.setItemRegistry(itemRegistry);
 
-	private static ScriptManager instance;
+        if (!config.loadPropertiesFormCfgDirectory("events"))
+            logger.error("Cant load events-specific configs. Check events.properties if exists");
 
-	public ScriptManager(RuleTriggerManager triggerManager, ConfigLoader config, DeviceRegistry itemRegistry,
-	                     SpeakHelper speakHelper, DeviceHelper deviceHelper) {
-		this.triggerManager = triggerManager;
-		this.speakHelper = speakHelper;
-		this.deviceHelper = deviceHelper;
-		instance = this;
-		logger.info("Available engines:");
-		for (ScriptEngineFactory f : new ScriptEngineManager().getEngineFactories()) {
-			logger.info(f.getEngineName());
-		}
+        File folder = getFolder(config.get("scriptsDirectory"));
 
-		this.setItemRegistry(itemRegistry);
+        if (folder.exists() && folder.isDirectory()) {
+            loadScripts(folder);
 
-		if(!config.loadPropertiesFormCfgDirectory("events"))
-			logger.error("Cant load events-specific configs. Check events.properties if exists");
+            Thread scriptUpdateWatcher = new Thread(new ScriptUpdateWatcher(this, folder));
+            scriptUpdateWatcher.start();
+        } else {
+            logger.warn("Script directory: scripts missing, no scripts will be added!");
+        }
+    }
 
-		File folder = getFolder(config.get("scriptsDirectory"));
+    public static ScriptManager getInstance() {
+        return instance;
+    }
 
-		if (folder.exists() && folder.isDirectory()) {
-			loadScripts(folder);
+    private void loadScripts(File folder) {
+        if (folder != null)
+            for (File file : folder.listFiles()) {
+                loadScript(file);
+            }
+    }
 
-			Thread scriptUpdateWatcher = new Thread(new ScriptUpdateWatcher(this, folder));
-			scriptUpdateWatcher.start();
-		} else {
-			logger.warn("Script directory: scripts missing, no scripts will be added!");
-		}
-	}
+    private Script loadScript(File file) {
+        Script script = null;
+        try {
+            //Filtering Directories and not usable Files
+            if (!file.isFile() || file.getName().startsWith(".") || getFileExtension(file) == null) {
+                return null;
+            }
+            script = new Script(this, file, registry, speakHelper, deviceHelper);
+            if (script.getEngine() == null) {
+                logger.warn("No Engine found for File: {}", file.getName());
+                return null;
+            } else {
+                logger.info("Engine found for File: {}", file.getName());
+                scripts.put(file.getName(), script);
+                List<Rule> newRules = script.getRules();
+                for (Rule rule : newRules) {
+                    ruleMap.put(rule, script);
+                }
 
-	private void loadScripts(File folder) {
-		if(folder != null)
-			for (File file : folder.listFiles()) {
-				loadScript(file);
-			}
-	}
+                // add all rules to the needed triggers
+                triggerManager.addRuleModel(newRules);
+            }
 
-	private Script loadScript(File file) {
-		Script script = null;
-		try {
-			//Filtering Directories and not usable Files
-			if(!file.isFile() || file.getName().startsWith(".") || getFileExtension(file) == null){
-				return null;
-			}
-			script = new Script(this, file, registry, speakHelper, deviceHelper);
-			if(script.getEngine() == null){
-				logger.warn("No Engine found for File: {}", file.getName());
-				return null;
-			}else{
-				logger.info("Engine found for File: {}", file.getName());
-				scripts.put(file.getName(), script);
-				List<Rule> newRules = script.getRules();
-				for (Rule rule : newRules) {
-					ruleMap.put(rule, script);
-				}
+        } catch (NoSuchMethodException e) {
+            logger.error("Script file misses mandotary function: getRules()", e);
+        } catch (FileNotFoundException e) {
+            logger.error("script file not found", e);
+        } catch (ScriptException e) {
+            logger.error("script exception", e);
+        } catch (Exception e) {
+            logger.error("unknown exception", e);
+        }
 
-				// add all rules to the needed triggers
-				triggerManager.addRuleModel(newRules);
-			}
+        return script;
+    }
 
-		} catch(NoSuchMethodException e) {
-			logger.error("Script file misses mandotary function: getRules()", e);
-		} catch (FileNotFoundException e) {
-			logger.error("script file not found", e);
-		} catch (ScriptException e) {
-			logger.error("script exception", e);
-		} catch (Exception e) {
-			logger.error("unknown exception", e);
-		}
+    public Collection<Rule> getAllRules() {
+        return ruleMap.keySet();
+    }
 
-		return script;
-	}
+    public DeviceRegistry getItemRegistry() {
+        return registry;
+    }
 
-	public static ScriptManager getInstance() {
-		return instance;
-	}
+    public void setItemRegistry(DeviceRegistry itemRegistry) {
+        this.registry = itemRegistry;
+    }
 
-	public Collection<Rule> getAllRules() {
-		return ruleMap.keySet();
-	}
+    public synchronized void executeRules(Rule[] rules, Event event) {
+        for (Rule rule : rules) {
+            ruleMap.get(rule).executeRule(rule, event);
+        }
+    }
 
-	public DeviceRegistry getItemRegistry() {
-		return registry;
-	}
+    public synchronized void executeRules(Iterable<Rule> rules, Event event) {
+        for (Rule rule : rules) {
+            ruleMap.get(rule).executeRule(rule, event);
+        }
+    }
 
-	public void setItemRegistry(DeviceRegistry itemRegistry) {
-		this.registry = itemRegistry;
-	}
+    /**
+     * returns the {@link File} object for a given foldername
+     *
+     * @param foldername the foldername to get the {@link File} for
+     * @return the corresponding {@link File}
+     */
+    private File getFolder(String foldername) {
+        return new File("." + File.separator + foldername);
+    }
 
-	public synchronized void executeRules(Rule[] rules, Event event) {
-		for (Rule rule : rules) {
-			ruleMap.get(rule).executeRule(rule, event);
-		}
-	}
+    public Script getScript(Rule rule) {
+        return ruleMap.get(rule);
+    }
 
-	public synchronized void executeRules(Iterable<Rule> rules, Event event) {
-		for (Rule rule : rules) {
-			ruleMap.get(rule).executeRule(rule, event);
-		}
-	}
+    private String getFileExtension(File file) {
+        String extension = null;
+        if (file.getName().contains(".")) {
+            String name = file.getName();
+            extension = name.substring(name.lastIndexOf('.') + 1, name.length());
+        }
+        return extension;
+    }
 
-	/**
-	 * returns the {@link File} object for a given foldername
-	 * 
-	 * @param foldername
-	 *            the foldername to get the {@link File} for
-	 * @return the corresponding {@link File}
-	 */
-	private File getFolder(String foldername) {
-		return new File("." + File.separator + foldername);
-	}
+    public void scriptsChanged(List<File> addedScripts, List<File> removedScripts, List<File> modifiedScripts) {
 
-	public Script getScript(Rule rule) {
-		return ruleMap.get(rule);
-	}
+        for (File scriptFile : removedScripts) {
+            removeScript(scriptFile.getName());
+        }
 
-	private String getFileExtension(File file) {
-		String extension = null;
-		if (file.getName().contains(".")) {
-			String name = file.getName();
-			extension = name.substring(name.lastIndexOf('.') + 1, name.length());
-		}
-		return extension;
-	}
+        for (File scriptFile : addedScripts) {
+            Script script = loadScript(scriptFile);
+            runStartupRules(script);
+        }
 
-	public void scriptsChanged(List<File> addedScripts, List<File> removedScripts, List<File> modifiedScripts) {
+        for (File scriptFile : modifiedScripts) {
+            removeScript(scriptFile.getName());
+            Script script = loadScript(scriptFile);
+            runStartupRules(script);
+        }
+    }
 
-		for (File scriptFile : removedScripts) {
-			removeScript(scriptFile.getName());
-		}
+    private void runStartupRules(Script script) {
+        if (script != null) {
+            List<Rule> toTrigger = new ArrayList<>();
+            for (Rule rule : script.getRules()) {
+                for (EventTrigger trigger : rule.getEventTrigger()) {
+                    if (trigger instanceof StartupTrigger) {
+                        toTrigger.add(rule);
+                        break;
+                    }
+                }
+            }
+            if (toTrigger.size() > 0)
+                executeRules(toTrigger, new Event(TriggerType.STARTUP, null));
+        }
+    }
 
-		for (File scriptFile : addedScripts) {
-			Script script = loadScript(scriptFile);
-			runStartupRules(script);
-		}
+    private void removeScript(String scriptName) {
+        if (scripts.containsKey(scriptName)) {
+            Script script = scripts.remove(scriptName);
 
-		for (File scriptFile : modifiedScripts) {
-			removeScript(scriptFile.getName());
-			Script script = loadScript(scriptFile);
-			runStartupRules(script);
-		}
-	}
+            List<Rule> allRules = script.getRules();
 
-	private void runStartupRules(Script script) {
-		if (script != null) {
-			List<Rule> toTrigger = new ArrayList<>();
-			for (Rule rule : script.getRules()) {
-				for (EventTrigger trigger : rule.getEventTrigger()) {
-					if (trigger instanceof StartupTrigger) {
-						toTrigger.add(rule);
-						break;
-					}
-				}
-			}
-			if (toTrigger.size() > 0)
-				executeRules(toTrigger, new Event(TriggerType.STARTUP, null));
-		}
-	}
-
-	private void removeScript(String scriptName) {
-		if(scripts.containsKey(scriptName)) {
-			Script script = scripts.remove(scriptName);
-
-			List<Rule> allRules = script.getRules();
-
-			triggerManager.removeRuleModel(allRules);
-			for (Rule rule : allRules) {
-				ruleMap.remove(rule);
-			}
-		}
-	}
+            triggerManager.removeRuleModel(allRules);
+            for (Rule rule : allRules) {
+                ruleMap.remove(rule);
+            }
+        }
+    }
 
 }

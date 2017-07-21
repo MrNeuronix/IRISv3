@@ -5,32 +5,32 @@ package ru.iris.facade.model;
  */
 public class DeviceSetLevelRequest {
 
-	private String source;
-	private Short channel;
-	private String level;
+    private String source;
+    private Short channel;
+    private String level;
 
-	public String getSource() {
-		return source;
-	}
+    public String getSource() {
+        return source;
+    }
 
-	public void setSource(String source) {
-		this.source = source;
-	}
+    public void setSource(String source) {
+        this.source = source;
+    }
 
-	public Short getChannel() {
-		return channel;
-	}
+    public Short getChannel() {
+        return channel;
+    }
 
-	public void setChannel(Short channel) {
-		this.channel = channel;
-	}
+    public void setChannel(Short channel) {
+        this.channel = channel;
+    }
 
-	public String getLevel() {
-		return level;
-	}
+    public String getLevel() {
+        return level;
+    }
 
-	public void setLevel(String level) {
-		this.level = level;
-	}
+    public void setLevel(String level) {
+        this.level = level;
+    }
 }
 

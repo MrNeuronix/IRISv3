@@ -2,9 +2,6 @@ package ru.iris.commons.service;
 
 import reactor.bus.Event;
 import reactor.fn.Consumer;
-import ru.iris.commons.protocol.Device;
-
-import java.util.Map;
 
 /**
  * Created by nix on 26.09.2016.
@@ -12,12 +9,16 @@ import java.util.Map;
 
 public interface Service {
 
-	void onStartup() throws InterruptedException;
-	void onShutdown();
+    void onStartup() throws InterruptedException;
 
-	Consumer<Event<?>> handleMessage() throws Exception;
-	void subscribe() throws Exception;
-	void broadcast(String queue, Object object);
-	void run() throws Exception;
+    void onShutdown();
+
+    Consumer<Event<?>> handleMessage() throws Exception;
+
+    void subscribe() throws Exception;
+
+    void broadcast(String queue, Object object);
+
+    void run() throws Exception;
 
 }
