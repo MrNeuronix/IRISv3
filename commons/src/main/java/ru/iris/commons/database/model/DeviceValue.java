@@ -39,7 +39,6 @@ public class DeviceValue {
     private String units;
     private Boolean readOnly;
 
-    @Transient
     private String currentValue;
 
     @Enumerated(EnumType.STRING)

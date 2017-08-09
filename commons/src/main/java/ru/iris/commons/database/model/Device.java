@@ -33,7 +33,7 @@ public class Device {
     private String manufacturer;
     private String productName;
 
-    @Transient
+    @Enumerated(EnumType.STRING)
     private State state;
 
     @Enumerated(EnumType.STRING)

@@ -80,7 +80,7 @@ public class ZWaveTests {
 
     @Test
     public void Z2_canFetchAndConvertByService() {
-        Assert.assertEquals(registry.getDevicesByProto(SourceProtocol.ZWAVE).size(), 2);
+        Assert.assertEquals(registry.getDevicesByProto(SourceProtocol.ZWAVE).size(), 1);
     }
 
     @Test
