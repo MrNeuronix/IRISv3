@@ -1,12 +1,12 @@
 package ru.iris.facade.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.NotEmpty;
 
-/**
- * Created by nix on 15.11.2016.
- */
+@Getter
+@Setter
 public class HistoryRequest {
-
     @NotEmpty
     private String source;
     @NotEmpty
@@ -15,44 +15,4 @@ public class HistoryRequest {
     private String endDate;
     @NotEmpty
     private String label;
-
-    public String getSource() {
-        return source;
-    }
-
-    public void setSource(@NotEmpty String source) {
-        this.source = source;
-    }
-
-    public Short getChannel() {
-        return channel;
-    }
-
-    public void setChannel(@NotEmpty Short channel) {
-        this.channel = channel;
-    }
-
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(@NotEmpty String label) {
-        this.label = label;
-    }
 }

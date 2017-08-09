@@ -6,5 +6,5 @@ import ru.iris.commons.database.model.DeviceValueChange;
 import javax.transaction.Transactional;
 
 @Transactional
-public interface DeviceValueChangeDAO extends CrudRepository<DeviceValueChange, Long> {
+public interface DeviceValueHistoryDAO extends CrudRepository<DeviceValueChange, Long> {
 }

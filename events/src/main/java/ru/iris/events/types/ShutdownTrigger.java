@@ -1,6 +1,6 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.protocol.Device;
+import ru.iris.commons.database.model.Device;
 
 public class ShutdownTrigger implements EventTrigger {
 

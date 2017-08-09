@@ -1,7 +1,6 @@
 package ru.iris;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
@@ -20,9 +19,9 @@ import javax.annotation.PostConstruct;
 @SpringBootApplication
 @EnableAsync
 @Component
+@Slf4j
 public class CoreApplication {
 
-    private static final Logger logger = LoggerFactory.getLogger(CoreApplication.class);
     @Autowired(required = false)
     private Speak speak;
     @Autowired(required = false)

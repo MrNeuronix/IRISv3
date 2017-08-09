@@ -15,23 +15,18 @@ import java.util.List;
 public class RuleSet {
 
     private List<Rule> rules;
-
     public RuleSet() {
         this.rules = new ArrayList<>();
     }
-
     public RuleSet(Rule... rules) {
         this.rules = Arrays.asList(rules);
     }
-
     public void addRule(Rule rule) {
         this.rules.add(rule);
     }
-
     public void removeRule(Rule rule) {
         this.rules.remove(rule);
     }
-
     public List<Rule> getRules() {
         return this.rules;
     }

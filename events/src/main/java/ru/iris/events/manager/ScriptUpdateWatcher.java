@@ -1,7 +1,6 @@
 package ru.iris.events.manager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,8 +10,8 @@ import java.util.HashMap;
 
 import static java.nio.file.StandardWatchEventKinds.*;
 
+@Slf4j
 public class ScriptUpdateWatcher implements Runnable {
-    static private final Logger logger = LoggerFactory.getLogger(ScriptUpdateWatcher.class);
 
     private ScriptManager scriptManager;
     private File folder;

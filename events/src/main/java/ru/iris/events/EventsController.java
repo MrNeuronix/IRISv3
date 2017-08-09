@@ -1,7 +1,6 @@
 package ru.iris.events;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -13,9 +12,9 @@ import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.database.model.Device;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
-import ru.iris.commons.protocol.Device;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.events.manager.RuleTriggerManager;
@@ -27,12 +26,12 @@ import ru.iris.events.types.TriggerType;
 @Qualifier("events")
 @Profile("events")
 @Scope("singleton")
+@Slf4j
 public class EventsController extends AbstractService {
 
     private final ConfigLoader config;
     private final DeviceRegistry registry;
     private final RuleTriggerManager triggerManager;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private ScriptManager scriptManager;
     private SpeakHelper speakHelper;
     private DeviceHelper deviceHelper;
@@ -67,21 +66,21 @@ public class EventsController extends AbstractService {
             if (event.getData() instanceof DeviceProtocolEvent) {
 
                 DeviceProtocolEvent e = (DeviceProtocolEvent) event.getData();
-                Device device = (Device) registry.getDevice(e.getProtocol(), e.getChannel());
+                Device device = registry.getDevice(e.getProtocol(), e.getChannel());
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.CHANGE, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.CHANGE, device));
 
             } else if (event.getData() instanceof DeviceChangeEvent) {
 
                 DeviceChangeEvent e = (DeviceChangeEvent) event.getData();
-                Device device = (Device) registry.getDevice(e.getProtocol(), e.getChannel());
+                Device device = registry.getDevice(e.getProtocol(), e.getChannel());
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.CHANGE, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.CHANGE, device));
 
             } else if (event.getData() instanceof DeviceCommandEvent) {
 
                 DeviceCommandEvent e = (DeviceCommandEvent) event.getData();
-                Device device = (Device) registry.getDevice(e.getProtocol(), e.getChannel());
+                Device device = registry.getDevice(e.getProtocol(), e.getChannel());
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.COMMAND, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.COMMAND, device));
 

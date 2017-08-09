@@ -9,5 +9,6 @@ import java.util.List;
 
 @Transactional
 public interface DeviceDAO extends CrudRepository<Device, Long> {
+    List<Device> findAll();
     List<Device> findBySource(SourceProtocol source);
 }

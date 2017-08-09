@@ -1,78 +1,117 @@
 package ru.iris.commons.registry;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.iris.commons.protocol.Device;
+import org.springframework.transaction.annotation.Transactional;
+import ru.iris.commons.database.dao.DeviceDAO;
+import ru.iris.commons.database.model.Device;
+import ru.iris.commons.database.model.DeviceValue;
+import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class DeviceRegistry {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    private Map<String, Object> registry = new ConcurrentHashMap<>();
+    private final Gson gson = new GsonBuilder().create();
+    private Map<String, Device> registry = new ConcurrentHashMap<>();
     private Map<String, String> humanReadable = new ConcurrentHashMap<>();
+    private boolean initComplete = false;
+
+    @Autowired
+    private DeviceDAO deviceDAO;
+
     @PersistenceContext
     private EntityManager em;
 
-    public void addOrUpdateDevice(Device device) {
-
-        if (device == null) {
-            logger.error("Device, passed into registry is null!");
-            return;
-        }
-
-        String ident = device.getSourceProtocol().name().toLowerCase() + "/channel/" + device.getChannel();
-
-        if (!humanReadable.containsValue(ident))
-            if (device.getHumanReadableName() != null && !device.getHumanReadableName().isEmpty())
-                humanReadable.put(device.getHumanReadableName(), ident);
-
-        registry.replace(ident, device);
+    @PostConstruct
+    @Transactional
+    public void init() {
+        List<Device> devices = deviceDAO.findAll();
+        addOrUpdateDevices(devices);
+        initComplete = true;
     }
 
-    public void addOrUpdateDevices(List<? extends Device> devices) {
-        devices.forEach(device -> {
+    @Transactional
+    public Device addOrUpdateDevice(Device device) {
+        if (device == null) {
+            logger.error("Device, passed into registry is null!");
+            return null;
+        }
 
+        String ident = device.getSource().name().toLowerCase() + "/channel/" + device.getChannel();
+
+        if (!humanReadable.containsValue(ident))
+            if (device.getHumanReadable() != null && !device.getHumanReadable().isEmpty())
+                humanReadable.put(device.getHumanReadable(), ident);
+
+        if (initComplete) {
+            device = deviceDAO.save(device);
+        }
+
+        registry.put(ident, device);
+        return device;
+    }
+
+    @Transactional
+    public void addOrUpdateDevices(List<Device> devices) {
+        devices.forEach(device -> {
             if (device == null) {
-                logger.error("Device, passed into registry is null!");
+                logger.error("Device passed into registry is null!");
                 return;
             }
 
-            String ident = device.getSourceProtocol().name().toLowerCase() + "/channel/" + device.getChannel();
+            String ident = device.getSource().name().toLowerCase() + "/channel/" + device.getChannel();
 
             if (!humanReadable.containsValue(ident))
-                if (device.getHumanReadableName() != null && !device.getHumanReadableName().isEmpty())
-                    humanReadable.put(device.getHumanReadableName(), ident);
+                if (device.getHumanReadable() != null && !device.getHumanReadable().isEmpty())
+                    humanReadable.put(device.getHumanReadable(), ident);
 
-            registry.replace(ident, device);
+            if (initComplete) {
+                device = deviceDAO.save(device);
+            }
+
+            registry.put(ident, device);
         });
     }
 
-    public List<Object> getDevicesByProto(SourceProtocol proto) {
-        List<Object> ret = new ArrayList<>();
-        registry.values().forEach(device -> {
-            Device tmp = (Device) device;
-            if (tmp != null && tmp.getSourceProtocol().equals(proto))
-                ret.add(device);
-        });
+    public DeviceValue addChange(DeviceValue value) {
+        DeviceValueChange add = new DeviceValueChange();
+        add.setValue(value.getCurrentValue());
+        add.setAdditionalData(gson.toJson(value.getAdditionalData()));
+        add.setDate(new Date());
 
-        return ret;
+        value.setLastUpdated(new Date());
+        value.getChanges().add(add);
+
+        return value;
     }
 
-    public Object getDevice(SourceProtocol protocol, Short channel) {
+    public List<Device> getDevicesByProto(SourceProtocol proto) {
+        return registry
+                .values()
+                .stream()
+                .filter(device -> device.getSource().equals(proto))
+                .collect(Collectors.toList());
+    }
+
+    public Device getDevice(SourceProtocol protocol, Short channel) {
         return registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
     }
 
-    public Object getDevice(String humanReadableIdent) {
+    public Device getDevice(String humanReadableIdent) {
         String ident = humanReadable.get(humanReadableIdent);
 
         if (ident != null)
@@ -81,23 +120,22 @@ public class DeviceRegistry {
             return null;
     }
 
-    public Object getDeviceValue(SourceProtocol protocol, Short channel, String value) {
-        Device device = (Device) registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
+    public DeviceValue getDeviceValue(SourceProtocol protocol, Short channel, String value) {
+        Device device = registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
 
         if (device == null)
             return null;
 
-        return device.getDeviceValues().getOrDefault(value, null);
+        return device.getValues().getOrDefault(value, null);
     }
 
-    public Object getDeviceValue(String humanReadableIdent, String value) {
+    public DeviceValue getDeviceValue(String humanReadableIdent, String value) {
 
         String ident = humanReadable.get(humanReadableIdent);
 
         if (ident != null) {
-            Device device = (Device) registry.get(ident);
-
-            return device.getDeviceValues().getOrDefault(value, null);
+            Device device = registry.get(ident);
+            return device.getValues().getOrDefault(value, null);
         } else
             return null;
     }
@@ -110,8 +148,8 @@ public class DeviceRegistry {
         String ident = humanReadable.get(humanReadableIdent);
 
         if (ident != null) {
-            Device device = (Device) registry.get(ident);
-            return getHistory(device.getSourceProtocol(), device.getChannel(), label, start, null);
+            Device device = registry.get(ident);
+            return getHistory(device.getSource(), device.getChannel(), label, start, null);
         } else
             return null;
     }
@@ -120,8 +158,8 @@ public class DeviceRegistry {
         String ident = humanReadable.get(humanReadableIdent);
 
         if (ident != null) {
-            Device device = (Device) registry.get(ident);
-            return getHistory(device.getSourceProtocol(), device.getChannel(), label, start, stop);
+            Device device = registry.get(ident);
+            return getHistory(device.getSource(), device.getChannel(), label, start, stop);
         } else
             return null;
     }
@@ -131,11 +169,11 @@ public class DeviceRegistry {
     }
 
     public List getHistory(SourceProtocol proto, Short channel, String label, Date start, Date stop) {
-        Device device = (Device) getDevice(proto, channel);
+        Device device = getDevice(proto, channel);
 
-        for (String key : device.getDeviceValues().keySet()) {
+        for (String key : device.getValues().keySet()) {
             if (key.equals(label))
-                return getHistory(device.getDeviceValues().get(label).getId(), start, stop);
+                return getHistory(device.getValues().get(label).getId(), start, stop);
         }
 
         return null;

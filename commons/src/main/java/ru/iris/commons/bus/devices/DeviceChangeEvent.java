@@ -1,11 +1,12 @@
 package ru.iris.commons.bus.devices;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.ValueType;
 
-/**
- * Created by nix on 03.11.16.
- */
+@ToString
+@EqualsAndHashCode
 public class DeviceChangeEvent extends AbstractDeviceEvent {
 
     public DeviceChangeEvent(Short channel, SourceProtocol protocol, String label, Object from, Object to, ValueType valueType) {
@@ -23,17 +24,5 @@ public class DeviceChangeEvent extends AbstractDeviceEvent {
         this.label = label;
         this.to = to;
         this.valueType = valueType;
-    }
-
-    @Override
-    public String toString() {
-        return "DeviceChangedEvent{" +
-                "channel=" + channel +
-                ", protocol=" + protocol +
-                ", label='" + label + '\'' +
-                ", from=" + from +
-                ", to=" + to +
-                ", valueType=" + valueType +
-                '}';
     }
 }

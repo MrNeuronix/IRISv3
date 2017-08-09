@@ -2,9 +2,8 @@ package ru.iris.speak;
 
 import javazoom.jl.decoder.JavaLayerException;
 import javazoom.jl.player.Player;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
@@ -31,22 +30,22 @@ import java.util.concurrent.*;
 @Component
 @Profile("yandex")
 @Scope("singleton")
+@Slf4j
 public class YandexController extends AbstractService implements Speak {
 
     private static final String YANDEX_SYNTHESISER_URL = "https://tts.voicetech.yandex.net/generate";
-    private final EventBus r;
     private final ConfigLoader config;
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private final ArrayBlockingQueue<SpeakEvent> queue = new ArrayBlockingQueue<>(50);
     private final SpeakDAO speakDAO;
+    @Autowired
+    private EventBus r;
     private Map<String, Long> cache = new HashMap<>();
     private String API_KEY;
     private String language;
     private String speaker;
 
     @Autowired
-    public YandexController(EventBus r, SpeakDAO speakDAO, ConfigLoader config) {
-        this.r = r;
+    public YandexController(SpeakDAO speakDAO, ConfigLoader config) {
         this.speakDAO = speakDAO;
         this.config = config;
     }

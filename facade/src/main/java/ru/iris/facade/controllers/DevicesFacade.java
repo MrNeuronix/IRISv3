@@ -1,7 +1,6 @@
 package ru.iris.facade.controllers;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.protocol.Device;
+import ru.iris.commons.database.model.Device;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
@@ -26,9 +25,9 @@ import java.util.List;
 
 @RestController
 @Profile("facade")
+@Slf4j
 public class DevicesFacade {
 
-    private static final Logger logger = LoggerFactory.getLogger(DevicesFacade.class);
     private final DeviceRegistry registry;
     private EventBus r;
 
@@ -45,7 +44,7 @@ public class DevicesFacade {
     }
 
     /**
-     * Return all devices (by source) or device on speficied channel and source
+     * Return all devices (by source) or device on specified channel and source
      *
      * @param request request
      * @return list of devices
@@ -119,7 +118,7 @@ public class DevicesFacade {
                 return new ErrorStatus("protocol unknown");
         }
 
-        Device device = (Device) registry.getDevice(sourceProtocol, request.getChannel());
+        Device device = registry.getDevice(sourceProtocol, request.getChannel());
 
         if (device == null)
             return new ErrorStatus("device not found");
@@ -152,6 +151,6 @@ public class DevicesFacade {
 
     // sent message
     private void setDeviceLevel(Device device, Object message) {
-        r.notify("command.device." + device.getSourceProtocol().name().toLowerCase(), Event.wrap(message));
+        r.notify("command.device." + device.getSource().name().toLowerCase(), Event.wrap(message));
     }
 }

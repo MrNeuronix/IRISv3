@@ -1,23 +1,19 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.protocol.Device;
+import lombok.Getter;
+import ru.iris.commons.database.model.Device;
 
+@Getter
 public class CommandEventTrigger implements EventTrigger {
 
-    private String itemName;
+    private String item;
 
     public CommandEventTrigger(String itemName) {
-        this.itemName = itemName;
+        this.item = itemName;
     }
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {
-        return (type == TriggerType.COMMAND && this.itemName.equals(device.getHumanReadableName()));
+        return (type == TriggerType.COMMAND && this.item.equals(device.getHumanReadable()));
     }
-
-    @Override
-    public String getItem() {
-        return this.itemName;
-    }
-
 }

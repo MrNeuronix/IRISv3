@@ -1,7 +1,8 @@
 package ru.iris.zwave;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -16,15 +17,14 @@ import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.protocol.ProtocolServiceLayer;
+import ru.iris.commons.database.model.Device;
+import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.protocol.enums.DeviceType;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.State;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
-import ru.iris.zwave.protocol.model.ZWaveDevice;
-import ru.iris.zwave.protocol.model.ZWaveDeviceValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,23 +34,20 @@ import java.util.concurrent.atomic.AtomicReference;
 @Profile("zwave")
 @Qualifier("zwave")
 @Scope("singleton")
-public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
+@Slf4j
+public class ZWaveController extends AbstractProtocolService {
 
     private final EventBus r;
     private final ConfigLoader config;
     private final DeviceRegistry registry;
-    private final ProtocolServiceLayer<ZWaveDevice, ZWaveDeviceValue> service;
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Gson gson = new GsonBuilder().create();
     private long homeId;
     private boolean ready = false;
 
     @Autowired
-    public ZWaveController(@Qualifier("zwaveDeviceService") ProtocolServiceLayer service,
-                           EventBus r,
+    public ZWaveController(EventBus r,
                            ConfigLoader config,
                            DeviceRegistry registry) {
-        this.service = service;
         this.r = r;
         this.config = config;
         this.registry = registry;
@@ -66,9 +63,6 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
     @Override
     public void onShutdown() {
         logger.info("ZWaveController stopping");
-        logger.info("Saving ZWave devices state into database");
-        service.saveIntoDatabase();
-        logger.info("Saved");
     }
 
     @Override
@@ -86,17 +80,17 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
                     case "TurnOn":
                         logger.info("Turn ON device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 255);
-                        broadcast("event.device.zwave.on", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 255, ValueType.INT));
+                        broadcast("event.device.on", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 255, ValueType.INT));
                         break;
                     case "TurnOff":
                         logger.info("Turn OFF device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 0);
-                        broadcast("event.device.zwave.off", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 0, ValueType.INT));
+                        broadcast("event.device.off", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 0, ValueType.INT));
                         break;
                     case "SetLevel":
                         logger.info("Set level {} on channel {}", z.getTo(), z.getChannel());
                         deviceSetLevel(z.getChannel(), z.getLabel(), String.valueOf(z.getTo()));
-                        broadcast("event.device.zwave.setlevel", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", z.getTo(), ValueType.INT));
+                        broadcast("event.device.level", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", z.getTo(), ValueType.INT));
                         break;
                     case "Bind":
                         logger.info("Set controller into AddDevice mode");
@@ -111,7 +105,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
                         Manager.get().cancelControllerCommand(homeId);
                         break;
                     default:
-                        logger.info("Received unknown request for zwave service! Class: {}", event.getData().getClass());
+                        logger.info("Received unknown request for ZWave service! Class: {}", event.getData().getClass());
                         break;
                 }
             }
@@ -134,7 +128,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
         NotificationWatcher watcher = (notification, context) -> {
 
             Short node = notification.getNodeId();
-            ZWaveDevice device = null;
+            Device device;
 
             switch (notification.getType()) {
                 case DRIVER_READY:
@@ -298,8 +292,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
                     break;
                 case VALUE_REMOVED:
-
-                    device = getDeviceByChannel(node);
+                    device = registry.getDevice(SourceProtocol.ZWAVE, node);
 
                     if (device == null) {
                         logger.info("Remove ZWave value requested, but node {} not found", node);
@@ -307,7 +300,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
                     }
 
                     // remove value from device
-                    device.getDeviceValues().remove(Manager.get().getValueLabel(notification.getValueId()));
+                    device.getValues().remove(Manager.get().getValueLabel(notification.getValueId()));
 
                     broadcast("event.device.zwave.value.removed",
                             new DeviceChangeEvent(node,
@@ -324,8 +317,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
                     break;
                 case VALUE_CHANGED:
-
-                    device = getDeviceByChannel(node);
+                    device = registry.getDevice(SourceProtocol.ZWAVE, node);
 
                     if (device == null) {
                         logger.info("Change ZWave value requested, but node {} not found", node);
@@ -345,22 +337,20 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
                     String label = manager.getValueLabel(notification.getValueId());
                     ValueId valueId = notification.getValueId();
-                    ZWaveDeviceValue value = device.getDeviceValues().get(label);
+                    DeviceValue value = device.getValues().get(label);
 
                     if (value == null)
-                        value = new ZWaveDeviceValue();
+                        value = new DeviceValue();
 
                     value.setName(label);
                     value.setType(getValueType(valueId));
                     value.setUnits(Manager.get().getValueUnits(valueId));
                     value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-                    value.setCurrentValue(getValue(valueId));
-                    value.setValueId(valueId);
+                    value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
+                    value.setAdditionalData(gson.toJson(valueId));
 
-                    service.addChange(value);
-
-                    device.getDeviceValues().remove(label);
-                    device.getDeviceValues().put(label, value);
+                    registry.addChange(value);
+                    device.getValues().put(label, value);
 
                     // update
                     registry.addOrUpdateDevice(device);
@@ -400,18 +390,13 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
         }
     }
 
-    @Override
-    public ZWaveDevice getDeviceByChannel(Short channel) {
-        return (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, channel);
-    }
-
-    private ZWaveDevice addZWaveDeviceOrValue(DeviceType type, Notification notification) {
+    private Device addZWaveDeviceOrValue(DeviceType type, Notification notification) {
 
         String label = Manager.get().getValueLabel(notification.getValueId());
         String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
         String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
         Short node = notification.getNodeId();
-        ZWaveDevice device = (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, node);
+        Device device = registry.getDevice(SourceProtocol.ZWAVE, node);
         boolean listen = false;
         ValueId valueId = notification.getValueId();
 
@@ -421,7 +406,7 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
         // device doesnt exists
         if (device == null) {
-            device = new ZWaveDevice();
+            device = new Device();
 
             device.setType(type);
             device.setChannel(node);
@@ -434,29 +419,29 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
             else
                 device.setState(State.UNKNOWN);
 
-            Map<String, ZWaveDeviceValue> values = new HashMap<>();
+            Map<String, DeviceValue> values = new HashMap<>();
 
-            ZWaveDeviceValue value = new ZWaveDeviceValue();
+            DeviceValue value = new DeviceValue();
             value.setName(label);
             value.setType(getValueType(valueId));
             value.setUnits(Manager.get().getValueUnits(valueId));
             value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-            value.setCurrentValue(getValue(valueId));
-            value.setValueId(valueId);
+            value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
+            value.setAdditionalData(gson.toJson(valueId));
 
             // Check if it is beaming device
-            ZWaveDeviceValue beaming = new ZWaveDeviceValue();
+            DeviceValue beaming = new DeviceValue();
             beaming.setName("beaming");
             beaming.setType(ValueType.BYTE);
-            beaming.setCurrentValue(Manager.get().isNodeBeamingDevice(homeId, node));
+            beaming.setCurrentValue((Manager.get().isNodeBeamingDevice(homeId, node)) + "");
             beaming.setReadOnly(true);
 
-            beaming = service.addChange(beaming);
-            value = service.addChange(value);
+            beaming = registry.addChange(beaming);
+            value = registry.addChange(value);
 
             values.put(label, value);
             values.put("beaming", beaming);
-            device.setDeviceValues(values);
+            device.setValues(values);
 
             // update
             registry.addOrUpdateDevice(device);
@@ -479,22 +464,20 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
 
             logger.info("Node {}: Add \"{}\" value \"{}\"", node, label, getValue(valueId));
 
-            ZWaveDeviceValue value = device.getDeviceValues().get(label);
+            DeviceValue value = device.getValues().get(label);
 
             if (value == null)
-                value = new ZWaveDeviceValue();
+                value = new DeviceValue();
 
             value.setName(label);
             value.setType(getValueType(valueId));
             value.setUnits(Manager.get().getValueUnits(valueId));
             value.setReadOnly(Manager.get().isValueReadOnly(valueId));
-            value.setCurrentValue(getValue(valueId));
-            value.setValueId(valueId);
+            value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
+            value.setAdditionalData(gson.toJson(valueId));
 
-            value = service.addChange(value);
-
-            device.getDeviceValues().remove(label);
-            device.getDeviceValues().put(label, value);
+            value = registry.addChange(value);
+            device.getValues().put(label, value);
 
             // update
             registry.addOrUpdateDevice(device);
@@ -622,18 +605,18 @@ public class ZWaveController extends AbstractProtocolService<ZWaveDevice> {
     }
 
     private void deviceSetLevel(Short node, String label, String level) {
-        ZWaveDevice device = (ZWaveDevice) registry.getDevice(SourceProtocol.ZWAVE, node);
+        Device device = registry.getDevice(SourceProtocol.ZWAVE, node);
 
         if (device == null) {
             logger.error("Cant find device node {} for set level request", node);
             return;
         }
 
-        if (!device.getState().equals(State.DEAD) && device.getDeviceValues().get(label) != null) {
+        if (!device.getState().equals(State.DEAD) && device.getValues().get(label) != null) {
             logger.info("Node {}: Setting value: {} for label \"{}\"", node, level, label);
 
-            if (!Manager.get().isValueReadOnly(device.getDeviceValues().get(label).getValueId())) {
-                setTypedValue(device.getDeviceValues().get(label).getValueId(), level);
+            if (!Manager.get().isValueReadOnly(gson.fromJson(device.getValues().get(label).getAdditionalData(), ValueId.class))) {
+                setTypedValue(gson.fromJson(device.getValues().get(label).getAdditionalData(), ValueId.class), level);
             } else {
                 logger.info("Node {}: Value \"{}\" is read-only! Skip.", node, label);
             }

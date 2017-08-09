@@ -1,5 +1,8 @@
 package ru.iris.commons.database.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -9,8 +12,10 @@ import java.util.Set;
 
 @Entity
 @Table(name = "zones")
+@Getter
+@Setter
+@NoArgsConstructor
 public class Zone {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -23,31 +28,4 @@ public class Zone {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "zone")
     private Set<Device> devices = new HashSet<>();
-
-    public Zone() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }

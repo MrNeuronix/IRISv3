@@ -1,7 +1,6 @@
 package ru.iris.events.manager;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
@@ -18,9 +17,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+@Slf4j
 public class ScriptManager {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptManager.class);
     private static ScriptManager instance;
     private HashMap<String, Script> scripts = new HashMap<>();
     private HashMap<Rule, Script> ruleMap = new HashMap<>();

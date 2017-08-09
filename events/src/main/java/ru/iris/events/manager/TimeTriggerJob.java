@@ -1,17 +1,16 @@
 package ru.iris.events.manager;
 
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import ru.iris.events.types.Event;
 import ru.iris.events.types.Rule;
 import ru.iris.events.types.TriggerType;
 
+@Slf4j
 public class TimeTriggerJob implements Job {
 
-    private static final Logger logger = LoggerFactory.getLogger(TimeTriggerJob.class);
     private Rule rule;
 
     @Override

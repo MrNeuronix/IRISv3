@@ -1,11 +1,8 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.protocol.Device;
+import ru.iris.commons.database.model.Device;
 
 public class StartupTrigger implements EventTrigger {
-    public StartupTrigger() {
-
-    }
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {

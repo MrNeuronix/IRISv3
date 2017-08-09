@@ -3,7 +3,7 @@
 A brand new version of IRISv2 (home automation system).
 This is core part of smart home system
 
-[![Build Status](https://travis-ci.org/Neuronix2/IRISv3.png?branch=master)](https://travis-ci.org/Neuronix2/IRISv3)
+[![Build Status](https://travis-ci.org/MrNeuronix/IRISv3.png?branch=master)](https://travis-ci.org/MrNeuronix/IRISv3)
 
 Please remember that this project is in deep alpha and now is mostly for developers than for users.
 

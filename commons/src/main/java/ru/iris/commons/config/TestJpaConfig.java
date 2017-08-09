@@ -5,10 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-/**
- * Created by nix on 05.10.2016.
- */
-
 @Configuration
 @Profile("tests")
 public class TestJpaConfig {

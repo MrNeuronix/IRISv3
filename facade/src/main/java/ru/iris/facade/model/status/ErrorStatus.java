@@ -1,22 +1,16 @@
 package ru.iris.facade.model.status;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
 public class ErrorStatus {
-
     private String text;
-
-    public ErrorStatus(String text) {
-        this.text = text;
-    }
 
     public String getStatus() {
         return "ERROR";
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
-        this.text = text;
     }
 }

@@ -1,7 +1,6 @@
 package ru.iris.noolite;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -15,18 +14,16 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
-import ru.iris.noolite.protocol.model.NooliteDevice;
 import ru.iris.noolite4j.sender.PC1132;
 
 @Component
 @Profile("noolite")
 @Qualifier("noolitetx")
-public class NooliteTXController extends AbstractProtocolService<NooliteDevice> {
+@Slf4j
+public class NooliteTXController extends AbstractProtocolService {
 
     private final ConfigLoader config;
     private final DeviceRegistry registry;
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     private PC1132 pc;
 
     @Autowired
@@ -65,11 +62,6 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
     }
 
     @Override
-    public NooliteDevice getDeviceByChannel(Short channel) {
-        return (NooliteDevice) registry.getDevice(SourceProtocol.NOOLITE, channel);
-    }
-
-    @Override
     public Consumer<Event<?>> handleMessage() {
         return event -> {
             if (event.getData() instanceof DeviceCommandEvent) {
@@ -80,17 +72,17 @@ public class NooliteTXController extends AbstractProtocolService<NooliteDevice> 
                     case "TurnOn":
                         logger.info("Turn ON device on channel {}", n.getChannel());
                         pc.turnOn(n.getChannel().byteValue());
-                        broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
+                        broadcast("command.device.on", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
                         break;
                     case "TurnOff":
                         logger.info("Turn OFF device on channel {}", n.getChannel());
                         pc.turnOff(n.getChannel().byteValue());
-                        broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
+                        broadcast("command.device.off", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
                         break;
                     case "SetLevel":
                         logger.info("Set level {} on channel {}", n.getTo(), n.getChannel());
                         pc.setLevel(n.getChannel().byteValue(), ((Short) n.getTo()).byteValue());
-                        broadcast("event.device.noolite.rx", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", n.getTo(), ValueType.INT));
+                        broadcast("command.device.level", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", n.getTo(), ValueType.INT));
                         break;
                     case "BindTX":
                         logger.info("Incoming bind TX to channel {} request", n.getChannel());

@@ -1,9 +1,8 @@
 package ru.iris.events.manager;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
@@ -21,9 +20,8 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class Script {
-
-    private static final Logger logger = LoggerFactory.getLogger(Script.class);
     private ArrayList<Rule> rules = new ArrayList<>();
     private ScriptManager scriptManager;
     private ScriptEngine engine = null;

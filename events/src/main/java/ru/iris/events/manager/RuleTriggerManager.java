@@ -4,14 +4,13 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import ru.iris.commons.protocol.Device;
+import ru.iris.commons.database.model.Device;
 import ru.iris.events.types.*;
 
 import java.util.*;
@@ -21,10 +20,8 @@ import static org.quartz.TriggerBuilder.newTrigger;
 
 @Component
 @Scope("singleton")
+@Slf4j
 public class RuleTriggerManager {
-
-    private static final Logger logger = LoggerFactory.getLogger(RuleTriggerManager.class);
-
     // lookup maps for different triggering conditions
     private Map<String, Set<Rule>> changedEventTriggeredRules = Maps.newHashMap();
     private Map<String, Set<Rule>> commandEventTriggeredRules = Maps.newHashMap();
@@ -97,7 +94,7 @@ public class RuleTriggerManager {
 
     private Iterable<Rule> internalGetRules(TriggerType triggerType, Device device) {
         List<Rule> result = Lists.newArrayList();
-        String ident = device == null ? "undef" : device.getHumanReadableName();
+        String ident = device == null ? "undef" : device.getHumanReadable();
 
         Iterable<Rule> rules = getAllRules(triggerType, ident);
         if (rules == null) {

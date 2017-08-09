@@ -13,7 +13,7 @@ import javax.annotation.PreDestroy;
 
 import static reactor.bus.selector.Selectors.R;
 
-public abstract class AbstractProtocolService<DEVICE> implements ProtocolService {
+public abstract class AbstractProtocolService implements ProtocolService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired

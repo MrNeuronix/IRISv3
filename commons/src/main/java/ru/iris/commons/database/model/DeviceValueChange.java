@@ -1,12 +1,18 @@
 package ru.iris.commons.database.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
 @Table(name = "device_values_change")
+@Getter
+@Setter
+@NoArgsConstructor
 public class DeviceValueChange {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -19,47 +25,4 @@ public class DeviceValueChange {
 
     private String value;
     private String additionalData;
-
-    public DeviceValueChange() {
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public Date getDate() {
-        return date;
-    }
-
-    public void setDate(Date date) {
-        this.date = date;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getAdditionalData() {
-        return additionalData;
-    }
-
-    public void setAdditionalData(String additionalData) {
-        this.additionalData = additionalData;
-    }
-
-    public DeviceValue getDeviceValue() {
-        return deviceValue;
-    }
-
-    public void setDeviceValue(DeviceValue deviceValue) {
-        this.deviceValue = deviceValue;
-    }
 }

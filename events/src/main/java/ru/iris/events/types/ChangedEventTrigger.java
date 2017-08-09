@@ -1,6 +1,6 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.protocol.Device;
+import ru.iris.commons.database.model.Device;
 
 public class ChangedEventTrigger implements EventTrigger {
     private String itemName;
@@ -21,7 +21,7 @@ public class ChangedEventTrigger implements EventTrigger {
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {
-        return type == TriggerType.CHANGE && device.getHumanReadableName().equals(itemName);
+        return type == TriggerType.CHANGE && device.getHumanReadable().equals(itemName);
     }
 
     @Override

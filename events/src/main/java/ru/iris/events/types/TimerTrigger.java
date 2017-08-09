@@ -1,9 +1,11 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.protocol.Device;
+import lombok.Getter;
+import ru.iris.commons.database.model.Device;
 
 public class TimerTrigger implements EventTrigger {
 
+    @Getter
     private String cron;
 
     public TimerTrigger(String cron) {
@@ -18,9 +20,5 @@ public class TimerTrigger implements EventTrigger {
     @Override
     public boolean evaluate(Device device, TriggerType type) {
         return type == TriggerType.TIMER;
-    }
-
-    public String getCron() {
-        return this.cron;
     }
 }
