@@ -67,7 +67,7 @@ public class ZWaveController extends AbstractProtocolService {
 
     @Override
     public void subscribe() throws Exception {
-        addSubscription("command.device.zwave");
+        addSubscription("command.device");
     }
 
     @Override
@@ -75,6 +75,10 @@ public class ZWaveController extends AbstractProtocolService {
         return event -> {
             if (event.getData() instanceof DeviceCommandEvent) {
                 DeviceCommandEvent z = (DeviceCommandEvent) event.getData();
+
+                if (!z.getProtocol().equals(SourceProtocol.ZWAVE)) {
+                    return;
+                }
 
                 switch (z.getLabel()) {
                     case "TurnOn":

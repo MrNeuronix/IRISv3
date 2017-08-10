@@ -23,14 +23,11 @@ import ru.iris.noolite4j.sender.PC1132;
 public class NooliteTXController extends AbstractProtocolService {
 
     private final ConfigLoader config;
-    private final DeviceRegistry registry;
     private PC1132 pc;
 
     @Autowired
-    public NooliteTXController(ConfigLoader config,
-                               DeviceRegistry registry) {
+    public NooliteTXController(ConfigLoader config) {
         this.config = config;
-        this.registry = registry;
     }
 
     @Override
@@ -53,7 +50,7 @@ public class NooliteTXController extends AbstractProtocolService {
 
     @Override
     public void subscribe() throws Exception {
-        addSubscription("command.device.noolite");
+        addSubscription("command.device");
     }
 
     @Override
@@ -67,6 +64,10 @@ public class NooliteTXController extends AbstractProtocolService {
             if (event.getData() instanceof DeviceCommandEvent) {
 
                 DeviceCommandEvent n = (DeviceCommandEvent) event.getData();
+
+                if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
+                    return;
+                }
 
                 switch (n.getLabel()) {
                     case "TurnOn":
