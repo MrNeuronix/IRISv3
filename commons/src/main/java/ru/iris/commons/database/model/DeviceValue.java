@@ -1,6 +1,9 @@
 package ru.iris.commons.database.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,7 +35,9 @@ public class DeviceValue {
     @Temporal(TemporalType.TIMESTAMP)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date date;
+
     @ManyToOne
+    @JsonBackReference
     private Device device;
 
     private String name;
@@ -50,5 +55,6 @@ public class DeviceValue {
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "deviceValue")
     @OrderBy(clause = "date desc")
     @BatchSize(size = 30)
+    @JsonIgnore
     private List<DeviceValueChange> changes = new ArrayList<>();
 }

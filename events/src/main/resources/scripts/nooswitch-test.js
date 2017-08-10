@@ -14,12 +14,12 @@ var autoOff = new Rule()
     }
 ,
     execute: function (event) {
-        var current = DeviceRegistry.getDeviceValue(event.getDevice().getHumanReadableName(), "level");
+        var current = DeviceRegistry.getDeviceValue(event.getDevice().getHumanReadable(), "level");
 
-        if (current == null)
+        if (current === null)
             return;
 
-        if (current.getCurrentValue() == 255 && !lock) {
+        if (current.getCurrentValue() === 255 && !lock) {
             lock = true;
             print("\nLight turned ON on channel " + event.getDevice().getChannel() + ", timer setted\n");
 
@@ -27,14 +27,14 @@ var autoOff = new Rule()
             timer.schedule(function () {
                 if (lock) {
                     print("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
-                    DeviceHelper.off(event.getDevice().getHumanReadableName())
+                    DeviceHelper.off(event.getDevice().getHumanReadable())
                 }
             }, 1200000);
         }
-        else if (current.getCurrentValue() == 255 && lock) {
+        else if (current.getCurrentValue() === 255 && lock) {
             print("\nTimer already set!\n");
         }
-        else if (current.getCurrentValue() == 0 && lock) {
+        else if (current.getCurrentValue() === 0 && lock) {
             lock = false;
             print("\nLight turned OFF on channel " + event.getDevice().getChannel() + ". Unset lock!\n");
         }

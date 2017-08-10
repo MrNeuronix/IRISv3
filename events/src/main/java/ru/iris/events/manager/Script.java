@@ -85,9 +85,9 @@ public class Script {
                     + "URLEncoder 			= Java.type('java.net.URLEncoder'),\n"
 
                     // Devices
-                    + "Device 			= Java.type('ru.iris.commons.protocol.Device'),\n"
-                    + "DeviceValue 			= Java.type('ru.iris.commons.protocol.DeviceValue'),\n"
-                    + "DeviceValueChange 			= Java.type('ru.iris.commons.protocol.DeviceValueChange'),\n"
+                    + "Device 			= Java.type('ru.iris.commons.database.model.Device'),\n"
+                    + "DeviceValue 			= Java.type('ru.iris.commons.database.model.DeviceValue'),\n"
+                    + "DeviceValueChange 			= Java.type('ru.iris.commons.database.model.DeviceValueChange'),\n"
 
                     + "Zone			= Java.type('ru.iris.commons.protocol.Zone'),\n"
 

@@ -410,6 +410,7 @@ public class ZWaveController extends AbstractProtocolService {
 
             device.setType(type);
             device.setChannel(node);
+            device.setSource(SourceProtocol.ZWAVE);
             device.setManufacturer(manufName);
             device.setProductName(productName);
             device.setHumanReadable("zwave/node/" + node);
@@ -419,9 +420,12 @@ public class ZWaveController extends AbstractProtocolService {
             else
                 device.setState(State.UNKNOWN);
 
+            device = registry.addOrUpdateDevice(device);
+
             Map<String, DeviceValue> values = new HashMap<>();
 
             DeviceValue value = new DeviceValue();
+            value.setDevice(device);
             value.setName(label);
             value.setType(getValueType(valueId));
             value.setUnits(Manager.get().getValueUnits(valueId));
@@ -431,6 +435,7 @@ public class ZWaveController extends AbstractProtocolService {
 
             // Check if it is beaming device
             DeviceValue beaming = new DeviceValue();
+            beaming.setDevice(device);
             beaming.setName("beaming");
             beaming.setType(ValueType.BYTE);
             beaming.setCurrentValue((Manager.get().isNodeBeamingDevice(homeId, node)) + "");
@@ -469,6 +474,7 @@ public class ZWaveController extends AbstractProtocolService {
             if (value == null)
                 value = new DeviceValue();
 
+            value.setDevice(device);
             value.setName(label);
             value.setType(getValueType(valueId));
             value.setUnits(Manager.get().getValueUnits(valueId));

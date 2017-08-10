@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
+import ru.iris.commons.database.dao.DeviceValueDAO;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
@@ -15,6 +16,7 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +34,9 @@ public class DeviceRegistry {
 
     @Autowired
     private DeviceDAO deviceDAO;
+
+    @Autowired
+    private DeviceValueDAO deviceValueDAO;
 
     @PersistenceContext
     private EntityManager em;
@@ -88,7 +93,11 @@ public class DeviceRegistry {
     }
 
     public DeviceValue addChange(DeviceValue value) {
+
+        value = deviceValueDAO.save(value);
+
         DeviceValueChange add = new DeviceValueChange();
+        add.setDeviceValue(value);
         add.setValue(value.getCurrentValue());
         add.setAdditionalData(gson.toJson(value.getAdditionalData()));
         add.setDate(new Date());
@@ -151,7 +160,7 @@ public class DeviceRegistry {
             Device device = registry.get(ident);
             return getHistory(device.getSource(), device.getChannel(), label, start, null);
         } else
-            return null;
+            return new ArrayList();
     }
 
     public List getHistory(String humanReadableIdent, String label, Date start, Date stop) {
@@ -161,7 +170,7 @@ public class DeviceRegistry {
             Device device = registry.get(ident);
             return getHistory(device.getSource(), device.getChannel(), label, start, stop);
         } else
-            return null;
+            return new ArrayList();
     }
 
     public List getHistory(SourceProtocol proto, Short channel, String label, Date start) {
@@ -176,7 +185,7 @@ public class DeviceRegistry {
                 return getHistory(device.getValues().get(label).getId(), start, stop);
         }
 
-        return null;
+        return new ArrayList();
     }
 
     private List getHistory(long id, Date startDate, Date stopDate) {
