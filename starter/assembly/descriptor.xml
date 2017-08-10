@@ -17,6 +17,7 @@
             <outputDirectory>config</outputDirectory>
             <includes>
                 <include>application.properties</include>
+                <include>logback-spring.xml</include>
             </includes>
         </fileSet>
         <fileSet>
