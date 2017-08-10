@@ -1,6 +1,6 @@
 # IRISv3
 
-A brand new version of IRISv2 (home automation system).
+A brand new version of IRISv3 (home automation system).
 This is core part of smart home system
 
 [![Build Status](https://travis-ci.org/MrNeuronix/IRISv3.png?branch=master)](https://travis-ci.org/MrNeuronix/IRISv3)
@@ -9,13 +9,15 @@ Please remember that this project is in deep alpha and now is mostly for develop
 
 ## Features
 
-* Spring Boot
+* Spring Boot based code
+* JSON API
 * JavaScript based dynamic scripts support for better automation
 
 ## Protocol support
 
 * ZWave
 * Noolite
+* Xiaomi MiHome (in progress)
 
 ## Requirements
 
@@ -26,8 +28,8 @@ Please remember that this project is in deep alpha and now is mostly for develop
 
 **mvn package**
 
-In project root directory you will find assembled **IRISv3-linux-release.zip**. Unpack them.
-Database for IRISv2 will be created dynamically at first run.
+In project root directory you will find assembled **iris-{version}-application.zip**. Unpack them.
+Database for IRIS will be created dynamically at first run.
 
 ## Configuration
 

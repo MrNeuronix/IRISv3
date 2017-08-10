@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ALL" class="ch.qos.logback.core.FileAppender">
+        <file>logs/all.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="NOOLITE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/noolite.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="ZWAVE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/zwave.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="XIAOMI" class="ch.qos.logback.core.FileAppender">
+        <file>logs/xiaomi.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="EVENTS" class="ch.qos.logback.core.FileAppender">
+        <file>logs/events.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ru.iris" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ALL"/>
+    </logger>
+
+    <logger name="ru.iris.noolite" level="debug" additivity="false">
+        <appender-ref ref="NOOLITE"/>
+    </logger>
+
+    <logger name="ru.iris.zwave" level="debug" additivity="false">
+        <appender-ref ref="ZWAVE"/>
+    </logger>
+
+    <logger name="ru.iris.xiaomi" level="debug" additivity="false">
+        <appender-ref ref="XIAOMI"/>
+    </logger>
+
+    <logger name="ru.iris.events" level="debug" additivity="false">
+        <appender-ref ref="EVENTS"/>
+    </logger>
+
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ALL"/>
+    </root>
+
+</configuration>

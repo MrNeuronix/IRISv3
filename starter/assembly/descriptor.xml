@@ -14,7 +14,7 @@
     <fileSets>
         <fileSet>
             <directory>${project.basedir}/src/main/resources</directory>
-            <outputDirectory>/config</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <includes>
                 <include>application.properties</include>
             </includes>
@@ -45,7 +45,7 @@
         <!-- zwave -->
         <fileSet>
             <directory>${project.basedir}/../device-zwave/src/main/resources</directory>
-            <outputDirectory>/config</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <includes>
                 <include>zwave.properties</include>
             </includes>
@@ -53,15 +53,23 @@
         <!-- noolite -->
         <fileSet>
             <directory>${project.basedir}/../device-noolite/src/main/resources</directory>
-            <outputDirectory>/config</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <includes>
                 <include>noolite.properties</include>
+            </includes>
+        </fileSet>
+        <!-- xiaomi -->
+        <fileSet>
+            <directory>${project.basedir}/../device-xiaomi/src/main/resources</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>xiaomi.properties</include>
             </includes>
         </fileSet>
         <!-- speak -->
         <fileSet>
             <directory>${project.basedir}/../speak/src/main/resources</directory>
-            <outputDirectory>/config</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <includes>
                 <include>speak.properties</include>
             </includes>
@@ -69,14 +77,14 @@
         <!-- events -->
         <fileSet>
             <directory>${project.basedir}/../events/src/main/resources/scripts</directory>
-            <outputDirectory>/scripts</outputDirectory>
+            <outputDirectory>scripts</outputDirectory>
             <includes>
                 <include>*/**</include>
             </includes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/../events/src/main/resources</directory>
-            <outputDirectory>/config</outputDirectory>
+            <outputDirectory>config</outputDirectory>
             <includes>
                 <include>events.properties</include>
             </includes>

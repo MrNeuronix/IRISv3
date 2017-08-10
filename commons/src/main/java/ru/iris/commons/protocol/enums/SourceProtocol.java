@@ -4,6 +4,7 @@ public enum SourceProtocol {
 
     ZWAVE("zwave"),
     NOOLITE("noolite"),
+    XIAOMI("xiaomi"),
     UNKNOWN("unknown");
 
     private final String name;

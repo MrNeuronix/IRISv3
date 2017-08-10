@@ -26,6 +26,11 @@
         </dependency>
         <dependency>
             <groupId>ru.iris</groupId>
+            <artifactId>device-xiaomi</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.iris</groupId>
             <artifactId>commons</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
@@ -70,6 +75,8 @@
                     <descriptors>
                         <descriptor>assembly/descriptor.xml</descriptor>
                     </descriptors>
+                    <finalName>iris-${project.version}</finalName>
+                    <outputDirectory>${project.basedir}/../</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
@@ -80,6 +87,30 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.5.201505241946</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <version>4.1.0</version>
             </plugin>
 
         </plugins>

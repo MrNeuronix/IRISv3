@@ -36,10 +36,12 @@ public class CoreApplication {
     @Autowired(required = false)
     @Qualifier("noolitetx")
     private ProtocolService nooliteTx;
+    @Autowired(required = false)
+    @Qualifier("xiaomi")
+    private ProtocolService xiaomi;
 
     public static void main(String[] args) throws Exception {
-
-        ConfigurableApplicationContext context = SpringApplication.run(new Class<?>[]{
+        SpringApplication.run(new Class<?>[]{
                 CoreApplication.class,
                 JpaConfig.class,
                 ReactorConfig.class
@@ -59,5 +61,7 @@ public class CoreApplication {
             nooliteRx.run();
         if (nooliteTx != null)
             nooliteTx.run();
+        if (xiaomi != null)
+            xiaomi.run();
     }
 }
