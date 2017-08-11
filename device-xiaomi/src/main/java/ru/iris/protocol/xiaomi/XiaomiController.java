@@ -1,4 +1,4 @@
-package ru.iris.xiaomi;
+package ru.iris.protocol.xiaomi;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

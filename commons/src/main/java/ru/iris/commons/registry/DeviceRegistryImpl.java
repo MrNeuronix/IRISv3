@@ -145,6 +145,11 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
+    public List<Device> getDevices() {
+        return new ArrayList<>(registry.values());
+    }
+
+    @Override
     public Device getDevice(SourceProtocol protocol, Short channel) {
         return registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
     }

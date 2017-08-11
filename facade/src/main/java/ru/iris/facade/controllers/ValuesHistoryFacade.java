@@ -25,20 +25,11 @@ import java.util.*;
 @Slf4j
 public class ValuesHistoryFacade {
 
-    private final DeviceRegistry registry;
-    private EventBus r;
-
-    @Autowired(required = false)
-    public ValuesHistoryFacade(
-            DeviceRegistry registry
-    ) {
-        this.registry = registry;
-    }
+    @Autowired
+    private DeviceRegistry registry;
 
     @Autowired
-    public void setR(EventBus r) {
-        this.r = r;
-    }
+    private EventBus r;
 
     /**
      * Return history of device value
@@ -56,20 +47,8 @@ public class ValuesHistoryFacade {
         if (request.getChannel() == null || request.getChannel() <= 0)
             return Collections.singletonList(new ErrorStatus("channel is null or <= 0"));
 
-        if (request.getSource() == null || request.getSource().isEmpty())
+        if (request.getSource() == null || request.getSource() == null)
             return Collections.singletonList(new ErrorStatus("source field is empty or null"));
-
-        SourceProtocol sourceProtocol;
-        switch (request.getSource()) {
-            case "zwave":
-                sourceProtocol = SourceProtocol.ZWAVE;
-                break;
-            case "noolite":
-                sourceProtocol = SourceProtocol.NOOLITE;
-                break;
-            default:
-                return Collections.singletonList(new ErrorStatus("protocol unknown"));
-        }
 
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
         Date startDate;
@@ -85,7 +64,7 @@ public class ValuesHistoryFacade {
             return Collections.singletonList(new ErrorStatus("Date parse error. Use date in format: yyyy-MM-dd HH:mm:ss"));
         }
 
-        List<DeviceValueChange> dbList = registry.getHistory(sourceProtocol, request.getChannel(), request.getLabel(),
+        List<DeviceValueChange> dbList = registry.getHistory(request.getSource(), request.getChannel(), request.getLabel(),
                 startDate, stopDate);
 
         List<Object> ret = new ArrayList<>();

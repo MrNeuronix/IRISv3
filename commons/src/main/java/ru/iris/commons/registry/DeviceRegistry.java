@@ -23,6 +23,8 @@ public interface DeviceRegistry {
 
     List<Device> getDevicesByProto(SourceProtocol proto);
 
+    List<Device> getDevices();
+
     Device getDevice(SourceProtocol protocol, Short channel);
 
     Device getDevice(String humanReadableIdent);

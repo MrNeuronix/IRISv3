@@ -1,4 +1,4 @@
-package ru.iris.zwave;
+package ru.iris.protocol.zwave;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
