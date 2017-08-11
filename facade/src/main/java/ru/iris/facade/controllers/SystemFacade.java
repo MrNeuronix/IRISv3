@@ -32,12 +32,14 @@ public class SystemFacade {
     private String commitMessage;
     @Value("${git.branch}")
     private String branch;
-    @Value("${git.commit.id}")
+    @Value("${git.commit.id.describe-short}")
     private String commitId;
     @Value("${git.build.user.name}")
     private String username;
     @Value("${git.build.time}")
     private String buildtime;
+    @Value("${git.build.version}")
+    private String version;
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer placeholderConfigurer() {
@@ -56,6 +58,7 @@ public class SystemFacade {
         properties.put("commitId", commitId);
         properties.put("buildUsername", username);
         properties.put("buildTime", buildtime);
+        properties.put("version", version);
         return properties;
     }
 }
