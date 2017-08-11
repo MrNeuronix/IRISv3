@@ -33,6 +33,7 @@ Database for IRIS will be created dynamically at first run.
 
 ## Configuration
 
+* Copy configuration files in **/conf** directory from *.default to *.properties
 * Change what you need in **/conf** directory
 
 ## Run

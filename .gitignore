@@ -25,3 +25,5 @@ nbdist/
 *.log
 *.mp3
 *.zip
+
+*.properties
