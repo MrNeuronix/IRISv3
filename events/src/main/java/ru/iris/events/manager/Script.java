@@ -23,16 +23,14 @@ import java.util.List;
 @Slf4j
 public class Script {
     private ArrayList<Rule> rules = new ArrayList<>();
-    private ScriptManager scriptManager;
     private ScriptEngine engine = null;
     private DeviceRegistry registry;
     private String fileName;
     private SpeakHelper speakHelper;
     private DeviceHelper deviceHelper;
 
-    public Script(ScriptManager scriptManager, File file, DeviceRegistry registry,
+    public Script(File file, DeviceRegistry registry,
                   SpeakHelper speakHelper, DeviceHelper deviceHelper) throws FileNotFoundException, ScriptException, NoSuchMethodException {
-        this.scriptManager = scriptManager;
         this.fileName = file.getName();
         this.registry = registry;
         this.speakHelper = speakHelper;

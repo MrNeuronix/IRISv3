@@ -1,5 +1,6 @@
 package ru.iris.events.actions;
 
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.base.AbstractInstant;
 import org.quartz.*;
@@ -11,9 +12,9 @@ import java.util.Date;
 
 import static org.quartz.TriggerBuilder.newTrigger;
 
+@Slf4j
 public class Timer {
 
-    private static final Logger logger = LoggerFactory.getLogger(Timer.class);
     private static Scheduler scheduler;
 
     static {

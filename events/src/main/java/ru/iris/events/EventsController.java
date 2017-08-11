@@ -51,7 +51,9 @@ public class EventsController extends AbstractService {
         scriptManager = new ScriptManager(triggerManager, config, registry, speakHelper, deviceHelper);
         logger.info("EventsController started");
 
+        logger.info("EventsController running startup scripts");
         runStartupRules();
+        logger.info("EventsController done running startup scripts");
     }
 
     @Override

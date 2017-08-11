@@ -19,7 +19,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 @Component
-@Scope("singleton")
 @Slf4j
 public class RuleTriggerManager {
     // lookup maps for different triggering conditions

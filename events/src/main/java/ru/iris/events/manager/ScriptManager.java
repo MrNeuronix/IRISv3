@@ -74,7 +74,7 @@ public class ScriptManager {
             if (!file.isFile() || file.getName().startsWith(".") || getFileExtension(file) == null) {
                 return null;
             }
-            script = new Script(this, file, registry, speakHelper, deviceHelper);
+            script = new Script(file, registry, speakHelper, deviceHelper);
             if (script.getEngine() == null) {
                 logger.warn("No Engine found for File: {}", file.getName());
                 return null;

@@ -1,5 +1,6 @@
 package ru.iris.facade.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,6 +14,7 @@ import ru.iris.commons.model.status.OkStatus;
 
 @RestController
 @Profile("facade")
+@Slf4j
 public class SpeakFacade {
 
     private final SpeakHelper helper;

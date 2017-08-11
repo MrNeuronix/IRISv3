@@ -1,14 +1,14 @@
 package ru.iris.events.actions;
 
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class TimerExecutionJob implements Job {
-
-    static final private Logger logger = LoggerFactory.getLogger(TimerExecutionJob.class);
 
     private Runnable procedure = null;
     private Timer timer;
