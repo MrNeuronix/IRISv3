@@ -56,6 +56,7 @@ public class HttpApiController {
         }
 
         if (state != null) {
+            logger.info("HTTP channel {}: State {}", channel, state);
             deviceRegistry.addChange(device, "state", state.toString(), ValueType.BOOL);
             broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state, ValueType.BOOL));
         } else {
@@ -85,6 +86,7 @@ public class HttpApiController {
             device = deviceRegistry.addOrUpdateDevice(device);
         }
 
+        logger.info("HTTP channel {}: Triggered", channel);
         deviceRegistry.addChange(device, "alarm", "triggered", ValueType.BOOL);
         broadcast("event.device.trigger", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "alarm", "triggered", ValueType.STRING));
 

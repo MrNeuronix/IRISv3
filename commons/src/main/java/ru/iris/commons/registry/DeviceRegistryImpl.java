@@ -98,9 +98,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     public DeviceValue addChange(DeviceValue value) {
-
-        value = deviceValueDAO.save(value);
-
         DeviceValueChange add = new DeviceValueChange();
         add.setDeviceValue(value);
         add.setValue(value.getCurrentValue());
@@ -117,8 +114,10 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     public DeviceValue addChange(Device device, String key, String level, ValueType type) {
         DeviceValue value = device.getValues().get(key);
 
-        if (value == null)
+        if (value == null) {
             value = new DeviceValue();
+            value = deviceValueDAO.save(value);
+        }
 
         value.setDevice(device);
         value.setName(key);
