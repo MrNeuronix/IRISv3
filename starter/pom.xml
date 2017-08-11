@@ -31,6 +31,11 @@
         </dependency>
         <dependency>
             <groupId>ru.iris</groupId>
+            <artifactId>device-http</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.iris</groupId>
             <artifactId>commons</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
@@ -124,7 +129,7 @@
                         <configuration>
                             <tasks>
                                 <echo message="installing phase"/>
-                                <unzip src="../../iris-0.0.1-SNAPSHOT-application.zip" dest="/iris/opt/iris"/>
+                                <unzip src="../iris-0.0.1-SNAPSHOT-application.zip" dest="/iris/opt"/>
                             </tasks>
                         </configuration>
                         <goals>

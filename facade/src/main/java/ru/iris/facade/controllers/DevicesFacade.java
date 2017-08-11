@@ -16,8 +16,8 @@ import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.model.DeviceInfoRequest;
 import ru.iris.facade.model.DeviceSetLevelRequest;
-import ru.iris.facade.model.status.ErrorStatus;
-import ru.iris.facade.model.status.OkStatus;
+import ru.iris.commons.model.status.ErrorStatus;
+import ru.iris.commons.model.status.OkStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;

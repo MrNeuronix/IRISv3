@@ -13,7 +13,7 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.model.HistoryRequest;
 import ru.iris.facade.model.dto.DeviceValueChangeDTO;
-import ru.iris.facade.model.status.ErrorStatus;
+import ru.iris.commons.model.status.ErrorStatus;
 
 import java.text.DateFormat;
 import java.text.ParseException;

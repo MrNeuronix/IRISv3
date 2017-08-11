@@ -3,6 +3,7 @@ package ru.iris.commons.registry;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.protocol.enums.ValueType;
 
 import java.util.Date;
 import java.util.List;
@@ -17,6 +18,8 @@ public interface DeviceRegistry {
     void addOrUpdateDevices(List<Device> devices);
 
     DeviceValue addChange(DeviceValue value);
+
+    DeviceValue addChange(Device device, String key, String level, ValueType type);
 
     List<Device> getDevicesByProto(SourceProtocol proto);
 

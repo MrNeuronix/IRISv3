@@ -39,6 +39,9 @@ public class CoreApplication {
     @Autowired(required = false)
     @Qualifier("xiaomi")
     private ProtocolService xiaomi;
+    @Autowired(required = false)
+    @Qualifier("httpapi")
+    private ProtocolService httpapi;
 
     public static void main(String[] args) throws Exception {
         SpringApplication.run(new Class<?>[]{
@@ -63,5 +66,7 @@ public class CoreApplication {
             nooliteTx.run();
         if (xiaomi != null)
             xiaomi.run();
+        if (httpapi != null)
+            httpapi.run();
     }
 }

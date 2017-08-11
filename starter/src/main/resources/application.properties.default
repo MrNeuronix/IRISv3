@@ -19,5 +19,5 @@ spring.output.ansi.enabled=always
 # ===============================
 # = IRIS
 # ===============================
-# Available modules - (yandex OR google), zwave, noolite, xiaomi, weather, facade, ai, events
-spring.profiles.active=yandex, zwave, noolite, xiaomi, facade, events
+# Available modules - (yandex OR google), zwave, noolite, xiaomi, httpapi, weather, facade, ai, events
+spring.profiles.active=yandex, zwave, noolite, xiaomi, httpapi, facade, events

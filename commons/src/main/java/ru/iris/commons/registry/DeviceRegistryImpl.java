@@ -12,6 +12,7 @@ import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
 import ru.iris.commons.database.model.DeviceValueChange;
 import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.commons.protocol.enums.ValueType;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -108,6 +109,28 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
+
+        return value;
+    }
+
+    @Override
+    public DeviceValue addChange(Device device, String key, String level, ValueType type) {
+        DeviceValue value = device.getValues().get(key);
+
+        if (value == null)
+            value = new DeviceValue();
+
+        value.setDevice(device);
+        value.setName(key);
+        value.setType(type);
+        value.setUnits("unknown");
+        value.setReadOnly(false);
+        value.setCurrentValue(level);
+
+        value = addChange(value);
+        device.getValues().put(key, value);
+
+        addOrUpdateDevice(device);
 
         return value;
     }

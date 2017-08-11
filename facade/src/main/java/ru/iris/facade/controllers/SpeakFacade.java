@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.facade.model.SpeakRequest;
-import ru.iris.facade.model.status.ErrorStatus;
-import ru.iris.facade.model.status.OkStatus;
+import ru.iris.commons.model.status.ErrorStatus;
+import ru.iris.commons.model.status.OkStatus;
 
 @RestController
 @Profile("facade")
