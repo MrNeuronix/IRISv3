@@ -16,7 +16,7 @@
             <directory>${project.basedir}/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>application.properties</include>
+                <include>application.properties.default</include>
                 <include>logback-spring.xml</include>
             </includes>
         </fileSet>
@@ -48,7 +48,7 @@
             <directory>${project.basedir}/../device-zwave/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>zwave.properties</include>
+                <include>zwave.properties.default</include>
             </includes>
         </fileSet>
         <!-- noolite -->
@@ -56,7 +56,7 @@
             <directory>${project.basedir}/../device-noolite/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>noolite.properties</include>
+                <include>noolite.properties.default</include>
             </includes>
         </fileSet>
         <!-- xiaomi -->
@@ -64,7 +64,7 @@
             <directory>${project.basedir}/../device-xiaomi/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>xiaomi.properties</include>
+                <include>xiaomi.properties.default</include>
             </includes>
         </fileSet>
         <!-- speak -->
@@ -72,7 +72,7 @@
             <directory>${project.basedir}/../speak/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>speak.properties</include>
+                <include>speak.properties.default</include>
             </includes>
         </fileSet>
         <!-- events -->
@@ -87,7 +87,7 @@
             <directory>${project.basedir}/../events/src/main/resources</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
-                <include>events.properties</include>
+                <include>events.properties.default</include>
             </includes>
         </fileSet>
     </fileSets>
