@@ -17,7 +17,6 @@ import java.io.InputStream;
 
 @Component
 @Profile("google")
-@Scope("singleton")
 public class GoogleController extends AbstractService implements Speak {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());

@@ -36,7 +36,7 @@ public class HttpApiController {
     private DeviceRegistry deviceRegistry;
 
     @RequestMapping(value = "/api/event/device/{channel}/state/{state}", method = RequestMethod.GET)
-    public BackendAnswer switchDeviceState(@PathVariable Short channel, @PathVariable String state) {
+    public BackendAnswer switchDeviceState(@PathVariable Short channel, @PathVariable Boolean state) {
 
         Device device = deviceRegistry.getDevice(SourceProtocol.HTTP, channel);
 
@@ -55,14 +55,11 @@ public class HttpApiController {
             device = deviceRegistry.addOrUpdateDevice(device);
         }
 
-        switch (state) {
-            case "true":
-            case "false":
-                deviceRegistry.addChange(device, "state", state, ValueType.BOOL);
-                broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state, ValueType.BOOL));
-                break;
-            default:
-                return new ErrorStatus("Unknown state: " + state);
+        if (state != null) {
+            deviceRegistry.addChange(device, "state", state.toString(), ValueType.BOOL);
+            broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state, ValueType.BOOL));
+        } else {
+            return new ErrorStatus("No state passed. Only true/false accepted");
         }
 
         return new OkStatus("Received");

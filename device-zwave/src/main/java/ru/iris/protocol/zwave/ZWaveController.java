@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @Component
 @Profile("zwave")
 @Qualifier("zwave")
-@Scope("singleton")
 @Slf4j
 public class ZWaveController extends AbstractProtocolService {
 

@@ -25,7 +25,6 @@ import ru.iris.events.types.TriggerType;
 @Component
 @Qualifier("events")
 @Profile("events")
-@Scope("singleton")
 @Slf4j
 public class EventsController extends AbstractService {
 

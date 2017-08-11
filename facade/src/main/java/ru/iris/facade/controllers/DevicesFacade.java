@@ -78,18 +78,18 @@ public class DevicesFacade {
         switch (request.getLevel()) {
             case "on":
             case "255":
-                setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOn"));
+                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOn"));
                 break;
             case "off":
             case "0":
-                setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOff"));
+                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOff"));
                 break;
             default:
                 try {
                     Short bLevel = Short.valueOf(request.getLevel());
 
                     if (bLevel > 0 && bLevel < 255)
-                        setDeviceLevel(device, new DeviceCommandEvent(device.getChannel(), request.getSource(), "SetLevel", bLevel, ValueType.INT));
+                        setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "SetLevel", bLevel, ValueType.INT));
                     else
                         return new ErrorStatus("incorrect value level");
                 } catch (NumberFormatException ex) {
@@ -102,7 +102,7 @@ public class DevicesFacade {
     }
 
     // sent message
-    private void setDeviceLevel(Device device, Object message) {
-        r.notify("command.device." + device.getSource().name().toLowerCase(), Event.wrap(message));
+    private void setDeviceLevel(Object message) {
+        r.notify("command.device", Event.wrap(message));
     }
 }

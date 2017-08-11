@@ -29,7 +29,6 @@ import java.util.concurrent.*;
 
 @Component
 @Profile("yandex")
-@Scope("singleton")
 @Slf4j
 public class YandexController extends AbstractService implements Speak {
 
