@@ -1,4 +1,4 @@
 # ===============================
 # = IRIS Xiaomi MiHome
 # ===============================
-gateways=[ { "host": "192.168.10.55", "port": 8899, "serial": "1242436723", "encryptionKey": "dolwhfddgwqgdqh0qw" } ]
+gateways=[ { "serial": "1242436723", "encryptionKey": "dolwhfddgwqgdqh0qw" } ]

@@ -149,7 +149,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    public Device getDevice(SourceProtocol protocol, Short channel) {
+    public Device getDevice(SourceProtocol protocol, String channel) {
         return registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
     }
 
@@ -212,12 +212,12 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    public List getHistory(SourceProtocol proto, Short channel, String label, Date start) {
+    public List getHistory(SourceProtocol proto, String channel, String label, Date start) {
         return getHistory(proto, channel, label, start, null);
     }
 
     @Override
-    public List getHistory(SourceProtocol proto, Short channel, String label, Date start, Date stop) {
+    public List getHistory(SourceProtocol proto, String channel, String label, Date start, Date stop) {
         Device device = getDevice(proto, channel);
 
         for (String key : device.getValues().keySet()) {

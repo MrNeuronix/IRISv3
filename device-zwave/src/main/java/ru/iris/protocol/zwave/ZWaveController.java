@@ -101,7 +101,7 @@ public class ZWaveController extends AbstractProtocolService {
                         break;
                     case "Unbind":
                         logger.info("Set controller into RemoveDevice mode for node {}", z.getChannel());
-                        Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, z.getChannel());
+                        Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, Short.valueOf(z.getChannel()));
                         break;
                     case "Cancel":
                         logger.info("Canceling controller command");
@@ -130,7 +130,7 @@ public class ZWaveController extends AbstractProtocolService {
 
         NotificationWatcher watcher = (notification, context) -> {
 
-            Short node = notification.getNodeId();
+            String node = String.valueOf(notification.getNodeId());
             Device device;
 
             switch (notification.getType()) {
@@ -188,7 +188,7 @@ public class ZWaveController extends AbstractProtocolService {
                     break;
                 case NODE_EVENT:
                     logger.info("Update info for node " + node);
-                    manager.refreshNodeInfo(homeId, node);
+                    manager.refreshNodeInfo(homeId, notification.getNodeId());
                     broadcast("event.device.zwave.node.event", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "EventNode", node, ValueType.SHORT));
                     break;
                 case NODE_NAMING:
@@ -228,7 +228,7 @@ public class ZWaveController extends AbstractProtocolService {
                     if (Manager.get().getValueLabel(notification.getValueId()).isEmpty())
                         break;
 
-                    String nodeType = manager.getNodeType(homeId, node);
+                    String nodeType = manager.getNodeType(homeId, notification.getNodeId());
 
                     switch (nodeType) {
 
@@ -328,7 +328,7 @@ public class ZWaveController extends AbstractProtocolService {
                     }
 
                     // Check for awaked after sleeping nodes
-                    if (manager.isNodeAwake(homeId, device.getChannel()) && device.getState().equals(State.SLEEPING)) {
+                    if (manager.isNodeAwake(homeId, notification.getNodeId()) && device.getState().equals(State.SLEEPING)) {
                         logger.info("Setting node {}  to LISTEN state", device.getChannel());
                         device.setState(State.ACTIVE);
                     }
@@ -398,12 +398,12 @@ public class ZWaveController extends AbstractProtocolService {
         String label = Manager.get().getValueLabel(notification.getValueId());
         String productName = Manager.get().getNodeProductName(notification.getHomeId(), notification.getNodeId());
         String manufName = Manager.get().getNodeManufacturerName(notification.getHomeId(), notification.getNodeId());
-        Short node = notification.getNodeId();
+        String node = String.valueOf(notification.getNodeId());
         Device device = registry.getDevice(SourceProtocol.ZWAVE, node);
         boolean listen = false;
         ValueId valueId = notification.getValueId();
 
-        if (Manager.get().requestNodeState(homeId, node)) {
+        if (Manager.get().requestNodeState(homeId, notification.getNodeId())) {
             listen = true;
         }
 
@@ -441,7 +441,7 @@ public class ZWaveController extends AbstractProtocolService {
             beaming.setDevice(device);
             beaming.setName("beaming");
             beaming.setType(ValueType.BYTE);
-            beaming.setCurrentValue((Manager.get().isNodeBeamingDevice(homeId, node)) + "");
+            beaming.setCurrentValue((Manager.get().isNodeBeamingDevice(homeId, notification.getNodeId())) + "");
             beaming.setReadOnly(true);
 
             beaming = registry.addChange(beaming);
@@ -609,11 +609,11 @@ public class ZWaveController extends AbstractProtocolService {
         }
     }
 
-    private void deviceSetLevel(Short node, int level) {
+    private void deviceSetLevel(String node, int level) {
         deviceSetLevel(node, "Level", String.valueOf(level));
     }
 
-    private void deviceSetLevel(Short node, String label, String level) {
+    private void deviceSetLevel(String node, String label, String level) {
         Device device = registry.getDevice(SourceProtocol.ZWAVE, node);
 
         if (device == null) {

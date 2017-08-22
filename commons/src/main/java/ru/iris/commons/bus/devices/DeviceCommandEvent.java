@@ -9,7 +9,7 @@ import ru.iris.commons.protocol.enums.ValueType;
 @EqualsAndHashCode
 public class DeviceCommandEvent extends AbstractDeviceEvent {
 
-    public DeviceCommandEvent(Short channel, SourceProtocol protocol, String label, Object to, ValueType valueType) {
+    public DeviceCommandEvent(String channel, SourceProtocol protocol, String label, Object to, ValueType valueType) {
         this.channel = channel;
         this.protocol = protocol;
         this.label = label;
@@ -17,14 +17,14 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.valueType = valueType;
     }
 
-    public DeviceCommandEvent(Short channel, SourceProtocol protocol, String label, Object to) {
+    public DeviceCommandEvent(String channel, SourceProtocol protocol, String label, Object to) {
         this.channel = channel;
         this.protocol = protocol;
         this.label = label;
         this.to = to;
     }
 
-    public DeviceCommandEvent(Short channel, SourceProtocol protocol, String label) {
+    public DeviceCommandEvent(String channel, SourceProtocol protocol, String label) {
         this.channel = channel;
         this.protocol = protocol;
         this.label = label;

@@ -9,7 +9,7 @@ import ru.iris.commons.protocol.enums.ValueType;
 @EqualsAndHashCode
 public class DeviceProtocolEvent extends AbstractDeviceEvent {
 
-    public DeviceProtocolEvent(Short channel, SourceProtocol protocol, String label) {
+    public DeviceProtocolEvent(String channel, SourceProtocol protocol, String label) {
         this.channel = channel;
         this.protocol = protocol;
         this.label = label;

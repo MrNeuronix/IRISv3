@@ -30,7 +30,7 @@ public class Device {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private Date date;
 
-    private Short channel;
+    private String channel;
 
     private String humanReadable;
     private String manufacturer;

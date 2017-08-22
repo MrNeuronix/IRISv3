@@ -31,7 +31,7 @@ public abstract class AbstractProtocolService implements ProtocolService {
     public abstract void subscribe() throws Exception;
 
     @Async
-    public abstract void run();
+    public abstract void run() throws InterruptedException;
 
     public void broadcast(String queue, Object object) {
         r.notify(queue, Event.wrap(object));

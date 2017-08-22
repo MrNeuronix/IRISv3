@@ -8,5 +8,5 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 @Setter
 public class DeviceInfoRequest {
     private SourceProtocol source;
-    private Short channel;
+    private String channel;
 }

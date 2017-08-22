@@ -17,7 +17,7 @@
             <artifactId>commons</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
-        <!-- <dependency>
+        <dependency>
              <groupId>ru.iris</groupId>
              <artifactId>xiaomi4j</artifactId>
              <version>1.0.0</version>
@@ -27,7 +27,7 @@
                      <artifactId>slf4j-simple</artifactId>
                  </exclusion>
              </exclusions>
-         </dependency> -->
+        </dependency>
     </dependencies>
 
     <build>

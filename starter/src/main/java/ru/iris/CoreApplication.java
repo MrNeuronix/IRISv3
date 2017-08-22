@@ -7,6 +7,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.config.ReactorConfig;
@@ -17,6 +18,7 @@ import ru.iris.commons.service.Speak;
 import javax.annotation.PostConstruct;
 
 @SpringBootApplication
+@EnableScheduling
 @EnableAsync
 @Component
 @Slf4j

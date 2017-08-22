@@ -8,7 +8,7 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 @Setter
 public class DeviceSetLevelRequest {
     private SourceProtocol source;
-    private Short channel;
+    private String channel;
     private String level;
 }
 

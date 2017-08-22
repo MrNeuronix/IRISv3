@@ -27,6 +27,9 @@ import ru.iris.noolite4j.watchers.Notification;
 import ru.iris.noolite4j.watchers.SensorType;
 import ru.iris.noolite4j.watchers.Watcher;
 
+import static ru.iris.commons.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
+import static ru.iris.noolite4j.watchers.SensorType.PT111;
+
 @Component
 @Profile("noolite")
 @Qualifier("nooliterx")
@@ -78,12 +81,12 @@ public class NooliteRXController extends AbstractProtocolService {
                     case "BindRX":
                         logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
                         logger.info("Binding device to RX channel {}", n.getChannel());
-                        rx.bindChannel(n.getChannel().byteValue());
+                        rx.bindChannel(Byte.valueOf(n.getChannel()));
                         break;
                     case "UnbindRX":
                         logger.debug("Get UnbindRXChannel advertisement (channel {})", n.getChannel());
                         logger.info("Unbinding device from RX channel {}", n.getChannel());
-                        rx.unbindChannel(n.getChannel().byteValue());
+                        rx.unbindChannel(Byte.valueOf(n.getChannel()));
                         break;
                     case "UnbindAllRX":
                         logger.debug("Get UnbindAllRXChannel advertisement");
@@ -177,7 +180,7 @@ public class NooliteRXController extends AbstractProtocolService {
     private void doWork(Notification notification) {
 
         boolean isNew = false;
-        Short channel = (short) notification.getChannel();
+        String channel = String.valueOf(notification.getChannel());
         SensorType sensor = (SensorType) notification.getValue("sensortype");
 
         logger.debug("Message to RX from channel " + channel);
@@ -197,7 +200,7 @@ public class NooliteRXController extends AbstractProtocolService {
             if (sensor != null) {
                 switch (sensor) {
                     case PT111:
-                        device.setType(DeviceType.TEMP_HUMI_SENSOR);
+                        device.setType(TEMP_HUMI_SENSOR);
                         device.setProductName("PT111");
                         break;
                     case PT112:
@@ -300,7 +303,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Battery: {}", channel, batteryState);
                 logger.info("Channel {}: Temperature: {}C", channel, notification.getValue("temp"));
 
-                if (Integer.valueOf(notification.getValue("humi").toString()) != 0) {
+                if (device.getType().equals(TEMP_HUMI_SENSOR)) {
                     logger.info("Channel {}: Humidity: {}%", channel, notification.getValue("humi"));
                 }
 
@@ -310,7 +313,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 broadcast("event.device.temperature", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "temperature", notification.getValue("temp"), ValueType.DOUBLE));
                 broadcast("event.device.battery", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "battery", batteryState, ValueType.STRING));
 
-                if (Integer.valueOf(notification.getValue("humi").toString()) != 0) {
+                if (device.getType().equals(TEMP_HUMI_SENSOR)) {
                     registry.addChange(device, "humidity", notification.getValue("humi").toString(), ValueType.DOUBLE);
                     broadcast("event.device.humidity", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "humidity", notification.getValue("humi"), ValueType.BYTE));
                 }

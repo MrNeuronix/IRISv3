@@ -25,7 +25,7 @@ public interface DeviceRegistry {
 
     List<Device> getDevices();
 
-    Device getDevice(SourceProtocol protocol, Short channel);
+    Device getDevice(SourceProtocol protocol, String channel);
 
     Device getDevice(String humanReadableIdent);
 
@@ -37,7 +37,7 @@ public interface DeviceRegistry {
 
     List getHistory(String humanReadableIdent, String label, Date start, Date stop);
 
-    List getHistory(SourceProtocol proto, Short channel, String label, Date start);
+    List getHistory(SourceProtocol proto, String channel, String label, Date start);
 
-    List getHistory(SourceProtocol proto, Short channel, String label, Date start, Date stop);
+    List getHistory(SourceProtocol proto, String channel, String label, Date start, Date stop);
 }

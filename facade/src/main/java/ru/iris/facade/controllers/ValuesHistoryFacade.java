@@ -44,8 +44,8 @@ public class ValuesHistoryFacade {
         if (request.getLabel() == null || request.getLabel().isEmpty())
             return Collections.singletonList(new ErrorStatus("label field is empty or null"));
 
-        if (request.getChannel() == null || request.getChannel() <= 0)
-            return Collections.singletonList(new ErrorStatus("channel is null or <= 0"));
+        if (request.getChannel() == null)
+            return Collections.singletonList(new ErrorStatus("channel is null"));
 
         if (request.getSource() == null || request.getSource() == null)
             return Collections.singletonList(new ErrorStatus("source field is empty or null"));

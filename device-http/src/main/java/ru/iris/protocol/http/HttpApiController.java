@@ -36,7 +36,7 @@ public class HttpApiController {
     private DeviceRegistry deviceRegistry;
 
     @RequestMapping(value = "/api/event/device/{channel}/state/{state}", method = RequestMethod.GET)
-    public BackendAnswer switchDeviceState(@PathVariable Short channel, @PathVariable Boolean state) {
+    public BackendAnswer switchDeviceState(@PathVariable String channel, @PathVariable Boolean state) {
 
         Device device = deviceRegistry.getDevice(SourceProtocol.HTTP, channel);
 
@@ -67,7 +67,7 @@ public class HttpApiController {
     }
 
     @RequestMapping(value = "/api/event/device/{channel}/trigger", method = RequestMethod.GET)
-    public BackendAnswer armDeviceState(@PathVariable Short channel) {
+    public BackendAnswer armDeviceState(@PathVariable String channel) {
 
         Device device = deviceRegistry.getDevice(SourceProtocol.HTTP, channel);
 

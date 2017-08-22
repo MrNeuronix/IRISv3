@@ -72,26 +72,26 @@ public class NooliteTXController extends AbstractProtocolService {
                 switch (n.getLabel()) {
                     case "TurnOn":
                         logger.info("Turn ON device on channel {}", n.getChannel());
-                        pc.turnOn(n.getChannel().byteValue());
+                        pc.turnOn(Byte.valueOf(n.getChannel()));
                         broadcast("command.device.on", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
                         break;
                     case "TurnOff":
                         logger.info("Turn OFF device on channel {}", n.getChannel());
-                        pc.turnOff(n.getChannel().byteValue());
+                        pc.turnOff(Byte.valueOf(n.getChannel()));
                         broadcast("command.device.off", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
                         break;
                     case "SetLevel":
                         logger.info("Set level {} on channel {}", n.getTo(), n.getChannel());
-                        pc.setLevel(n.getChannel().byteValue(), ((Short) n.getTo()).byteValue());
+                        pc.setLevel(Byte.valueOf(n.getChannel()), ((Short) n.getTo()).byteValue());
                         broadcast("command.device.level", new DeviceChangeEvent(n.getChannel(), SourceProtocol.NOOLITE, "level", n.getTo(), ValueType.INT));
                         break;
                     case "BindTX":
                         logger.info("Incoming bind TX to channel {} request", n.getChannel());
-                        pc.bindChannel(n.getChannel().byteValue());
+                        pc.bindChannel(Byte.valueOf(n.getChannel()));
                         break;
                     case "UnbindTX":
                         logger.info("Incoming unbind TX from channel {} request", n.getChannel());
-                        pc.unbindChannel(n.getChannel().byteValue());
+                        pc.unbindChannel(Byte.valueOf(n.getChannel()));
                         break;
                     default:
                         logger.info("Received unknown request for noolitetx service! Class: {}", event.getData().getClass());

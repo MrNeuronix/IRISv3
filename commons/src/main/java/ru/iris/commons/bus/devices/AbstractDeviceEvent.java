@@ -11,7 +11,7 @@ import ru.iris.commons.protocol.enums.ValueType;
 @Setter
 @NoArgsConstructor
 public abstract class AbstractDeviceEvent implements Event {
-    protected Short channel;
+    protected String channel;
     protected SourceProtocol protocol;
     protected String label;
     protected Object from;

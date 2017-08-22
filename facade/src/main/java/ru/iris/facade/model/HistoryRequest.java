@@ -11,7 +11,7 @@ public class HistoryRequest {
     @NotEmpty
     private SourceProtocol source;
     @NotEmpty
-    private Short channel;
+    private String channel;
     private String startDate;
     private String endDate;
     @NotEmpty
