@@ -21,22 +21,22 @@ var autoOff = new Rule()
 
         if (current.getCurrentValue() === 255 && !lock) {
             lock = true;
-            print("\nLight turned ON on channel " + event.getDevice().getChannel() + ", timer setted\n");
+            log.info("\nLight turned ON on channel " + event.getDevice().getChannel() + ", timer setted\n");
 
             // turn off past 20 minutes
             timer.schedule(function () {
                 if (lock) {
-                    print("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
+                    log.info("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
                     DeviceHelper.off(event.getDevice().getHumanReadable())
                 }
             }, 1200000);
         }
         else if (current.getCurrentValue() === 255 && lock) {
-            print("\nTimer already set!\n");
+            log.info("\nTimer already set!\n");
         }
         else if (current.getCurrentValue() === 0 && lock) {
             lock = false;
-            print("\nLight turned OFF on channel " + event.getDevice().getChannel() + ". Unset lock!\n");
+            log.info("\nLight turned OFF on channel " + event.getDevice().getChannel() + ". Unset lock!\n");
         }
         else {
             //skip

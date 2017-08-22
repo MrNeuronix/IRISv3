@@ -12,9 +12,11 @@ public class Event {
 
     private TriggerType triggerType;
     private Device device;
+    private String topic;
 
-    public Event(TriggerType triggerType, Device device) {
+    public Event(TriggerType triggerType, Device device, String topic) {
         this.triggerType = triggerType;
         this.device = device;
+        this.topic = topic;
     }
 }

@@ -17,7 +17,6 @@
             <outputDirectory>config</outputDirectory>
             <includes>
                 <include>application.properties.default</include>
-                <include>logback-spring.xml</include>
             </includes>
         </fileSet>
         <fileSet>
@@ -27,6 +26,14 @@
             <fileMode>0755</fileMode>
             <includes>
                 <include>*.sh</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/assembly</directory>
+            <outputDirectory>config</outputDirectory>
+            <filtered>true</filtered>
+            <includes>
+                <include>logback-spring.xml</include>
             </includes>
         </fileSet>
         <fileSet>

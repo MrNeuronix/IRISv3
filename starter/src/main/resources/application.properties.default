@@ -16,6 +16,7 @@ server.port=${port:9000}
 spring.jackson.serialization.indent_output=true
 spring.jackson.time-zone=GMT+3
 spring.output.ansi.enabled=always
+logging.config=file:config/logback-spring.xml
 # ===============================
 # = IRIS
 # ===============================

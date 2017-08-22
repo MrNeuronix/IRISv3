@@ -180,7 +180,7 @@ public class ScriptManager {
                 }
             }
             if (toTrigger.size() > 0)
-                executeRules(toTrigger, new Event(TriggerType.STARTUP, null));
+                executeRules(toTrigger, new Event(TriggerType.STARTUP, null, null));
         }
     }
 

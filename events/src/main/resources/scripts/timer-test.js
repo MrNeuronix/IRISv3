@@ -7,9 +7,8 @@ var timetask = new Rule()
     }
 ,
     execute: function (event) {
-        print("\nTimerTest\n");
         var temp = DeviceRegistry.getDeviceValue(SourceProtocol.NOOLITE, 7, "temperature");
-        print("\n" + temp.getName() + ": " + temp.getCurrentValue() + "\n");
+        log.info("Topic: {}, {}: {}", event.getTopic(), temp.getName(), temp.getCurrentValue());
     }
 }
 

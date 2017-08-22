@@ -40,6 +40,14 @@
         </encoder>
     </appender>
 
+    <appender name="HTTPDEV" class="ch.qos.logback.core.FileAppender">
+        <file>logs/httpdev.log</file>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
     <appender name="EVENTS" class="ch.qos.logback.core.FileAppender">
         <file>logs/events.log</file>
 
@@ -53,19 +61,28 @@
         <appender-ref ref="ALL"/>
     </logger>
 
-    <logger name="ru.iris.noolite" level="debug" additivity="false">
+    <logger name="ru.iris.protocol.noolite" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
         <appender-ref ref="NOOLITE"/>
     </logger>
 
-    <logger name="ru.iris.zwave" level="debug" additivity="false">
+    <logger name="ru.iris.protocol.zwave" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
         <appender-ref ref="ZWAVE"/>
     </logger>
 
-    <logger name="ru.iris.xiaomi" level="debug" additivity="false">
+    <logger name="ru.iris.protocol.xiaomi" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
         <appender-ref ref="XIAOMI"/>
     </logger>
 
+    <logger name="ru.iris.protocol.http" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="HTTPDEV"/>
+    </logger>
+
     <logger name="ru.iris.events" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
         <appender-ref ref="EVENTS"/>
     </logger>
 
