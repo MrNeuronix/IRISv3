@@ -106,18 +106,41 @@ public class XiaomiController extends AbstractProtocolService {
                     return;
                 }
 
+                if (gateway == null) {
+                    logger.error("No gateways configured!");
+                    return;
+                }
+
                 switch (x.getLabel()) {
                     case "TurnOn":
                         logger.info("Turn ON device on channel {}", x.getChannel());
-                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "Level", 255, ValueType.INT));
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
+                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level", 255, ValueType.INT));
                         break;
                     case "TurnOff":
                         logger.info("Turn OFF device on channel {}", x.getChannel());
-                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "Level", 0, ValueType.INT));
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
+                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level", 0, ValueType.INT));
                         break;
-                    case "SetLevel":
-                        logger.info("Set level {} on channel {}", x.getTo(), x.getChannel());
-                        broadcast("event.device.level", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "Level", x.getTo(), ValueType.INT));
+                    case "TurnChannel1On":
+                        logger.info("Turn ON device on first channel {}", x.getChannel());
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
+                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level1", 255, ValueType.INT));
+                        break;
+                    case "TurnChannel1Off":
+                        logger.info("Turn OFF device on first channel {}", x.getChannel());
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
+                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level1", 0, ValueType.INT));
+                        break;
+                    case "TurnChannel2On":
+                        logger.info("Turn ON device on second channel {}", x.getChannel());
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_1"}, new String[]{"on"});
+                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level2", 255, ValueType.INT));
+                        break;
+                    case "TurnChannel2Off":
+                        logger.info("Turn OFF device on second channel {}", x.getChannel());
+                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_1"}, new String[]{"off"});
+                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level2", 0, ValueType.INT));
                         break;
                     default:
                         logger.info("Received unknown request for Xiaomi service! Class: {}", event.getData().getClass());
