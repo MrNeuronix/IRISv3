@@ -15,10 +15,8 @@ import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.enums.DeviceType;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.commons.protocol.data.DataLevel;
+import ru.iris.commons.protocol.enums.*;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite4j.receiver.RX2164;
@@ -28,7 +26,6 @@ import ru.iris.noolite4j.watchers.SensorType;
 import ru.iris.noolite4j.watchers.Watcher;
 
 import static ru.iris.commons.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
-import static ru.iris.noolite4j.watchers.SensorType.PT111;
 
 @Component
 @Profile("noolite")
@@ -71,87 +68,87 @@ public class NooliteRXController extends AbstractProtocolService {
     @Override
     public Consumer<Event<?>> handleMessage() {
         return event -> {
-            if (event.getData() instanceof DeviceProtocolEvent) {
-                DeviceProtocolEvent n = (DeviceProtocolEvent) event.getData();
-                if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
-                    return;
-                }
-
-                switch (n.getLabel()) {
-                    case "BindRX":
-                        logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
-                        logger.info("Binding device to RX channel {}", n.getChannel());
-                        rx.bindChannel(Byte.valueOf(n.getChannel()));
-                        break;
-                    case "UnbindRX":
-                        logger.debug("Get UnbindRXChannel advertisement (channel {})", n.getChannel());
-                        logger.info("Unbinding device from RX channel {}", n.getChannel());
-                        rx.unbindChannel(Byte.valueOf(n.getChannel()));
-                        break;
-                    case "UnbindAllRX":
-                        logger.debug("Get UnbindAllRXChannel advertisement");
-                        logger.info("Unbinding all RX channels");
-                        rx.unbindAllChannels();
-                        break;
-                    default:
-                        break;
-                }
-            } else if (event.getData() instanceof DeviceChangeEvent) {
-
-                DeviceChangeEvent n = (DeviceChangeEvent) event.getData();
-                if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
-                    return;
-                }
-
-                logger.debug("Get ValueChange advertisement (channel {}, from: {}, to: {})", n.getChannel(), n.getFrom(), n.getTo());
-                logger.info("Change device value event from TX, channel {}", n.getChannel());
-
-                Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
-
-                if (device != null && device.getValues().get("level") != null) {
-                    device.getValues().get("level").setCurrentValue(n.getTo().toString());
-                    registry.addChange(device.getValues().get("level"));
-                    registry.addOrUpdateDevice(device);
-                }
-            } else if (event.getData() instanceof DeviceCommandEvent) {
-
+            if (event.getData() instanceof DeviceCommandEvent) {
                 DeviceCommandEvent n = (DeviceCommandEvent) event.getData();
                 if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
                     return;
                 }
 
                 Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
-                DeviceValue deviceValue = device.getValues().get("level");
+                DeviceValue deviceValue = device.getValues().get(StandartDeviceValueLabel.LEVEL.getName());
 
-                if (deviceValue == null) {
-                    logger.error("Level device value is NULL for channel {}", n.getChannel());
-                    return;
-                }
+                switch (EventLabel.valueOf(n.getEventLabel())) {
+                    case BIND_RX:
+                        logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
+                        logger.info("Binding device to RX channel {}", n.getChannel());
+                        rx.bindChannel(Byte.valueOf(n.getChannel()));
+                        break;
+                    case UNBIND_RX:
+                        logger.debug("Get UnbindRXChannel advertisement (channel {})", n.getChannel());
+                        logger.info("Unbinding device from RX channel {}", n.getChannel());
+                        rx.unbindChannel(Byte.valueOf(n.getChannel()));
+                        break;
+                    case UNBIND_ALL_RX:
+                        logger.debug("Get UnbindAllRXChannel advertisement");
+                        logger.info("Unbinding all RX channels");
+                        rx.unbindAllChannels();
+                        break;
+                    case TURN_ON:
+                        if (deviceValue == null) {
+                            logger.error("Level device value is NULL for channel {}", n.getChannel());
+                            return;
+                        }
 
-                switch (n.getLabel()) {
-                    case "TurnOn":
                         logger.debug("Got TurnOn advertisement (channel {})", n.getChannel());
                         logger.info("Channel {}: Turned ON", n.getChannel());
-                        deviceValue.setCurrentValue("255");
+                        deviceValue.setCurrentValue(StandartDeviceValue.FULL_ON.getValue());
                         registry.addChange(deviceValue);
-                        registry.addOrUpdateDevice(device);
                         break;
-                    case "TurnOff":
+                    case TURN_OFF:
+                        if (deviceValue == null) {
+                            logger.error("Level device value is NULL for channel {}", n.getChannel());
+                            return;
+                        }
+
                         logger.debug("Got TurnOn advertisement (channel {})", n.getChannel());
                         logger.info("Channel {}: Turned OFF", n.getChannel());
-                        deviceValue.setCurrentValue("0");
+                        deviceValue.setCurrentValue(StandartDeviceValue.FULL_OFF.getValue());
                         registry.addChange(deviceValue);
-                        registry.addOrUpdateDevice(device);
                         break;
-                    case "SetLevel":
-                        logger.debug("Got SetLevel advertisement");
-                        logger.info("Channel {}: Set level to {}", n.getChannel(), n.getTo());
-                        deviceValue.setCurrentValue(n.getTo().toString());
-                        registry.addChange(deviceValue);
-                        registry.addOrUpdateDevice(device);
+                    case SET_LEVEL:
+                        if (deviceValue == null) {
+                            logger.error("Level device value is NULL for channel {}", n.getChannel());
+                            return;
+                        }
+
+                        if (n.getClazz().equals(DataLevel.class)) {
+                            DataLevel data = (DataLevel) n.getData();
+
+                            logger.debug("Got SetLevel advertisement");
+                            logger.info("Channel {}: Set level to {}", n.getChannel(), data.getTo());
+                            deviceValue.setCurrentValue(data.getTo());
+                            registry.addChange(deviceValue);
+                        } else {
+                            logger.error("Unknown data class for event!");
+                        }
                         break;
                     default:
                         break;
+                }
+            } else if (event.getData() instanceof DeviceChangeEvent) {
+                DeviceChangeEvent n = (DeviceChangeEvent) event.getData();
+                if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
+                    return;
+                }
+
+                logger.info("Change device value event from TX, channel {}", n.getChannel());
+
+                Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
+
+                if (device != null && device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()) != null && n.getClazz().equals(DataLevel.class)) {
+                    DataLevel data = (DataLevel) n.getData();
+                    device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()).setCurrentValue(data.getTo());
+                    registry.addChange(device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()));
                 }
             } else {
                 // We received unknown request message. Lets make generic log entry.
@@ -221,7 +218,12 @@ public class NooliteRXController extends AbstractProtocolService {
             case TURN_OFF:
                 logger.info("Channel {}: Got OFF command", channel);
 
-                registry.addChange(device, "level", "0", ValueType.BYTE);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_OFF.getValue(),
+                        ValueType.BYTE
+                );
 
                 // device product name unkown
                 if (device.getProductName().isEmpty()) {
@@ -229,44 +231,102 @@ public class NooliteRXController extends AbstractProtocolService {
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
 
-                broadcast("event.device.off", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
+                broadcast("event.device.off", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_OFF.getValue(),
+                        ValueType.BYTE)
+                );
                 break;
 
             case SLOW_TURN_OFF:
                 logger.info("Channel {}: Got DIM command", channel);
 
-                registry.addChange(device, "level", "0", ValueType.BYTE);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_OFF.getValue(),
+                        ValueType.BYTE
+                );
 
-                broadcast("event.device.dim", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "level", 0, ValueType.INT));
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
+                broadcast("event.device.dim", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_OFF.getValue(),
+                        ValueType.BYTE)
+                );
                 break;
 
             case TURN_ON:
                 logger.info("Channel {}: Got ON command", channel);
 
-                registry.addChange(device, "level", "255", ValueType.BYTE);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_ON.getValue(),
+                        ValueType.BYTE
+                );
 
                 // device product name unkown
-                if (device.getType().equals(DeviceType.UNKNOWN)) {
+                if (device.getProductName().isEmpty()) {
                     device.setProductName("Generic Switch");
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
 
-                broadcast("event.device.on", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
+                broadcast("event.device.on", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_ON.getValue(),
+                        ValueType.BYTE)
+                );
+
                 break;
 
             case SLOW_TURN_ON:
                 logger.info("Channel {}: Got BRIGHT command", channel);
                 // we only know, that the user hold ON button
 
-                registry.addChange(device, "level", "255", ValueType.BYTE);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_ON.getValue(),
+                        ValueType.BYTE
+                );
 
-                broadcast("event.device.bright", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "level", 255, ValueType.INT));
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
+                broadcast("event.device.bright", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        StandartDeviceValue.FULL_ON.getValue(),
+                        ValueType.BYTE)
+                );
+
                 break;
 
             case SET_LEVEL:
                 logger.info("Channel {}: Got SETLEVEL command.", channel);
 
-                registry.addChange(device, "level", notification.getValue("level").toString(), ValueType.BYTE);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        notification.getValue(StandartDeviceValueLabel.LEVEL.getName()).toString(),
+                        ValueType.BYTE
+                );
 
                 // device product name unkown
                 if (device.getProductName().isEmpty() || device.getType().equals(DeviceType.BINARY_SWITCH)) {
@@ -274,17 +334,23 @@ public class NooliteRXController extends AbstractProtocolService {
                     device.setType(DeviceType.MULTILEVEL_SWITCH);
                 }
 
-                broadcast("event.device.level", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "level", notification.getValue("level"), ValueType.INT));
-                break;
+                broadcast("event.device.level", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.LEVEL.getName(),
+                        notification.getValue(StandartDeviceValueLabel.LEVEL.getName()).toString(),
+                        ValueType.BYTE)
+                );
 
+                break;
             case STOP_DIM_BRIGHT:
                 logger.info("Channel {}: Got STOPDIMBRIGHT command.", channel);
 
-                broadcast("event.device.stopdimbright", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "StopDimBright"));
+                broadcast("event.device.stopdimbright", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, EventLabel.STOP_DIM_BRIGHT.getName()));
                 break;
 
             case TEMP_HUMI:
-                BatteryState battery = (BatteryState) notification.getValue("battery");
+                BatteryState battery = (BatteryState) notification.getValue(StandartDeviceValueLabel.BATTERY.getName());
                 logger.info("Channel {}: Got TEMP_HUMI command.", channel);
 
                 ru.iris.commons.protocol.enums.BatteryState batteryState;
@@ -307,15 +373,51 @@ public class NooliteRXController extends AbstractProtocolService {
                     logger.info("Channel {}: Humidity: {}%", channel, notification.getValue("humi"));
                 }
 
-                registry.addChange(device, "temperature", notification.getValue("temp").toString(), ValueType.DOUBLE);
-                registry.addChange(device, "battery", batteryState.name(), ValueType.STRING);
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.TEMPERATURE.getName(),
+                        notification.getValue("temp").toString(),
+                        ValueType.DOUBLE
+                );
 
-                broadcast("event.device.temperature", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "temperature", notification.getValue("temp"), ValueType.DOUBLE));
-                broadcast("event.device.battery", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "battery", batteryState, ValueType.STRING));
+                registry.addChange(
+                        device,
+                        StandartDeviceValueLabel.BATTERY.getName(),
+                        batteryState.name(),
+                        ValueType.STRING
+                );
+
+                broadcast("event.device.temperature", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.TEMPERATURE.getName(),
+                        notification.getValue("temp").toString(),
+                        ValueType.DOUBLE)
+                );
+
+                broadcast("event.device.battery", new DeviceChangeEvent(
+                        channel,
+                        SourceProtocol.NOOLITE,
+                        StandartDeviceValueLabel.BATTERY.getName(),
+                        batteryState.toString(),
+                        ValueType.STRING)
+                );
 
                 if (device.getType().equals(TEMP_HUMI_SENSOR)) {
-                    registry.addChange(device, "humidity", notification.getValue("humi").toString(), ValueType.DOUBLE);
-                    broadcast("event.device.humidity", new DeviceChangeEvent(channel, SourceProtocol.NOOLITE, "humidity", notification.getValue("humi"), ValueType.BYTE));
+                    registry.addChange(
+                            device,
+                            StandartDeviceValueLabel.HUMIDIDY.getName(),
+                            notification.getValue("humi").toString(),
+                            ValueType.DOUBLE
+                    );
+
+                    broadcast("event.device.humidity", new DeviceChangeEvent(
+                            channel,
+                            SourceProtocol.NOOLITE,
+                            StandartDeviceValueLabel.HUMIDIDY.getName(),
+                            notification.getValue("humi").toString(),
+                            ValueType.BYTE
+                    ));
                 }
 
                 break;

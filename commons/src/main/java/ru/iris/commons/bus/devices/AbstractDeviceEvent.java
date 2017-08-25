@@ -13,8 +13,7 @@ import ru.iris.commons.protocol.enums.ValueType;
 public abstract class AbstractDeviceEvent implements Event {
     protected String channel;
     protected SourceProtocol protocol;
-    protected String label;
-    protected Object from;
-    protected Object to;
-    protected ValueType valueType = ValueType.UNKNOWN;
+    protected String eventLabel;
+    protected Object data;
+    protected Class clazz;
 }

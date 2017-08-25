@@ -7,6 +7,7 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.database.model.Device;
+import ru.iris.commons.protocol.enums.EventLabel;
 import ru.iris.commons.registry.DeviceRegistry;
 
 @Component
@@ -26,7 +27,7 @@ public class DeviceHelper {
         Device device = deviceRegistry.getDevice(ident);
         if (device != null) {
             r.notify("command.device", Event.wrap(new DeviceCommandEvent(
-                    device.getChannel(), device.getSource(), "TurnOn")));
+                    device.getChannel(), device.getSource(), EventLabel.TURN_ON)));
         }
     }
 
@@ -34,15 +35,15 @@ public class DeviceHelper {
         Device device = deviceRegistry.getDevice(ident);
         if (device != null) {
             r.notify("command.device", Event.wrap(new DeviceCommandEvent(
-                    device.getChannel(), device.getSource(), "TurnOff")));
+                    device.getChannel(), device.getSource(), EventLabel.TURN_OFF)));
         }
     }
 
-    public void level(String ident, Object level) {
+    public void level(String ident, String level) {
         Device device = deviceRegistry.getDevice(ident);
         if (device != null) {
             r.notify("command.device", Event.wrap(new DeviceCommandEvent(
-                    device.getChannel(), device.getSource(), "SetLevel", level)));
+                    device.getChannel(), device.getSource(), EventLabel.SET_LEVEL, level)));
         }
     }
 

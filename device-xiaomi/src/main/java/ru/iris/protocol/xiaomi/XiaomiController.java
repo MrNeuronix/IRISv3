@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -21,30 +20,22 @@ import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.enums.DeviceType;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.commons.protocol.data.DataLevel;
+import ru.iris.commons.protocol.data.DataSubChannelLevel;
+import ru.iris.commons.protocol.enums.*;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.xiaomi4j.Discovery;
 import ru.iris.xiaomi4j.Gateway;
 import ru.iris.xiaomi4j.model.GatewayModel;
 import ru.iris.xiaomi4j.watchers.Notification;
-import ru.iris.xiaomi4j.watchers.Watcher;
 
 import java.lang.reflect.Type;
-import java.net.Inet4Address;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 
 @Component
 @Profile("xiaomi")
@@ -111,36 +102,66 @@ public class XiaomiController extends AbstractProtocolService {
                     return;
                 }
 
-                switch (x.getLabel()) {
-                    case "TurnOn":
-                        logger.info("Turn ON device on channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
-                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level", 255, ValueType.INT));
+                switch (EventLabel.valueOf(x.getEventLabel())) {
+                    case TURN_ON:
+                        if (x.getClazz().equals(DataLevel.class)) {
+                            logger.info("Turn ON device on channel {}", x.getChannel());
+                            gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
+                            broadcast(
+                                    "event.device.on",
+                                    new DeviceChangeEvent(
+                                            x.getChannel(),
+                                            SourceProtocol.XIAOMI,
+                                            StandartDeviceValueLabel.LEVEL.getName(),
+                                            StandartDeviceValue.FULL_ON.getValue(),
+                                            ValueType.BYTE));
+                        } else if (x.getClazz().equals(DataSubChannelLevel.class)) {
+                            DataSubChannelLevel data = (DataSubChannelLevel) x.getData();
+                            logger.info("Turn ON device on channel {}, subchannel: {}", x.getChannel(), data.getSubChannel());
+                            int subchannel = data.getSubChannel() - 1;
+                            gateway.writeToDevice(x.getChannel(), new String[]{"channel_" + subchannel}, new String[]{"on"});
+                            broadcast(
+                                    "event.device.on",
+                                    new DeviceChangeEvent(
+                                            x.getChannel(),
+                                            SourceProtocol.XIAOMI,
+                                            StandartDeviceValueLabel.LEVEL.getName(),
+                                            String.valueOf(subchannel),
+                                            StandartDeviceValue.FULL_ON.getValue(),
+                                            ValueType.BYTE));
+                        } else {
+                            logger.error("Unknown data class!");
+                        }
                         break;
-                    case "TurnOff":
-                        logger.info("Turn OFF device on channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
-                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level", 0, ValueType.INT));
-                        break;
-                    case "TurnChannel1On":
-                        logger.info("Turn ON device on first channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
-                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level1", 255, ValueType.INT));
-                        break;
-                    case "TurnChannel1Off":
-                        logger.info("Turn OFF device on first channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
-                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level1", 0, ValueType.INT));
-                        break;
-                    case "TurnChannel2On":
-                        logger.info("Turn ON device on second channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_1"}, new String[]{"on"});
-                        broadcast("event.device.on", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level2", 255, ValueType.INT));
-                        break;
-                    case "TurnChannel2Off":
-                        logger.info("Turn OFF device on second channel {}", x.getChannel());
-                        gateway.writeToDevice(x.getChannel(), new String[]{"channel_1"}, new String[]{"off"});
-                        broadcast("event.device.off", new DeviceChangeEvent(x.getChannel(), SourceProtocol.XIAOMI, "level2", 0, ValueType.INT));
+                    case TURN_OFF:
+                        if (x.getClazz().equals(DataLevel.class)) {
+                            logger.info("Turn OFF device on channel {}", x.getChannel());
+                            gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
+                            broadcast(
+                                    "event.device.off",
+                                    new DeviceChangeEvent(
+                                            x.getChannel(),
+                                            SourceProtocol.XIAOMI,
+                                            StandartDeviceValueLabel.LEVEL.getName(),
+                                            StandartDeviceValue.FULL_OFF.getValue(),
+                                            ValueType.BYTE));
+                        } else if (x.getClazz().equals(DataSubChannelLevel.class)) {
+                            DataSubChannelLevel data = (DataSubChannelLevel) x.getData();
+                            logger.info("Turn OFF device on channel {}, subchannel: {}", x.getChannel(), data.getSubChannel());
+                            int subchannel = data.getSubChannel() - 1;
+                            gateway.writeToDevice(x.getChannel(), new String[]{"channel_" + subchannel}, new String[]{"off"});
+                            broadcast(
+                                    "event.device.off",
+                                    new DeviceChangeEvent(
+                                            x.getChannel(),
+                                            SourceProtocol.XIAOMI,
+                                            StandartDeviceValueLabel.LEVEL.getName(),
+                                            String.valueOf(subchannel),
+                                            StandartDeviceValue.FULL_OFF.getValue(),
+                                            ValueType.BYTE));
+                        } else {
+                            logger.error("Unknown data class!");
+                        }
                         break;
                     default:
                         logger.info("Received unknown request for Xiaomi service! Class: {}", event.getData().getClass());
@@ -246,39 +267,38 @@ public class XiaomiController extends AbstractProtocolService {
                     JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
 
                     if (data.has("status")) {
-                        String status = data.get("status").getAsString();
+                        Boolean status = data.get("status").getAsString().equals("open");
                         DeviceValue statusDb = device.getValues().get("status");
 
-                        if ((statusDb != null && statusDb.getCurrentValue() != null && !statusDb.getCurrentValue().equals(status))
+                        if ((statusDb != null && statusDb.getCurrentValue() != null && !Boolean.valueOf(statusDb.getCurrentValue()) == status)
                                 || (statusDb == null || statusDb.getCurrentValue() == null)) {
-                            registry.addChange(device, "status",
-                                    status.equals("open") ? "true" : "false",
-                                    ValueType.BOOL);
+                            registry.addChange(device, StandartDeviceValueLabel.OPENED.getName(), status.toString(), ValueType.BOOL);
                         }
                     }
                 }
 
                 break;
+            case SWITCH_AQARA_ZERO_1BUTTON:
             case SWITCH_AQARA_1BUTTON:
                 message = notification.getRawMessage();
 
                 if (message.has("data")) {
-                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+                    JsonObject data = PARSER.parse(message.get(StandartDeviceValueLabel.LEVEL.getName()).getAsString()).getAsJsonObject();
 
                     if (data.has("channel_0")) {
-                        String ch0 = data.get("channel_0").getAsString();
-                        DeviceValue ch0Db = device.getValues().get("level");
+                        String ch0 = data.get("channel_0").getAsString().equals("on")
+                                ? StandartDeviceValue.FULL_ON.getValue() : StandartDeviceValue.FULL_OFF.getValue();
+                        DeviceValue ch0Db = device.getValues().get(StandartDeviceValueLabel.LEVEL.getName());
 
                         if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
                                 || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level",
-                                    data.get("channel_0").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
+                            registry.addChange(device, StandartDeviceValueLabel.LEVEL.getName(), ch0, ValueType.BYTE);
                         }
                     }
                 }
 
                 break;
+            case SWITCH_AQARA_ZERO_2BUTTONS:
             case SWITCH_AQARA_2BUTTONS:
                 message = notification.getRawMessage();
 
@@ -286,78 +306,24 @@ public class XiaomiController extends AbstractProtocolService {
                     JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
 
                     if (data.has("channel_0")) {
-                        String ch0 = data.get("channel_0").getAsString();
-                        DeviceValue ch0Db = device.getValues().get("level1");
+                        String ch0 = data.get("channel_0").getAsString().equals("on")
+                                ? StandartDeviceValue.FULL_ON.getValue() : StandartDeviceValue.FULL_OFF.getValue();
+                        DeviceValue ch0Db = device.getValues().get(StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_1.getName());
 
                         if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
                                 || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level1",
-                                    data.get("channel_0").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
+                            registry.addChange(device, StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_1.getName(), ch0, ValueType.BYTE);
                         }
                     }
 
                     if (data.has("channel_1")) {
-                        String ch1 = data.get("channel_1").getAsString();
-                        DeviceValue ch1Db = device.getValues().get("level2");
+                        String ch1 = data.get("channel_1").getAsString().equals("on")
+                                ? StandartDeviceValue.FULL_ON.getValue() : StandartDeviceValue.FULL_OFF.getValue();
+                        DeviceValue ch1Db = device.getValues().get(StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_2.getName());
 
                         if ((ch1Db != null && ch1Db.getCurrentValue() != null && !ch1Db.getCurrentValue().equals(ch1))
                                 || (ch1Db == null || ch1Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level2",
-                                    data.get("channel_1").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
-                        }
-                    }
-                }
-
-                break;
-            case SWITCH_AQARA_ZERO_1BUTTON:
-                message = notification.getRawMessage();
-
-                if (message.has("data")) {
-                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
-
-                    if (data.has("channel_0")) {
-                        String ch0 = data.get("channel_0").getAsString();
-                        DeviceValue ch0Db = device.getValues().get("level");
-
-                        if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
-                                || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level",
-                                    data.get("channel_0").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
-                        }
-                    }
-                }
-
-                break;
-            case SWITCH_AQARA_ZERO_2BUTTONS:
-                message = notification.getRawMessage();
-
-                if (message.has("data")) {
-                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
-
-                    if (data.has("channel_0")) {
-                        String ch0 = data.get("channel_0").getAsString();
-                        DeviceValue ch0Db = device.getValues().get("level1");
-
-                        if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
-                                || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level1",
-                                    data.get("channel_0").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
-                        }
-                    }
-
-                    if (data.has("channel_1")) {
-                        String ch1 = data.get("channel_1").getAsString();
-                        DeviceValue ch1Db = device.getValues().get("level2");
-
-                        if ((ch1Db != null && ch1Db.getCurrentValue() != null && !ch1Db.getCurrentValue().equals(ch1))
-                                || (ch1Db == null || ch1Db.getCurrentValue() == null)) {
-                            registry.addChange(device, "level2",
-                                    data.get("channel_1").getAsString().equals("on") ? "255" : "0",
-                                    ValueType.BYTE);
+                            registry.addChange(device, StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_2.getName(), ch1, ValueType.BYTE);
                         }
                     }
                 }

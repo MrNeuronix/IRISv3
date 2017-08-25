@@ -53,7 +53,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public Device addOrUpdateDevice(Device device) {
+    public synchronized Device addOrUpdateDevice(Device device) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return null;
@@ -75,7 +75,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public void addOrUpdateDevices(List<Device> devices) {
+    public synchronized void addOrUpdateDevices(List<Device> devices) {
         devices.forEach(device -> {
             if (device == null) {
                 logger.error("Device passed into registry is null!");
@@ -97,7 +97,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    public DeviceValue addChange(DeviceValue value) {
+    public synchronized DeviceValue addChange(DeviceValue value) {
         DeviceValueChange add = new DeviceValueChange();
         add.setDeviceValue(value);
         add.setValue(value.getCurrentValue());
@@ -107,11 +107,13 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
 
+        addOrUpdateDevice(value.getDevice());
+
         return value;
     }
 
     @Override
-    public DeviceValue addChange(Device device, String key, String level, ValueType type) {
+    public synchronized DeviceValue addChange(Device device, String key, String level, ValueType type) {
         DeviceValue value = device.getValues().get(key);
 
         if (value == null) {

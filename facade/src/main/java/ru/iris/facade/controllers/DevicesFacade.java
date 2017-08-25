@@ -11,6 +11,7 @@ import reactor.bus.Event;
 import reactor.bus.EventBus;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.database.model.Device;
+import ru.iris.commons.protocol.enums.EventLabel;
 import ru.iris.commons.protocol.enums.SourceProtocol;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
@@ -78,18 +79,18 @@ public class DevicesFacade {
         switch (request.getLevel()) {
             case "on":
             case "255":
-                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOn"));
+                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON));
                 break;
             case "off":
             case "0":
-                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "TurnOff"));
+                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF));
                 break;
             default:
                 try {
                     Short bLevel = Short.valueOf(request.getLevel());
 
                     if (bLevel > 0 && bLevel < 255)
-                        setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), "SetLevel", bLevel, ValueType.INT));
+                        setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getLevel(), ValueType.BYTE));
                     else
                         return new ErrorStatus("incorrect value level");
                 } catch (NumberFormatException ex) {

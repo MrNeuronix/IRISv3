@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.zwave4j.*;
@@ -19,9 +18,8 @@ import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.enums.DeviceType;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
+import ru.iris.commons.protocol.data.DataLevel;
+import ru.iris.commons.protocol.enums.*;
 import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -40,7 +38,7 @@ public class ZWaveController extends AbstractProtocolService {
     private final ConfigLoader config;
     private final DeviceRegistry registry;
     private final Gson gson = new GsonBuilder().create();
-    private long homeId;
+    private Long homeId;
     private boolean ready = false;
 
     @Autowired
@@ -79,31 +77,52 @@ public class ZWaveController extends AbstractProtocolService {
                     return;
                 }
 
-                switch (z.getLabel()) {
-                    case "TurnOn":
+                switch (EventLabel.valueOf(z.getEventLabel())) {
+                    case TURN_ON:
                         logger.info("Turn ON device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 255);
-                        broadcast("event.device.on", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 255, ValueType.INT));
+                        broadcast("event.device.on", new DeviceChangeEvent(
+                                z.getChannel(),
+                                SourceProtocol.ZWAVE,
+                                StandartDeviceValueLabel.LEVEL.getName(),
+                                StandartDeviceValue.FULL_ON.getValue(),
+                                ValueType.BYTE)
+                        );
                         break;
-                    case "TurnOff":
+                    case TURN_OFF:
                         logger.info("Turn OFF device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 0);
-                        broadcast("event.device.off", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", 0, ValueType.INT));
+                        broadcast("event.device.off", new DeviceChangeEvent(
+                                z.getChannel(),
+                                SourceProtocol.ZWAVE,
+                                StandartDeviceValueLabel.LEVEL.getName(),
+                                StandartDeviceValue.FULL_OFF.getValue(),
+                                ValueType.BYTE)
+                        );
                         break;
-                    case "SetLevel":
-                        logger.info("Set level {} on channel {}", z.getTo(), z.getChannel());
-                        deviceSetLevel(z.getChannel(), z.getLabel(), String.valueOf(z.getTo()));
-                        broadcast("event.device.level", new DeviceChangeEvent(z.getChannel(), SourceProtocol.ZWAVE, "Level", z.getTo(), ValueType.INT));
+                    case SET_LEVEL:
+                        if (z.getClazz().equals(DataLevel.class)) {
+                            DataLevel data = (DataLevel) z.getData();
+                            logger.info("Set level {} on channel {}", data.getTo(), z.getChannel());
+                            deviceSetLevel(z.getChannel(), "Level", data.getTo());
+                            broadcast("event.device.level", new DeviceChangeEvent(
+                                    z.getChannel(),
+                                    SourceProtocol.ZWAVE,
+                                    StandartDeviceValueLabel.LEVEL.getName(),
+                                    data.getTo(),
+                                    ValueType.BYTE)
+                            );
+                        }
                         break;
-                    case "Bind":
+                    case BIND:
                         logger.info("Set controller into AddDevice mode");
                         Manager.get().beginControllerCommand(homeId, ControllerCommand.ADD_DEVICE, new CallbackListener(ControllerCommand.ADD_DEVICE), null, true);
                         break;
-                    case "Unbind":
+                    case UNBIND:
                         logger.info("Set controller into RemoveDevice mode for node {}", z.getChannel());
                         Manager.get().beginControllerCommand(homeId, ControllerCommand.REMOVE_DEVICE, new CallbackListener(ControllerCommand.REMOVE_DEVICE), null, true, Short.valueOf(z.getChannel()));
                         break;
-                    case "Cancel":
+                    case CANCEL:
                         logger.info("Canceling controller command");
                         Manager.get().cancelControllerCommand(homeId);
                         break;
@@ -137,7 +156,7 @@ public class ZWaveController extends AbstractProtocolService {
                 case DRIVER_READY:
                     homeId = notification.getHomeId();
                     logger.info("Driver ready. Home ID: {}", homeId);
-                    broadcast("event.device.zwave.driver.ready", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "DriverReady", homeId, ValueType.INT));
+                    broadcast("event.device.zwave.driver.ready", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "DriverReady", homeId.toString(), ValueType.LONG));
                     break;
                 case DRIVER_FAILED:
                     logger.info("Driver failed");
@@ -165,11 +184,11 @@ public class ZWaveController extends AbstractProtocolService {
                     break;
                 case POLLING_ENABLED:
                     logger.info("Polling enabled");
-                    broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", true, ValueType.BOOL));
+                    broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", "true", ValueType.BOOL));
                     break;
                 case POLLING_DISABLED:
                     logger.info("Polling disabled");
-                    broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", false, ValueType.BOOL));
+                    broadcast("event.device.zwave.polling.enabled", new DeviceChangeEvent(node, SourceProtocol.ZWAVE, "polling", "false", ValueType.BOOL));
                     break;
                 case NODE_NEW:
                     broadcast("event.device.zwave.node.new", new DeviceProtocolEvent(SourceProtocol.ZWAVE, "NewNode", node, ValueType.SHORT));
@@ -284,7 +303,8 @@ public class ZWaveController extends AbstractProtocolService {
                                     new DeviceChangeEvent(node,
                                             SourceProtocol.ZWAVE,
                                             Manager.get().getValueLabel(notification.getValueId()),
-                                            getValue(notification.getValueId()),
+                                            getValue(notification.getValueId()) != null
+                                                    ? getValue(notification.getValueId()).toString() : "",
                                             getValueType(notification.getValueId())
                                     )
                             );
@@ -362,7 +382,8 @@ public class ZWaveController extends AbstractProtocolService {
                             new DeviceChangeEvent(node,
                                     SourceProtocol.ZWAVE,
                                     Manager.get().getValueLabel(notification.getValueId()),
-                                    getValue(notification.getValueId()),
+                                    getValue(notification.getValueId()) != null
+                                            ? getValue(notification.getValueId()).toString() : "",
                                     getValueType(notification.getValueId())
                             )
                     );
@@ -439,8 +460,8 @@ public class ZWaveController extends AbstractProtocolService {
             // Check if it is beaming device
             DeviceValue beaming = new DeviceValue();
             beaming.setDevice(device);
-            beaming.setName("beaming");
-            beaming.setType(ValueType.BYTE);
+            beaming.setName(StandartDeviceValueLabel.BEAMING.getName());
+            beaming.setType(ValueType.BOOL);
             beaming.setCurrentValue((Manager.get().isNodeBeamingDevice(homeId, notification.getNodeId())) + "");
             beaming.setReadOnly(true);
 
@@ -448,7 +469,7 @@ public class ZWaveController extends AbstractProtocolService {
             value = registry.addChange(value);
 
             values.put(label, value);
-            values.put("beaming", beaming);
+            values.put(StandartDeviceValueLabel.BEAMING.getName(), beaming);
             device.setValues(values);
 
             // update
@@ -643,7 +664,7 @@ public class ZWaveController extends AbstractProtocolService {
 
         @Override
         public void onCallback(ControllerState state, ControllerError err, Object context) {
-            logger.debug("ZWave Command Callback: {} , {}", state, err);
+            logger.debug("ZWave EventLabel Callback: {} , {}", state, err);
 
             if (ctl == ControllerCommand.REMOVE_DEVICE && state == ControllerState.COMPLETED) {
                 logger.info("Remove ZWave device from network");

@@ -4,6 +4,7 @@ public enum ValueType {
     BOOL,
     BYTE,
     DECIMAL,
+    LONG,
     INT,
     LIST,
     SCHEDULE,
