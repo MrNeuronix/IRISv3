@@ -1,6 +1,6 @@
 language: java
 sudo: false
-script:
+before_install:
   - mvn clean
   - mvn package
 jdk: oraclejdk8
