@@ -12,4 +12,13 @@ public enum StandartDeviceValue {
     StandartDeviceValue(String value) {
         this.value = value;
     }
+
+    public static StandartDeviceValue parse(String name) {
+        for (StandartDeviceValue label : StandartDeviceValue.values()) {
+            if (label.value.equals(name))
+                return label;
+        }
+
+        return null;
+    }
 }

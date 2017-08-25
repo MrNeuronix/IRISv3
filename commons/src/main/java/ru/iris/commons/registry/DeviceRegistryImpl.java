@@ -107,8 +107,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
 
-        addOrUpdateDevice(value.getDevice());
-
         return value;
     }
 
@@ -121,14 +119,22 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             value = deviceValueDAO.save(value);
         }
 
+        if (value.getCurrentValue() != null) {
+            if (!value.getCurrentValue().equals(level)) {
+                value.setCurrentValue(level);
+                value = addChange(value);
+            }
+        } else {
+            value.setCurrentValue(level);
+            value = addChange(value);
+        }
+
         value.setDevice(device);
         value.setName(key);
         value.setType(type);
         value.setUnits("unknown");
         value.setReadOnly(false);
-        value.setCurrentValue(level);
 
-        value = addChange(value);
         device.getValues().put(key, value);
 
         addOrUpdateDevice(device);

@@ -268,11 +268,19 @@ public class XiaomiController extends AbstractProtocolService {
 
                     if (data.has("status")) {
                         Boolean status = data.get("status").getAsString().equals("open");
-                        DeviceValue statusDb = device.getValues().get("status");
+                        DeviceValue statusDb = device.getValues().get(StandartDeviceValueLabel.OPENED.getName());
 
                         if ((statusDb != null && statusDb.getCurrentValue() != null && !Boolean.valueOf(statusDb.getCurrentValue()) == status)
-                                || (statusDb == null || statusDb.getCurrentValue() == null)) {
+                                || statusDb == null || statusDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.OPENED.getName(), status.toString(), ValueType.BOOL);
+
+                            broadcast("event.device.doorsensor." + data.get("status").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.OPENED.getName(),
+                                    status.toString(),
+                                    ValueType.BOOL)
+                            );
                         }
                     }
                 }
@@ -291,8 +299,16 @@ public class XiaomiController extends AbstractProtocolService {
                         DeviceValue ch0Db = device.getValues().get(StandartDeviceValueLabel.LEVEL.getName());
 
                         if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
-                                || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
+                                || ch0Db == null || ch0Db.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.LEVEL.getName(), ch0, ValueType.BYTE);
+
+                            broadcast("event.device." + data.get("channel_0").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.LEVEL.getName(),
+                                    ch0,
+                                    ValueType.BYTE)
+                            );
                         }
                     }
                 }
@@ -311,8 +327,16 @@ public class XiaomiController extends AbstractProtocolService {
                         DeviceValue ch0Db = device.getValues().get(StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_1.getName());
 
                         if ((ch0Db != null && ch0Db.getCurrentValue() != null && !ch0Db.getCurrentValue().equals(ch0))
-                                || (ch0Db == null || ch0Db.getCurrentValue() == null)) {
+                                || ch0Db == null || ch0Db.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_1.getName(), ch0, ValueType.BYTE);
+
+                            broadcast("event.device." + data.get("channel_0").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.LEVEL.getName(),
+                                    ch0,
+                                    ValueType.BYTE)
+                            );
                         }
                     }
 
@@ -322,8 +346,16 @@ public class XiaomiController extends AbstractProtocolService {
                         DeviceValue ch1Db = device.getValues().get(StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_2.getName());
 
                         if ((ch1Db != null && ch1Db.getCurrentValue() != null && !ch1Db.getCurrentValue().equals(ch1))
-                                || (ch1Db == null || ch1Db.getCurrentValue() == null)) {
+                                || ch1Db == null || ch1Db.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.LEVEL_ON_SUBCHANNEL_2.getName(), ch1, ValueType.BYTE);
+
+                            broadcast("event.device." + data.get("channel_1").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.LEVEL.getName(),
+                                    ch1,
+                                    ValueType.BYTE)
+                            );
                         }
                     }
                 }
