@@ -77,7 +77,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
                 DeviceValue deviceValue = device.getValues().get(StandartDeviceValueLabel.LEVEL.getName());
 
-                switch (EventLabel.valueOf(n.getEventLabel())) {
+                switch (EventLabel.parse(n.getEventLabel())) {
                     case BIND_RX:
                         logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
                         logger.info("Binding device to RX channel {}", n.getChannel());

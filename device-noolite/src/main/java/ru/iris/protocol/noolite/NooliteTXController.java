@@ -69,7 +69,7 @@ public class NooliteTXController extends AbstractProtocolService {
                     return;
                 }
 
-                switch (EventLabel.valueOf(n.getEventLabel())) {
+                switch (EventLabel.parse(n.getEventLabel())) {
                     case TURN_ON:
                         logger.info("Turn ON device on channel {}", n.getChannel());
                         pc.turnOn(Byte.valueOf(n.getChannel()));

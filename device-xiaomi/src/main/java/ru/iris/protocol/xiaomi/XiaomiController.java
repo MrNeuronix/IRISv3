@@ -102,7 +102,7 @@ public class XiaomiController extends AbstractProtocolService {
                     return;
                 }
 
-                switch (EventLabel.valueOf(x.getEventLabel())) {
+                switch (EventLabel.parse(x.getEventLabel())) {
                     case TURN_ON:
                         if (x.getClazz().equals(DataLevel.class)) {
                             logger.info("Turn ON device on channel {}", x.getChannel());

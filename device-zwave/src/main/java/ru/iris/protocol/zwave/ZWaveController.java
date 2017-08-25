@@ -77,7 +77,7 @@ public class ZWaveController extends AbstractProtocolService {
                     return;
                 }
 
-                switch (EventLabel.valueOf(z.getEventLabel())) {
+                switch (EventLabel.parse(z.getEventLabel())) {
                     case TURN_ON:
                         logger.info("Turn ON device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 255);

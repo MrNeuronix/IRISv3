@@ -23,4 +23,9 @@ public class DataSubChannelLevel {
         this.to = to;
         this.type = type;
     }
+
+    public DataSubChannelLevel(Integer subChannel, ValueType type) {
+        this.subChannel = subChannel;
+        this.type = type;
+    }
 }

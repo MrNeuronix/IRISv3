@@ -79,20 +79,33 @@ public class DevicesFacade {
         switch (request.getLevel()) {
             case "on":
             case "255":
-                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON));
+                if (request.getSubchannel() == null || request.getSubchannel() == 0) {
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON));
+                } else {
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON, request.getSubchannel()));
+                }
                 break;
             case "off":
             case "0":
-                setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF));
+                if (request.getSubchannel() == null || request.getSubchannel() == 0) {
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF));
+                } else {
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF, request.getSubchannel()));
+                }
                 break;
             default:
                 try {
                     Short bLevel = Short.valueOf(request.getLevel());
 
-                    if (bLevel > 0 && bLevel < 255)
-                        setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getLevel(), ValueType.BYTE));
-                    else
+                    if (bLevel > 0 && bLevel < 255) {
+                        if (request.getSubchannel() == null || request.getSubchannel() == 0) {
+                            setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getLevel()));
+                        } else {
+                            setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getSubchannel(), request.getLevel()));
+                        }
+                    } else {
                         return new ErrorStatus("incorrect value level");
+                    }
                 } catch (NumberFormatException ex) {
                     return new ErrorStatus("parse error");
                 }

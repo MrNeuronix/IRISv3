@@ -22,12 +22,23 @@ public enum EventLabel {
 
     STOP_DIM_BRIGHT("StopDimBright"),
 
-    BATTERY_LOW("BatteryLow");
+    BATTERY_LOW("BatteryLow"),
+
+    UNKNOWN("UNKNOWN");
 
     @Getter
     private String name;
 
     EventLabel(String name) {
         this.name = name;
+    }
+
+    public static EventLabel parse(String name) {
+        for (EventLabel label : EventLabel.values()) {
+            if (label.name.equals(name))
+                return label;
+        }
+
+        return UNKNOWN;
     }
 }

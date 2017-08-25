@@ -35,6 +35,14 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.eventLabel = eventLabel.getName();
     }
 
+    public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel, Integer subchannel) {
+        this.channel = channel;
+        this.protocol = protocol;
+        this.eventLabel = eventLabel.getName();
+        this.data = new DataSubChannelLevel(subchannel, ValueType.UNKNOWN);
+        this.clazz = DataSubChannelLevel.class;
+    }
+
     public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel, Integer subchannel, String to) {
         this.channel = channel;
         this.protocol = protocol;
