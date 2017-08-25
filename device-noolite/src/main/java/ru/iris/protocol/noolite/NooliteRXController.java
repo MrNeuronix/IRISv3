@@ -175,8 +175,6 @@ public class NooliteRXController extends AbstractProtocolService {
     }
 
     private void doWork(Notification notification) {
-
-        boolean isNew = false;
         String channel = String.valueOf(notification.getChannel());
         SensorType sensor = (SensorType) notification.getValue("sensortype");
 
@@ -209,8 +207,8 @@ public class NooliteRXController extends AbstractProtocolService {
                 }
             }
 
-            isNew = true;
             device = registry.addOrUpdateDevice(device);
+            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "NooliteDeviceAdded"));
         }
 
         // turn off
@@ -218,18 +216,18 @@ public class NooliteRXController extends AbstractProtocolService {
             case TURN_OFF:
                 logger.info("Channel {}: Got OFF command", channel);
 
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
                 registry.addChange(
                         device,
                         StandartDeviceValueLabel.LEVEL.getName(),
                         StandartDeviceValue.FULL_OFF.getValue(),
                         ValueType.BYTE
                 );
-
-                // device product name unkown
-                if (device.getProductName().isEmpty()) {
-                    device.setProductName("Generic Switch");
-                    device.setType(DeviceType.BINARY_SWITCH);
-                }
 
                 broadcast("event.device.off", new DeviceChangeEvent(
                         channel,
@@ -243,18 +241,18 @@ public class NooliteRXController extends AbstractProtocolService {
             case SLOW_TURN_OFF:
                 logger.info("Channel {}: Got DIM command", channel);
 
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
                 registry.addChange(
                         device,
                         StandartDeviceValueLabel.LEVEL.getName(),
                         StandartDeviceValue.FULL_OFF.getValue(),
                         ValueType.BYTE
                 );
-
-                // device product name unkown
-                if (device.getProductName().isEmpty()) {
-                    device.setProductName("Generic Switch");
-                    device.setType(DeviceType.BINARY_SWITCH);
-                }
 
                 broadcast("event.device.dim", new DeviceChangeEvent(
                         channel,
@@ -268,18 +266,18 @@ public class NooliteRXController extends AbstractProtocolService {
             case TURN_ON:
                 logger.info("Channel {}: Got ON command", channel);
 
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
                 registry.addChange(
                         device,
                         StandartDeviceValueLabel.LEVEL.getName(),
                         StandartDeviceValue.FULL_ON.getValue(),
                         ValueType.BYTE
                 );
-
-                // device product name unkown
-                if (device.getProductName().isEmpty()) {
-                    device.setProductName("Generic Switch");
-                    device.setType(DeviceType.BINARY_SWITCH);
-                }
 
                 broadcast("event.device.on", new DeviceChangeEvent(
                         channel,
@@ -295,18 +293,18 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Got BRIGHT command", channel);
                 // we only know, that the user hold ON button
 
+                // device product name unkown
+                if (device.getProductName().isEmpty()) {
+                    device.setProductName("Generic Switch");
+                    device.setType(DeviceType.BINARY_SWITCH);
+                }
+
                 registry.addChange(
                         device,
                         StandartDeviceValueLabel.LEVEL.getName(),
                         StandartDeviceValue.FULL_ON.getValue(),
                         ValueType.BYTE
                 );
-
-                // device product name unkown
-                if (device.getProductName().isEmpty()) {
-                    device.setProductName("Generic Switch");
-                    device.setType(DeviceType.BINARY_SWITCH);
-                }
 
                 broadcast("event.device.bright", new DeviceChangeEvent(
                         channel,
@@ -321,18 +319,18 @@ public class NooliteRXController extends AbstractProtocolService {
             case SET_LEVEL:
                 logger.info("Channel {}: Got SETLEVEL command.", channel);
 
+                // device product name unkown
+                if (device.getProductName().isEmpty() || device.getType().equals(DeviceType.BINARY_SWITCH)) {
+                    device.setProductName("Generic Dimmer");
+                    device.setType(DeviceType.MULTILEVEL_SWITCH);
+                }
+
                 registry.addChange(
                         device,
                         StandartDeviceValueLabel.LEVEL.getName(),
                         notification.getValue(StandartDeviceValueLabel.LEVEL.getName()).toString(),
                         ValueType.BYTE
                 );
-
-                // device product name unkown
-                if (device.getProductName().isEmpty() || device.getType().equals(DeviceType.BINARY_SWITCH)) {
-                    device.setProductName("Generic Dimmer");
-                    device.setType(DeviceType.MULTILEVEL_SWITCH);
-                }
 
                 broadcast("event.device.level", new DeviceChangeEvent(
                         channel,
@@ -428,6 +426,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 if (device.getType().equals(DeviceType.BINARY_SWITCH)) {
                     device.setType(DeviceType.MOTION_SENSOR);
                     device.setProductName("PM111");
+                    registry.addOrUpdateDevice(device);
                 }
 
                 broadcast("event.device.battery", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "BatteryLow"));
@@ -436,12 +435,6 @@ public class NooliteRXController extends AbstractProtocolService {
             default:
                 logger.info("Unknown command: {}", notification.getType().name());
         }
-
-        // save/replace device in devices pool
-        if (isNew)
-            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "NooliteDeviceAdded"));
-
-        registry.addOrUpdateDevice(device);
     }
 
 
