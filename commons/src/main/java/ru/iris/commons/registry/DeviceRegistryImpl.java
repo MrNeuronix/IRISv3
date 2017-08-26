@@ -120,7 +120,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         }
 
         if (value.getCurrentValue() != null) {
-            if (!value.getCurrentValue().equals(level)) {
+            if (!value.getCurrentValue().equals(level) || type.equals(ValueType.TRIGGER)) {
                 value.setCurrentValue(level);
                 value = addChange(value);
             }

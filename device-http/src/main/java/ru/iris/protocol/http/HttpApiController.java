@@ -57,8 +57,8 @@ public class HttpApiController {
 
         if (state != null) {
             logger.info("HTTP channel {}: State {}", channel, state);
-            deviceRegistry.addChange(device, "state", state.toString(), ValueType.BOOL);
-            broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state.toString(), ValueType.BOOL));
+            deviceRegistry.addChange(device, "state", state.toString(), ValueType.TRIGGER);
+            broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state.toString(), ValueType.TRIGGER));
         } else {
             return new ErrorStatus("No state passed. Only true/false accepted");
         }
@@ -87,8 +87,8 @@ public class HttpApiController {
         }
 
         logger.info("HTTP channel {}: Triggered", channel);
-        deviceRegistry.addChange(device, "alarm", "triggered", ValueType.STRING);
-        broadcast("event.device.trigger", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "alarm", "triggered", ValueType.STRING));
+        deviceRegistry.addChange(device, "alarm", "triggered", ValueType.TRIGGER);
+        broadcast("event.device.trigger", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "alarm", "triggered", ValueType.TRIGGER));
 
         return new OkStatus("Received");
     }

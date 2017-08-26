@@ -120,22 +120,75 @@
             </plugin>
 
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>1.6</version>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.7</version>
                 <executions>
                     <execution>
-                        <id>prepare</id>
+                        <id>copy-resources</id>
                         <phase>install</phase>
-                        <configuration>
-                            <tasks>
-                                <echo message="installing phase"/>
-                                <unzip src="../iris-0.0.1-SNAPSHOT-application.zip" dest="/iris/opt"/>
-                            </tasks>
-                        </configuration>
                         <goals>
-                            <goal>run</goal>
+                            <goal>copy-resources</goal>
                         </goals>
+
+                        <configuration>
+                            <outputDirectory>/iris/opt/iris-0.0.1-SNAPSHOT/lib</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../commons/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../device-http/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../device-noolite/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../device-xiaomi/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../device-zwave/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../events/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../facade/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../speak/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

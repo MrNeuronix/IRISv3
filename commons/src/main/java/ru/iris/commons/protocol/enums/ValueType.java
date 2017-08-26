@@ -15,5 +15,6 @@ public enum ValueType {
     JSON,
     UNKNOWN,
     DOUBLE,
+    TRIGGER,
     NONE
 }
