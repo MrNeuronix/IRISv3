@@ -47,4 +47,28 @@ public class DeviceHelper {
         }
     }
 
+    public void on(String ident, int subchannel) {
+        Device device = deviceRegistry.getDevice(ident);
+        if (device != null) {
+            r.notify("command.device", Event.wrap(new DeviceCommandEvent(
+                    device.getChannel(), subchannel, device.getSource(), EventLabel.TURN_ON)));
+        }
+    }
+
+    public void off(String ident, int subchannel) {
+        Device device = deviceRegistry.getDevice(ident);
+        if (device != null) {
+            r.notify("command.device", Event.wrap(new DeviceCommandEvent(
+                    device.getChannel(), subchannel, device.getSource(), EventLabel.TURN_OFF)));
+        }
+    }
+
+    public void level(String ident, int subchannel, String level) {
+        Device device = deviceRegistry.getDevice(ident);
+        if (device != null) {
+            r.notify("command.device", Event.wrap(new DeviceCommandEvent(
+                    device.getChannel(), subchannel, device.getSource(), EventLabel.SET_LEVEL, level)));
+        }
+    }
+
 }

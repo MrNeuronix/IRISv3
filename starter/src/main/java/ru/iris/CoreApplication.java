@@ -14,6 +14,7 @@ import ru.iris.commons.config.ReactorConfig;
 import ru.iris.commons.service.ProtocolService;
 import ru.iris.commons.service.Service;
 import ru.iris.commons.service.Speak;
+import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import javax.annotation.PostConstruct;
 
@@ -56,6 +57,9 @@ public class CoreApplication {
 
     @PostConstruct
     private void init() throws Exception {
+
+        SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
+
         if (speak != null)
             speak.run();
         if (events != null)

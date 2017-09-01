@@ -1,7 +1,6 @@
 package ru.iris.commons.bus.devices;
 
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.ToString;
 import ru.iris.commons.protocol.data.DataLevel;
 import ru.iris.commons.protocol.data.DataSubChannelLevel;
@@ -35,7 +34,7 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.eventLabel = eventLabel.getName();
     }
 
-    public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel, Integer subchannel) {
+    public DeviceCommandEvent(String channel, Integer subchannel, SourceProtocol protocol, EventLabel eventLabel) {
         this.channel = channel;
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();
@@ -43,7 +42,7 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.clazz = DataSubChannelLevel.class;
     }
 
-    public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel, Integer subchannel, String to) {
+    public DeviceCommandEvent(String channel, Integer subchannel, SourceProtocol protocol, EventLabel eventLabel, String to) {
         this.channel = channel;
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();

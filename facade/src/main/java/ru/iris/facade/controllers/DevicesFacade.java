@@ -12,8 +12,6 @@ import reactor.bus.EventBus;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.protocol.enums.EventLabel;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.model.DeviceInfoRequest;
 import ru.iris.facade.model.DeviceSetLevelRequest;
@@ -82,7 +80,7 @@ public class DevicesFacade {
                 if (request.getSubchannel() == null || request.getSubchannel() == 0) {
                     setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON));
                 } else {
-                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_ON, request.getSubchannel()));
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSubchannel(), request.getSource(), EventLabel.TURN_ON));
                 }
                 break;
             case "off":
@@ -90,7 +88,7 @@ public class DevicesFacade {
                 if (request.getSubchannel() == null || request.getSubchannel() == 0) {
                     setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF));
                 } else {
-                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.TURN_OFF, request.getSubchannel()));
+                    setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSubchannel(), request.getSource(), EventLabel.TURN_OFF));
                 }
                 break;
             default:
@@ -101,7 +99,7 @@ public class DevicesFacade {
                         if (request.getSubchannel() == null || request.getSubchannel() == 0) {
                             setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getLevel()));
                         } else {
-                            setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSource(), EventLabel.SET_LEVEL, request.getSubchannel(), request.getLevel()));
+                            setDeviceLevel(new DeviceCommandEvent(device.getChannel(), request.getSubchannel(), request.getSource(), EventLabel.SET_LEVEL, request.getLevel()));
                         }
                     } else {
                         return new ErrorStatus("incorrect value level");
