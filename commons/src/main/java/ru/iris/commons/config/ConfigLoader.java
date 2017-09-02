@@ -18,7 +18,6 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@Scope("singleton")
 public class ConfigLoader {
 
     private static Map<String, String> propertyMap = new ConcurrentHashMap<>();
@@ -112,7 +111,7 @@ public class ConfigLoader {
         return null;
     }
 
-    public void set(String key, String value) {
+    public synchronized void set(String key, String value) {
         propertyMap.put(key, value);
         logger.info("Configuration key " + key + " = " + value);
     }

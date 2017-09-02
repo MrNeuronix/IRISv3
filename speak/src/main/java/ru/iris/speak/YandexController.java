@@ -1,14 +1,14 @@
 package ru.iris.speak;
 
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
@@ -18,6 +18,10 @@ import ru.iris.commons.database.dao.SpeakDAO;
 import ru.iris.commons.database.model.Speaks;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
+import ru.iris.speak.player.AudioFilePlayer;
+import ru.iris.speak.player.AudioPlayer;
+import ru.iris.speak.player.ExternalAudioPlayer;
+import ru.iris.speak.player.LibraryAudioPlayer;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -43,6 +47,9 @@ public class YandexController extends AbstractService implements Speak {
     private String language;
     private String speaker;
 
+		@Autowired
+		private AudioPlayer audioPlayer;
+
     @Autowired
     public YandexController(SpeakDAO speakDAO, ConfigLoader config) {
         this.speakDAO = speakDAO;
@@ -52,8 +59,9 @@ public class YandexController extends AbstractService implements Speak {
     @Override
     public void onStartup() {
         logger.info("Starting up Yandex Speak service");
-        if (!config.loadPropertiesFormCfgDirectory("speak"))
-            logger.error("Cant load speak-specific configs. Check speak.property if exists");
+
+	    if (!config.loadPropertiesFormCfgDirectory("speak"))
+		    logger.error("Cant load speak-specific configs. Check speak.property if exists");
     }
 
     @PostConstruct
@@ -74,7 +82,6 @@ public class YandexController extends AbstractService implements Speak {
     @Override
     @Async
     public void run() {
-
         logger.info("Starting Yandex listen thread");
 
         API_KEY = config.get("yandexApiKey");
@@ -190,22 +197,8 @@ public class YandexController extends AbstractService implements Speak {
     }
 
     private void play(Long cacheId) {
-        InputStream result = null;
-        try {
-            result = new FileInputStream("data/cache-" + cacheId + ".mp3");
-            Player player = new Player(result);
-            player.play();
-            player.close();
-        } catch (FileNotFoundException | JavaLayerException e) {
-            logger.error("Error while trying to play {}: {}", cacheId, e.getLocalizedMessage());
-        } finally {
-            try {
-                if (result != null)
-                    result.close();
-            } catch (IOException e) {
-                logger.error("Error: ", e.getLocalizedMessage());
-            }
-        }
+    	  String file = "data/cache-" + cacheId + ".mp3";
+    	  audioPlayer.play(file);
     }
 
     public InputStream getMP3Data(String synthText) throws IOException {

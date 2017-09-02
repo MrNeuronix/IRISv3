@@ -5,22 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.config.ReactorConfig;
+import ru.iris.commons.config.SchedulerConfig;
 import ru.iris.commons.service.ProtocolService;
 import ru.iris.commons.service.Service;
 import ru.iris.commons.service.Speak;
-import uk.org.lidalia.sysoutslf4j.context.SysOutOverSLF4J;
 
 import javax.annotation.PostConstruct;
 
 @SpringBootApplication
-@EnableScheduling
-@EnableAsync
 @Component
 @Slf4j
 public class CoreApplication {
@@ -50,29 +45,27 @@ public class CoreApplication {
         SpringApplication.run(new Class<?>[]{
                 CoreApplication.class,
                 JpaConfig.class,
-                ReactorConfig.class
+                ReactorConfig.class,
+                SchedulerConfig.class
         }, args);
 
     }
 
     @PostConstruct
     private void init() throws Exception {
-
-        SysOutOverSLF4J.sendSystemOutAndErrToSLF4J();
-
         if (speak != null)
             speak.run();
-        if (events != null)
-            events.run();
+		    if (xiaomi != null)
+			      xiaomi.run();
         if (zwave != null)
             zwave.run();
         if (nooliteRx != null)
             nooliteRx.run();
         if (nooliteTx != null)
             nooliteTx.run();
-        if (xiaomi != null)
-            xiaomi.run();
         if (httpapi != null)
             httpapi.run();
+		    if (events != null)
+			      events.run();
     }
 }

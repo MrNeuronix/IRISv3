@@ -3,4 +3,5 @@ sudo: false
 before_install:
   - mvn clean
   - mvn package
+  - mkdir /iris/opt/iris-0.0.1-SNAPSHOT/lib
 jdk: oraclejdk8

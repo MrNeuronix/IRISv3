@@ -8,14 +8,6 @@
         </encoder>
     </appender>
 
-    <appender name="ALL" class="ch.qos.logback.core.FileAppender">
-        <file>logs/all.log</file>
-
-        <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
-
     <appender name="NOOLITE" class="ch.qos.logback.core.FileAppender">
         <file>logs/noolite.log</file>
 
@@ -58,7 +50,6 @@
 
     <logger name="ru.iris" level="debug" additivity="false">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ALL"/>
     </logger>
 
     <logger name="ru.iris.protocol.noolite" level="debug" additivity="false">
@@ -88,7 +79,6 @@
 
     <root level="info">
         <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ALL"/>
     </root>
 
 </configuration>
