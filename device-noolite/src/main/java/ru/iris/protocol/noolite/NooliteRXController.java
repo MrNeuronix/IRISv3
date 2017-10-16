@@ -1,6 +1,8 @@
 package ru.iris.protocol.noolite;
 
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -74,9 +76,6 @@ public class NooliteRXController extends AbstractProtocolService {
                     return;
                 }
 
-                Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
-                DeviceValue deviceValue = device.getValues().get(StandartDeviceValueLabel.LEVEL.getName());
-
                 switch (EventLabel.parse(n.getEventLabel())) {
                     case BIND_RX:
                         logger.debug("Get BindRXChannel advertisement (channel {})", n.getChannel());
@@ -93,66 +92,9 @@ public class NooliteRXController extends AbstractProtocolService {
                         logger.info("Unbinding all RX channels");
                         rx.unbindAllChannels();
                         break;
-                    case TURN_ON:
-                        if (deviceValue == null) {
-                            logger.error("Level device value is NULL for channel {}", n.getChannel());
-                            return;
-                        }
-
-                        logger.debug("Got TurnOn advertisement (channel {})", n.getChannel());
-                        logger.info("Channel {}: Turned ON", n.getChannel());
-                        deviceValue.setCurrentValue(StandartDeviceValue.FULL_ON.getValue());
-                        registry.addChange(deviceValue);
-                        break;
-                    case TURN_OFF:
-                        if (deviceValue == null) {
-                            logger.error("Level device value is NULL for channel {}", n.getChannel());
-                            return;
-                        }
-
-                        logger.debug("Got TurnOn advertisement (channel {})", n.getChannel());
-                        logger.info("Channel {}: Turned OFF", n.getChannel());
-                        deviceValue.setCurrentValue(StandartDeviceValue.FULL_OFF.getValue());
-                        registry.addChange(deviceValue);
-                        break;
-                    case SET_LEVEL:
-                        if (deviceValue == null) {
-                            logger.error("Level device value is NULL for channel {}", n.getChannel());
-                            return;
-                        }
-
-                        if (n.getClazz().equals(DataLevel.class)) {
-                            DataLevel data = (DataLevel) n.getData();
-
-                            logger.debug("Got SetLevel advertisement");
-                            logger.info("Channel {}: Set level to {}", n.getChannel(), data.getTo());
-                            deviceValue.setCurrentValue(data.getTo());
-                            registry.addChange(deviceValue);
-                        } else {
-                            logger.error("Unknown data class for event!");
-                        }
-                        break;
                     default:
                         break;
                 }
-            } else if (event.getData() instanceof DeviceChangeEvent) {
-                DeviceChangeEvent n = (DeviceChangeEvent) event.getData();
-                if (!n.getProtocol().equals(SourceProtocol.NOOLITE)) {
-                    return;
-                }
-
-                logger.info("Change device value event from TX, channel {}", n.getChannel());
-
-                Device device = registry.getDevice(SourceProtocol.NOOLITE, n.getChannel());
-
-                if (device != null && device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()) != null && n.getClazz().equals(DataLevel.class)) {
-                    DataLevel data = (DataLevel) n.getData();
-                    device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()).setCurrentValue(data.getTo());
-                    registry.addChange(device.getValues().get(StandartDeviceValueLabel.LEVEL.getName()));
-                }
-            } else {
-                // We received unknown request message. Lets make generic log entry.
-                logger.info("Received unknown request for nooliterx service! Class: {}", event.getData().getClass());
             }
         };
     }
@@ -208,7 +150,7 @@ public class NooliteRXController extends AbstractProtocolService {
             }
 
             device = registry.addOrUpdateDevice(device);
-            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "NooliteDeviceAdded"));
+            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
         }
 
         // turn off
@@ -217,7 +159,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Got OFF command", channel);
 
                 // device product name unkown
-                if (device.getProductName().isEmpty()) {
+                if (StringUtils.isEmpty(device.getProductName())) {
                     device.setProductName("Generic Switch");
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
@@ -242,7 +184,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Got DIM command", channel);
 
                 // device product name unkown
-                if (device.getProductName().isEmpty()) {
+	              if (StringUtils.isEmpty(device.getProductName())) {
                     device.setProductName("Generic Switch");
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
@@ -267,7 +209,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Got ON command", channel);
 
                 // device product name unkown
-                if (device.getProductName().isEmpty()) {
+	              if (StringUtils.isEmpty(device.getProductName())) {
                     device.setProductName("Generic Switch");
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
@@ -294,7 +236,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 // we only know, that the user hold ON button
 
                 // device product name unkown
-                if (device.getProductName().isEmpty()) {
+	              if (StringUtils.isEmpty(device.getProductName())) {
                     device.setProductName("Generic Switch");
                     device.setType(DeviceType.BINARY_SWITCH);
                 }
@@ -320,7 +262,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 logger.info("Channel {}: Got SETLEVEL command.", channel);
 
                 // device product name unkown
-                if (device.getProductName().isEmpty() || device.getType().equals(DeviceType.BINARY_SWITCH)) {
+	              if (StringUtils.isEmpty(device.getProductName()) || device.getType().equals(DeviceType.BINARY_SWITCH)) {
                     device.setProductName("Generic Dimmer");
                     device.setType(DeviceType.MULTILEVEL_SWITCH);
                 }

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
-import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
@@ -48,12 +48,9 @@ public class EventsController extends AbstractService {
     @Override
     public void onStartup() throws InterruptedException {
         logger.info("EventsController starting");
-        scriptManager = new ScriptManager(triggerManager, config, registry, speakHelper, deviceHelper);
-        logger.info("EventsController started");
 
-        logger.info("EventsController running startup scripts");
-        runStartupRules();
-        logger.info("EventsController done running startup scripts");
+	      if (!config.loadPropertiesFormCfgDirectory("events"))
+		      logger.error("Can't load events-specific configs. Check events.properties if exists");
     }
 
     @Override
@@ -64,6 +61,12 @@ public class EventsController extends AbstractService {
     @Override
     public Consumer<Event<?>> handleMessage() throws Exception {
         return event -> {
+
+        	  // skip events while manager not initialized yet
+	          if(scriptManager == null) {
+	              return;
+		        }
+
             if (event.getData() instanceof DeviceProtocolEvent) {
 
                 DeviceProtocolEvent e = (DeviceProtocolEvent) event.getData();
@@ -99,7 +102,23 @@ public class EventsController extends AbstractService {
     }
 
     @Override
+    @Async
     public void run() {
+		    int delay = Integer.parseInt(config.get("startupDelayInSeconds"));
+		    logger.info("Startup delay is {} seconds", delay);
+
+		    try {
+			    Thread.sleep(delay * 1000L);
+		    } catch (InterruptedException e) {
+			    logger.error("", e);
+		    }
+
+	      scriptManager = new ScriptManager(triggerManager, config, registry, speakHelper, deviceHelper);
+		    logger.info("EventsController started");
+
+		    logger.info("EventsController running startup scripts");
+		    runStartupRules();
+		    logger.info("EventsController done running startup scripts");
     }
 
     private void runStartupRules() {

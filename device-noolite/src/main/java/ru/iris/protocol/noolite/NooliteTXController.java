@@ -9,12 +9,16 @@ import reactor.bus.Event;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
+import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.database.model.Device;
 import ru.iris.commons.protocol.data.DataLevel;
 import ru.iris.commons.protocol.enums.*;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite4j.sender.PC1132;
+
+import static ru.iris.commons.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
 
 @Component
 @Profile("noolite")
@@ -24,6 +28,9 @@ public class NooliteTXController extends AbstractProtocolService {
 
     private final ConfigLoader config;
     private PC1132 pc;
+
+    @Autowired
+    private DeviceRegistry registry;
 
     @Autowired
     public NooliteTXController(ConfigLoader config) {
@@ -69,10 +76,34 @@ public class NooliteTXController extends AbstractProtocolService {
                     return;
                 }
 
+                String channel = n.getChannel();
+	              Device device = registry.getDevice(SourceProtocol.NOOLITE, channel);
+
+		            if (device == null) {
+			            device = new Device();
+			            device.setSource(SourceProtocol.NOOLITE);
+			            device.setHumanReadable("noolite/channel/" + channel);
+			            device.setState(State.ACTIVE);
+			            device.setType(DeviceType.BINARY_SWITCH);
+			            device.setManufacturer("Nootechnika");
+			            device.setChannel(channel);
+
+			            device = registry.addOrUpdateDevice(device);
+			            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
+		            }
+
                 switch (EventLabel.parse(n.getEventLabel())) {
                     case TURN_ON:
                         logger.info("Turn ON device on channel {}", n.getChannel());
                         pc.turnOn(Byte.valueOf(n.getChannel()));
+
+		                    registry.addChange(
+				                    device,
+				                    StandartDeviceValueLabel.LEVEL.getName(),
+				                    StandartDeviceValue.FULL_ON.getValue(),
+				                    ValueType.BYTE
+		                    );
+
                         broadcast("command.device.on", new DeviceChangeEvent(
                                 n.getChannel(),
                                 SourceProtocol.NOOLITE,
@@ -84,6 +115,14 @@ public class NooliteTXController extends AbstractProtocolService {
                     case TURN_OFF:
                         logger.info("Turn OFF device on channel {}", n.getChannel());
                         pc.turnOff(Byte.valueOf(n.getChannel()));
+
+		                    registry.addChange(
+				                    device,
+				                    StandartDeviceValueLabel.LEVEL.getName(),
+				                    StandartDeviceValue.FULL_OFF.getValue(),
+				                    ValueType.BYTE
+		                    );
+
                         broadcast("command.device.off", new DeviceChangeEvent(
                                 n.getChannel(),
                                 SourceProtocol.NOOLITE,
@@ -97,6 +136,14 @@ public class NooliteTXController extends AbstractProtocolService {
                             DataLevel data = (DataLevel) n.getData();
                             logger.info("Set level {} on channel {}", data.getTo(), n.getChannel());
                             pc.setLevel(Byte.valueOf(n.getChannel()), (Short.valueOf(data.getTo())).byteValue());
+
+		                        registry.addChange(
+				                        device,
+				                        StandartDeviceValueLabel.LEVEL.getName(),
+				                        data.getTo(),
+				                        ValueType.BYTE
+		                        );
+
                             broadcast("command.device.level", new DeviceChangeEvent(
                                     n.getChannel(),
                                     SourceProtocol.NOOLITE,

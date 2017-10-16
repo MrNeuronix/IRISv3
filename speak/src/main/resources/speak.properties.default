@@ -6,3 +6,5 @@ yandexApiKey=5a849502-dc73-40ba-9676-f9aa3b34d4ca
 yandexLanguage=ru-RU
 # (jane, omazh, zahar, ermil)
 yandexVoice=ermil
+
+playerType=library

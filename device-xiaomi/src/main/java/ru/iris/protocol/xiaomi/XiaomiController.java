@@ -20,6 +20,7 @@ import reactor.bus.EventBus;
 import reactor.fn.Consumer;
 import ru.iris.commons.bus.devices.DeviceChangeEvent;
 import ru.iris.commons.bus.devices.DeviceCommandEvent;
+import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.model.Device;
 import ru.iris.commons.database.model.DeviceValue;
@@ -264,6 +265,7 @@ public class XiaomiController extends AbstractProtocolService {
             }
 
             device = registry.addOrUpdateDevice(device);
+	          broadcast("event.device.added", new DeviceProtocolEvent(sid, SourceProtocol.XIAOMI, "DeviceAdded"));
         }
 
         JsonObject message;
@@ -334,10 +336,12 @@ public class XiaomiController extends AbstractProtocolService {
                                     status.toString(),
                                     ValueType.BOOL)
                             );
+
+                            logger.info("Channel: {} Door sensor state is {}", notification.getSid(),
+                                        status ? "open" : "closed");
                         }
                     }
                 }
-
                 break;
             case SWITCH_AQARA_ZERO_1BUTTON:
             case SWITCH_AQARA_1BUTTON:
@@ -362,6 +366,9 @@ public class XiaomiController extends AbstractProtocolService {
                                     ch0,
                                     ValueType.BYTE)
                             );
+
+	                          logger.info("Channel: {} Light is {}", notification.getSid(),
+	                                      data.get("channel_0").getAsString());
                         }
                     }
                 }
@@ -390,6 +397,9 @@ public class XiaomiController extends AbstractProtocolService {
                                     ch0,
                                     ValueType.BYTE)
                             );
+
+	                          logger.info("Channel: {}, subchannel 1: Light is {}", notification.getSid(),
+	                                    data.get("channel_0").getAsString());
                         }
                     }
 
@@ -409,10 +419,12 @@ public class XiaomiController extends AbstractProtocolService {
                                     ch1,
                                     ValueType.BYTE)
                             );
+
+		                        logger.info("Channel: {}, subchannel 2: Light is {}", notification.getSid(),
+		                                    data.get("channel_1").getAsString());
                         }
                     }
                 }
-
                 break;
             default:
                 //skip
@@ -424,6 +436,8 @@ public class XiaomiController extends AbstractProtocolService {
     void searchDevices() {
         gateway.discoverItems();
     }
+
+
 
     @Getter
     @Setter

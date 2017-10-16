@@ -40,10 +40,6 @@ public class ScriptManager {
         }
 
         this.setItemRegistry(itemRegistry);
-
-        if (!config.loadPropertiesFormCfgDirectory("events"))
-            logger.error("Cant load events-specific configs. Check events.properties if exists");
-
         File folder = getFolder(config.get("scriptsDirectory"));
 
         if (folder.exists() && folder.isDirectory()) {
