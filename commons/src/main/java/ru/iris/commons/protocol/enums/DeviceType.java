@@ -16,6 +16,7 @@ public enum DeviceType {
     THERMOSTAT("thermostat"),
     MOTION_SENSOR("motionsensor"),
     UNKNOWN_SENSOR("unknownsensor"),
+    BUTTON("button"),
     UNKNOWN("unknown");
 
     private final String name;

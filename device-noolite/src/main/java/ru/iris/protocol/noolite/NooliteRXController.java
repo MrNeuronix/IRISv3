@@ -404,7 +404,7 @@ public class NooliteRXController extends AbstractProtocolService {
                 if (device.getType().equals(TEMP_HUMI_SENSOR)) {
                     registry.addChange(
                             device,
-                            StandartDeviceValueLabel.HUMIDIDY.getName(),
+                            StandartDeviceValueLabel.HUMIDITY.getName(),
                             notification.getValue("humi").toString(),
                             ValueType.DOUBLE
                     );
@@ -412,7 +412,7 @@ public class NooliteRXController extends AbstractProtocolService {
                     broadcast("event.device.humidity", new DeviceChangeEvent(
                             channel,
                             SourceProtocol.NOOLITE,
-                            StandartDeviceValueLabel.HUMIDIDY.getName(),
+                            StandartDeviceValueLabel.HUMIDITY.getName(),
                             notification.getValue("humi").toString(),
                             ValueType.BYTE
                     ));

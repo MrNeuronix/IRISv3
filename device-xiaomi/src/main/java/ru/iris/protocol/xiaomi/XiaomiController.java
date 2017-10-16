@@ -36,6 +36,7 @@ import ru.iris.xiaomi4j.watchers.Notification;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @Profile("xiaomi")
@@ -229,6 +230,14 @@ public class XiaomiController extends AbstractProtocolService {
                     device.setType(DeviceType.CONTROLLER);
                     device.setProductName("Mi Gateway");
                     break;
+                case SENSOR_HT:
+                    device.setType(DeviceType.TEMP_HUMI_SENSOR);
+                    device.setProductName("Aqara Temperature & Humidity Sensor");
+                    break;
+                case SWITCH:
+                    device.setType(DeviceType.BUTTON);
+                    device.setProductName("Aqara Wireless Switch (button)");
+                    break;
                 case SENSOR_AQARA_MAGNET:
                     device.setType(DeviceType.DOOR_SENSOR);
                     device.setProductName("Aqara Door Sensor");
@@ -260,6 +269,50 @@ public class XiaomiController extends AbstractProtocolService {
         JsonObject message;
 
         switch (notification.getType()) {
+            case SENSOR_HT:
+                message = notification.getRawMessage();
+
+                if (message.has("data")) {
+                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+
+                    if (data.has("temperature")) {
+                        Double temp = data.get("temperature").getAsInt() / 100D;
+                        DeviceValue tempDb = device.getValues().get(StandartDeviceValueLabel.TEMPERATURE.getName());
+
+                        if ((tempDb != null && tempDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(tempDb.getCurrentValue()), temp))
+                                || tempDb == null || tempDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.TEMPERATURE.getName(), temp.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.temperature." + data.get("temperature").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.TEMPERATURE.getName(),
+                                    temp.toString(),
+                                    ValueType.DOUBLE)
+                            );
+                        }
+                    }
+
+                    if (data.has("humidity")) {
+                        Double humi = data.get("humidity").getAsInt() / 100D;
+                        DeviceValue humiDb = device.getValues().get(StandartDeviceValueLabel.HUMIDITY.getName());
+
+                        if ((humiDb != null && humiDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(humiDb.getCurrentValue()), humi))
+                                || humiDb == null || humiDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.HUMIDITY.getName(), humi.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.humidity." + data.get("humidity").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.HUMIDITY.getName(),
+                                    humi.toString(),
+                                    ValueType.DOUBLE)
+                            );
+                        }
+                    }
+                }
+
+                break;
             case SENSOR_AQARA_MAGNET:
                 message = notification.getRawMessage();
 
