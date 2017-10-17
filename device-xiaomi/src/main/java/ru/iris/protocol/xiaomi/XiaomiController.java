@@ -35,6 +35,7 @@ import ru.iris.xiaomi4j.model.GatewayModel;
 import ru.iris.xiaomi4j.watchers.Notification;
 
 import java.lang.reflect.Type;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -225,6 +226,11 @@ public class XiaomiController extends AbstractProtocolService {
             device.setManufacturer("Xiaomi");
             device.setChannel(sid);
 
+            device = registry.addOrUpdateDevice(device);
+            broadcast("event.device.added", new DeviceProtocolEvent(sid, SourceProtocol.XIAOMI, "DeviceAdded"));
+        }
+
+        if (device.getType() == null || device.getType().equals(DeviceType.UNKNOWN)) {
             switch (notification.getType()) {
                 case GATEWAY:
                 case BRIDGE:
@@ -234,6 +240,10 @@ public class XiaomiController extends AbstractProtocolService {
                 case SENSOR_HT:
                     device.setType(DeviceType.TEMP_HUMI_SENSOR);
                     device.setProductName("Aqara Temperature & Humidity Sensor");
+                    break;
+                case SENSOR_AQARA_FLOOD:
+                    device.setType(DeviceType.FLOOD_SENSOR);
+                    device.setProductName("Aqara Flood Sensor");
                     break;
                 case SWITCH:
                     device.setType(DeviceType.BUTTON);
@@ -264,8 +274,10 @@ public class XiaomiController extends AbstractProtocolService {
                     device.setType(DeviceType.UNKNOWN);
             }
 
-            device = registry.addOrUpdateDevice(device);
-	          broadcast("event.device.added", new DeviceProtocolEvent(sid, SourceProtocol.XIAOMI, "DeviceAdded"));
+            if (!device.getType().equals(DeviceType.UNKNOWN)) {
+                device = registry.addOrUpdateDevice(device);
+                broadcast("event.device.updated", new DeviceProtocolEvent(sid, SourceProtocol.XIAOMI, "DeviceUpdated"));
+            }
         }
 
         JsonObject message;
@@ -276,9 +288,10 @@ public class XiaomiController extends AbstractProtocolService {
 
                 if (message.has("data")) {
                     JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+                    Double temp, humi;
 
                     if (data.has("temperature")) {
-                        Double temp = data.get("temperature").getAsInt() / 100D;
+                        temp = data.get("temperature").getAsInt() / 100D;
                         DeviceValue tempDb = device.getValues().get(StandartDeviceValueLabel.TEMPERATURE.getName());
 
                         if ((tempDb != null && tempDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(tempDb.getCurrentValue()), temp))
@@ -292,11 +305,13 @@ public class XiaomiController extends AbstractProtocolService {
                                     temp.toString(),
                                     ValueType.DOUBLE)
                             );
+
+                            logger.info("Channel: {} Temperature: {}C", notification.getSid(), temp);
                         }
                     }
 
                     if (data.has("humidity")) {
-                        Double humi = data.get("humidity").getAsInt() / 100D;
+                        humi = data.get("humidity").getAsInt() / 100D;
                         DeviceValue humiDb = device.getValues().get(StandartDeviceValueLabel.HUMIDITY.getName());
 
                         if ((humiDb != null && humiDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(humiDb.getCurrentValue()), humi))
@@ -310,6 +325,28 @@ public class XiaomiController extends AbstractProtocolService {
                                     humi.toString(),
                                     ValueType.DOUBLE)
                             );
+
+                            logger.info("Channel: {} Humidity: {}%", notification.getSid(), humi);
+                        }
+                    }
+
+                    if (data.has("voltage")) {
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
                         }
                     }
                 }
@@ -339,6 +376,53 @@ public class XiaomiController extends AbstractProtocolService {
 
                             logger.info("Channel: {} Door sensor state is {}", notification.getSid(),
                                         status ? "open" : "closed");
+                        }
+                    }
+
+                    if (data.has("voltage")) {
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+                        }
+                    }
+                }
+                break;
+            case SENSOR_AQARA_FLOOD:
+                message = notification.getRawMessage();
+
+                if (message.has("data")) {
+                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+
+                    if (data.has("voltage")) {
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
                         }
                     }
                 }

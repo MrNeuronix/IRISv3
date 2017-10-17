@@ -14,6 +14,7 @@ public enum DeviceType {
     DOOR_SENSOR("doorsensor"),
     DRAPES("drapes"),
     THERMOSTAT("thermostat"),
+    FLOOD_SENSOR("floodsensor"),
     MOTION_SENSOR("motionsensor"),
     UNKNOWN_SENSOR("unknownsensor"),
     BUTTON("button"),
