@@ -15,6 +15,8 @@ public enum StandartDeviceValueLabel {
 
     OPENED("opened"),
 
+    LEAK("leak"),
+
     BEAMING("beaming");
 
     @Getter

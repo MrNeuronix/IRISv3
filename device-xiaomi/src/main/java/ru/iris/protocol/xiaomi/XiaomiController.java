@@ -1,6 +1,9 @@
 package ru.iris.protocol.xiaomi;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,10 +38,11 @@ import ru.iris.xiaomi4j.model.GatewayModel;
 import ru.iris.xiaomi4j.watchers.Notification;
 
 import java.lang.reflect.Type;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static ru.iris.commons.protocol.enums.EventLabel.BATTERY_LOW;
 
 @Component
 @Profile("xiaomi")
@@ -53,6 +57,11 @@ public class XiaomiController extends AbstractProtocolService {
     private static final JsonParser PARSER = new JsonParser();
     private List<GatewayController> gateways;
     private Gateway gateway = null;
+
+    private static final int VOLTAGE_MAX_MILLIVOLTS = 3100;
+    private static final int VOLTAGE_MIN_MILLIVOLTS = 2700;
+    private static final int BATT_LEVEL_LOW = 20;
+    private static final int BATT_LEVEL_LOW_HYS = 5;
 
     @Autowired
     public XiaomiController(EventBus r,
@@ -298,7 +307,7 @@ public class XiaomiController extends AbstractProtocolService {
                                 || tempDb == null || tempDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.TEMPERATURE.getName(), temp.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.temperature." + data.get("temperature").getAsString(), new DeviceChangeEvent(
+                            broadcast("event.device.temperature", new DeviceChangeEvent(
                                     device.getChannel(),
                                     SourceProtocol.XIAOMI,
                                     StandartDeviceValueLabel.TEMPERATURE.getName(),
@@ -318,7 +327,7 @@ public class XiaomiController extends AbstractProtocolService {
                                 || humiDb == null || humiDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.HUMIDITY.getName(), humi.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.humidity." + data.get("humidity").getAsString(), new DeviceChangeEvent(
+                            broadcast("event.device.humidity", new DeviceChangeEvent(
                                     device.getChannel(),
                                     SourceProtocol.XIAOMI,
                                     StandartDeviceValueLabel.HUMIDITY.getName(),
@@ -331,6 +340,7 @@ public class XiaomiController extends AbstractProtocolService {
                     }
 
                     if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
                         Double voltage = data.get("voltage").getAsDouble() / 1000D;
                         DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
 
@@ -338,7 +348,7 @@ public class XiaomiController extends AbstractProtocolService {
                                 || voltageDb == null || voltageDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
                                     device.getChannel(),
                                     SourceProtocol.XIAOMI,
                                     StandartDeviceValueLabel.VOLTAGE.getName(),
@@ -380,6 +390,7 @@ public class XiaomiController extends AbstractProtocolService {
                     }
 
                     if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
                         Double voltage = data.get("voltage").getAsDouble() / 1000D;
                         DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
 
@@ -387,7 +398,7 @@ public class XiaomiController extends AbstractProtocolService {
                                 || voltageDb == null || voltageDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
                                     device.getChannel(),
                                     SourceProtocol.XIAOMI,
                                     StandartDeviceValueLabel.VOLTAGE.getName(),
@@ -396,6 +407,72 @@ public class XiaomiController extends AbstractProtocolService {
                             );
 
                             logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+                        }
+                    }
+                }
+                break;
+            case SWITCH:
+                message = notification.getRawMessage();
+
+                if (message.has("data")) {
+                    JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+
+                    if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+                        }
+                    }
+
+                    if (data.has("status")) {
+                        DeviceValue leakDb = device.getValues().get(StandartDeviceValueLabel.LEAK.getName());
+                        Boolean leak;
+
+                        if (data.get("status").getAsString().equals("leak")) {
+                            leak = true;
+                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), true))
+                                    || leakDb == null || leakDb.getCurrentValue() == null) {
+                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
+
+                                broadcast("event.device.leak", new DeviceChangeEvent(
+                                        device.getChannel(),
+                                        SourceProtocol.XIAOMI,
+                                        StandartDeviceValueLabel.LEAK.getName(),
+                                        leak.toString(),
+                                        ValueType.BOOL)
+                                );
+
+                                logger.info("Channel: {} Leak detected", notification.getSid());
+                            }
+                        } else {
+                            leak = false;
+                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), false))
+                                    || leakDb == null || leakDb.getCurrentValue() == null) {
+                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
+
+                                broadcast("event.device.leak", new DeviceChangeEvent(
+                                        device.getChannel(),
+                                        SourceProtocol.XIAOMI,
+                                        StandartDeviceValueLabel.LEAK.getName(),
+                                        leak.toString(),
+                                        ValueType.BOOL)
+                                );
+                                logger.info("Channel: {} Leak gone", notification.getSid());
+                            }
                         }
                     }
                 }
@@ -407,6 +484,7 @@ public class XiaomiController extends AbstractProtocolService {
                     JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
 
                     if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
                         Double voltage = data.get("voltage").getAsDouble() / 1000D;
                         DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
 
@@ -414,7 +492,7 @@ public class XiaomiController extends AbstractProtocolService {
                                 || voltageDb == null || voltageDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.voltage." + data.get("voltage").getAsString(), new DeviceChangeEvent(
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
                                     device.getChannel(),
                                     SourceProtocol.XIAOMI,
                                     StandartDeviceValueLabel.VOLTAGE.getName(),
@@ -425,6 +503,44 @@ public class XiaomiController extends AbstractProtocolService {
                             logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
                         }
                     }
+
+                    if (data.has("status")) {
+                        DeviceValue leakDb = device.getValues().get(StandartDeviceValueLabel.LEAK.getName());
+                        Boolean leak;
+
+                        if (data.get("status").getAsString().equals("leak")) {
+                            leak = true;
+                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), true))
+                                    || leakDb == null || leakDb.getCurrentValue() == null) {
+                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
+
+                                broadcast("event.device.leak", new DeviceChangeEvent(
+                                        device.getChannel(),
+                                        SourceProtocol.XIAOMI,
+                                        StandartDeviceValueLabel.LEAK.getName(),
+                                        leak.toString(),
+                                        ValueType.BOOL)
+                                );
+
+                                logger.info("Channel: {} Leak detected", notification.getSid());
+                            }
+                        } else {
+                            leak = false;
+                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), false))
+                                    || leakDb == null || leakDb.getCurrentValue() == null) {
+                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
+
+                                broadcast("event.device.leak", new DeviceChangeEvent(
+                                        device.getChannel(),
+                                        SourceProtocol.XIAOMI,
+                                        StandartDeviceValueLabel.LEAK.getName(),
+                                        leak.toString(),
+                                        ValueType.BOOL)
+                                );
+                                logger.info("Channel: {} Leak gone", notification.getSid());
+                            }
+                        }
+                    }
                 }
                 break;
             case SWITCH_AQARA_ZERO_1BUTTON:
@@ -433,6 +549,27 @@ public class XiaomiController extends AbstractProtocolService {
 
                 if (message.has("data")) {
                     JsonObject data = PARSER.parse(message.get(StandartDeviceValueLabel.LEVEL.getName()).getAsString()).getAsJsonObject();
+
+                    if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+                        }
+                    }
 
                     if (data.has("channel_0")) {
                         String ch0 = data.get("channel_0").getAsString().equals("on")
@@ -464,6 +601,27 @@ public class XiaomiController extends AbstractProtocolService {
 
                 if (message.has("data")) {
                     JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+
+                    if (data.has("voltage")) {
+                        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
+                        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+                        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+                        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+                                || voltageDb == null || voltageDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+                            broadcast("event.device.voltage", new DeviceChangeEvent(
+                                    device.getChannel(),
+                                    SourceProtocol.XIAOMI,
+                                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                                    voltage.toString(),
+                                    ValueType.DOUBLE)
+                            );
+
+                            logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+                        }
+                    }
 
                     if (data.has("channel_0")) {
                         String ch0 = data.get("channel_0").getAsString().equals("on")
@@ -504,8 +662,8 @@ public class XiaomiController extends AbstractProtocolService {
                                     ValueType.BYTE)
                             );
 
-		                        logger.info("Channel: {}, subchannel 2: Light is {}", notification.getSid(),
-		                                    data.get("channel_1").getAsString());
+                            logger.info("Channel: {}, subchannel 2: Light is {}", notification.getSid(),
+                                    data.get("channel_1").getAsString());
                         }
                     }
                 }
@@ -517,11 +675,21 @@ public class XiaomiController extends AbstractProtocolService {
 
 
     @Scheduled(fixedDelay = 3600000, initialDelay = 10000)
-    void searchDevices() {
+    private void searchDevices() {
         gateway.discoverItems();
     }
 
+    private void checkBatteryLevelFromVoltage(String channel, Integer voltage) {
+        voltage = Math.min(VOLTAGE_MAX_MILLIVOLTS, voltage);
+        voltage = Math.max(VOLTAGE_MIN_MILLIVOLTS, voltage);
+        Integer battLevel = (int) ((float) (voltage - VOLTAGE_MIN_MILLIVOLTS)
+                / (float) (VOLTAGE_MAX_MILLIVOLTS - VOLTAGE_MIN_MILLIVOLTS) * 100);
 
+        if (battLevel <= BATT_LEVEL_LOW) {
+            broadcast("event.device.battery", new DeviceProtocolEvent(channel, SourceProtocol.XIAOMI, BATTERY_LOW.getName()));
+            logger.info("Channel: {} Battery low", channel);
+        }
+    }
 
     @Getter
     @Setter
