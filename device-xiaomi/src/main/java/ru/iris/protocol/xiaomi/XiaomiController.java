@@ -61,7 +61,6 @@ public class XiaomiController extends AbstractProtocolService {
     private static final int VOLTAGE_MAX_MILLIVOLTS = 3100;
     private static final int VOLTAGE_MIN_MILLIVOLTS = 2700;
     private static final int BATT_LEVEL_LOW = 20;
-    private static final int BATT_LEVEL_LOW_HYS = 5;
 
     @Autowired
     public XiaomiController(EventBus r,
@@ -439,41 +438,23 @@ public class XiaomiController extends AbstractProtocolService {
                     }
 
                     if (data.has("status")) {
-                        DeviceValue leakDb = device.getValues().get(StandartDeviceValueLabel.LEAK.getName());
-                        Boolean leak;
+                        String status = data.get("status").getAsString();
+                        DeviceValue statusDb = device.getValues().get(StandartDeviceValueLabel.STATUS.getName());
 
-                        if (data.get("status").getAsString().equals("leak")) {
-                            leak = true;
-                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), true))
-                                    || leakDb == null || leakDb.getCurrentValue() == null) {
-                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
+                        if ((statusDb != null && statusDb.getCurrentValue() != null && !statusDb.getCurrentValue().equals(status))
+                                || statusDb == null || statusDb.getCurrentValue() == null) {
+                            registry.addChange(device, StandartDeviceValueLabel.STATUS.getName(), status, ValueType.STRING);
 
-                                broadcast("event.device.leak", new DeviceChangeEvent(
+                            broadcast("event.device.button", new DeviceChangeEvent(
                                         device.getChannel(),
                                         SourceProtocol.XIAOMI,
-                                        StandartDeviceValueLabel.LEAK.getName(),
-                                        leak.toString(),
-                                        ValueType.BOOL)
+                                    StandartDeviceValueLabel.STATUS.getName(),
+                                    status,
+                                    ValueType.STRING)
                                 );
 
-                                logger.info("Channel: {} Leak detected", notification.getSid());
+                            logger.info("Channel: {} Button status: {}", notification.getSid(), status);
                             }
-                        } else {
-                            leak = false;
-                            if ((leakDb != null && leakDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(leakDb.getCurrentValue()), false))
-                                    || leakDb == null || leakDb.getCurrentValue() == null) {
-                                registry.addChange(device, StandartDeviceValueLabel.LEAK.getName(), leak.toString(), ValueType.BOOL);
-
-                                broadcast("event.device.leak", new DeviceChangeEvent(
-                                        device.getChannel(),
-                                        SourceProtocol.XIAOMI,
-                                        StandartDeviceValueLabel.LEAK.getName(),
-                                        leak.toString(),
-                                        ValueType.BOOL)
-                                );
-                                logger.info("Channel: {} Leak gone", notification.getSid());
-                            }
-                        }
                     }
                 }
                 break;

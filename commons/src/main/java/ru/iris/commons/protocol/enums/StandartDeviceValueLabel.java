@@ -9,6 +9,8 @@ public enum StandartDeviceValueLabel {
 
     BATTERY("battery"),
 
+    STATUS("status"),
+
     TEMPERATURE("temperature"),
     HUMIDITY("humidity"),
     VOLTAGE("voltage"),
