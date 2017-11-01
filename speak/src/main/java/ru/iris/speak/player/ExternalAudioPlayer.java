@@ -1,11 +1,10 @@
 package ru.iris.speak.player;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author nix (02.09.2017)
@@ -29,7 +28,7 @@ public class ExternalAudioPlayer implements AudioPlayer {
 			input.close();
 		}
 		catch (Exception err) {
-			err.printStackTrace();
-		}
+            logger.error("", err);
+        }
 	}
 }

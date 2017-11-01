@@ -19,6 +19,8 @@ public abstract class AbstractService implements Service {
     @Autowired
     private EventBus r;
 
+    protected boolean disabled = false;
+
     @Override
     @PostConstruct
     public abstract void onStartup() throws InterruptedException;

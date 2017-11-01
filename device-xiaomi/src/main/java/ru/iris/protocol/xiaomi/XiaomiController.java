@@ -120,12 +120,14 @@ public class XiaomiController extends AbstractProtocolService {
                             gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"on"});
                             broadcast(
                                     "event.device.on",
-                                    new DeviceChangeEvent(
-                                            x.getChannel(),
-                                            SourceProtocol.XIAOMI,
-                                            StandartDeviceValueLabel.LEVEL.getName(),
-                                            StandartDeviceValue.FULL_ON.getValue(),
-                                            ValueType.BYTE));
+                                    DeviceCommandEvent.builder()
+                                            .channel(x.getChannel())
+                                            .protocol(SourceProtocol.XIAOMI)
+                                            .eventLabel(StandartDeviceValueLabel.LEVEL.getName())
+                                            .data(new DataLevel(StandartDeviceValue.FULL_ON.getValue(), ValueType.BYTE))
+                                            .clazz(DataLevel.class)
+                                            .build()
+                            );
                         } else if (x.getClazz().equals(DataSubChannelLevel.class)) {
                             DataSubChannelLevel data = (DataSubChannelLevel) x.getData();
                             logger.info("Turn ON device on channel {}, subchannel: {}", x.getChannel(), data.getSubChannel());
@@ -133,13 +135,14 @@ public class XiaomiController extends AbstractProtocolService {
                             gateway.writeToDevice(x.getChannel(), new String[]{"channel_" + subchannel}, new String[]{"on"});
                             broadcast(
                                     "event.device.on",
-                                    new DeviceChangeEvent(
-                                            x.getChannel(),
-                                            SourceProtocol.XIAOMI,
-                                            StandartDeviceValueLabel.LEVEL.getName(),
-                                            String.valueOf(subchannel),
-                                            StandartDeviceValue.FULL_ON.getValue(),
-                                            ValueType.BYTE));
+                                    DeviceCommandEvent.builder()
+                                            .channel(x.getChannel())
+                                            .protocol(SourceProtocol.XIAOMI)
+                                            .eventLabel(StandartDeviceValueLabel.LEVEL.getName())
+                                            .data(new DataLevel(String.valueOf(subchannel), StandartDeviceValue.FULL_ON.getValue(), ValueType.BYTE))
+                                            .clazz(DataLevel.class)
+                                            .build()
+                            );
                         } else {
                             logger.error("Unknown data class!");
                         }
@@ -425,12 +428,13 @@ public class XiaomiController extends AbstractProtocolService {
                                 || voltageDb == null || voltageDb.getCurrentValue() == null) {
                             registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
 
-                            broadcast("event.device.voltage", new DeviceChangeEvent(
-                                    device.getChannel(),
-                                    SourceProtocol.XIAOMI,
-                                    StandartDeviceValueLabel.VOLTAGE.getName(),
-                                    voltage.toString(),
-                                    ValueType.DOUBLE)
+                            broadcast("event.device.voltage",
+                                    DeviceCommandEvent.builder()
+                                            .channel(device.getChannel())
+                                            .protocol(SourceProtocol.XIAOMI)
+                                            .eventLabel(StandartDeviceValueLabel.VOLTAGE.getName())
+                                            .data(new DataLevel(voltage.toString(), ValueType.DOUBLE))
+                                            .build()
                             );
 
                             logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);

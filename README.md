@@ -17,7 +17,7 @@ Please remember that this project is in deep alpha and now is mostly for develop
 
 * ZWave
 * Noolite
-* Xiaomi MiHome (in progress)
+* Xiaomi MiHome
 
 ## Requirements
 
@@ -38,7 +38,7 @@ Database for IRIS will be created dynamically at first run.
 
 ## Run
 
-Type in command line: **./start.sh** or use **conf/irisd** script
+Type in command line: **./start.sh**
 
 ## Licence
 

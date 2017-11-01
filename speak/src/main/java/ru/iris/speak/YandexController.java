@@ -3,25 +3,20 @@ package ru.iris.speak;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.bus.service.ServiceEvent;
 import ru.iris.commons.bus.speak.SpeakEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
 import ru.iris.commons.database.model.Speaks;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
-import ru.iris.speak.player.AudioFilePlayer;
 import ru.iris.speak.player.AudioPlayer;
-import ru.iris.speak.player.ExternalAudioPlayer;
-import ru.iris.speak.player.LibraryAudioPlayer;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
@@ -40,15 +35,17 @@ public class YandexController extends AbstractService implements Speak {
     private final ConfigLoader config;
     private final ArrayBlockingQueue<SpeakEvent> queue = new ArrayBlockingQueue<>(50);
     private final SpeakDAO speakDAO;
-    @Autowired
-    private EventBus r;
+
     private Map<String, Long> cache = new HashMap<>();
     private String API_KEY;
     private String language;
     private String speaker;
 
-		@Autowired
-		private AudioPlayer audioPlayer;
+    @Autowired
+    private EventBus r;
+
+    @Autowired
+    private AudioPlayer audioPlayer;
 
     @Autowired
     public YandexController(SpeakDAO speakDAO, ConfigLoader config) {
@@ -77,6 +74,7 @@ public class YandexController extends AbstractService implements Speak {
     @Override
     public void subscribe() throws Exception {
         addSubscription("event.speak");
+        addSubscription("service.speak");
     }
 
     @Override
@@ -98,12 +96,10 @@ public class YandexController extends AbstractService implements Speak {
             try {
                 adv = queue.poll(1000, TimeUnit.MILLISECONDS);
             } catch (InterruptedException ex) {
-                logger.error("Error: {}", ex.getLocalizedMessage());
+                logger.error("Error:", ex);
             }
             if (adv == null)
                 continue;
-
-            logger.debug("Something coming into the pool!");
 
             String text = adv.getText();
 
@@ -118,7 +114,7 @@ public class YandexController extends AbstractService implements Speak {
 
                 try {
                     outputStream = new FileOutputStream(new File("data/cache-" + cacheIdent + ".mp3"));
-                    logger.info("Trying to get MP3 data");
+                    logger.debug("Trying to get MP3 data");
                     result = getMP3Data(text);
 
                     byte[] byteArray = IOUtils.toByteArray(result);
@@ -132,9 +128,9 @@ public class YandexController extends AbstractService implements Speak {
                         outputStream.write(bytes, 0, read);
                     }
 
-                    logger.info("Saved");
+                    logger.debug("Saved");
                 } catch (IOException ex) {
-                    logger.error("Error: {}", ex.getLocalizedMessage());
+                    logger.error("Error:", ex);
                     return;
                 } finally {
                     try {
@@ -145,11 +141,11 @@ public class YandexController extends AbstractService implements Speak {
                         if (result != null)
                             result.close();
                     } catch (IOException ex) {
-                        logger.error("Error: {}", ex.getLocalizedMessage());
+                        logger.error("Error:", ex);
                     }
                 }
 
-                logger.info("Saving cache into db");
+                logger.debug("Saving cache into db");
 
                 Speaks speak = new Speaks();
                 speak.setCache(cacheIdent);
@@ -176,8 +172,27 @@ public class YandexController extends AbstractService implements Speak {
     }
 
     @Override
+    @SuppressWarnings("Duplicates")
     public Consumer<Event<?>> handleMessage() {
         return event -> {
+
+            if (event.getData() instanceof ServiceEvent) {
+                ServiceEvent e = (ServiceEvent) event.getData();
+                String label = e.getLabel() == null ? "" : e.getLabel();
+
+                if (disabled && label.equals("ServiceOn")) {
+                    disabled = false;
+                }
+                if (!disabled && label.equals("ServiceOff")) {
+                    disabled = true;
+                    queue.clear();
+                }
+            }
+
+            // if service disabled at this moment - do nothing
+            if (disabled) {
+                return;
+            }
 
             if (event.getData() instanceof SpeakEvent) {
                 try {
