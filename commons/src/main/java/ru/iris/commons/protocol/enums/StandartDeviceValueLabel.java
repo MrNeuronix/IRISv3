@@ -15,6 +15,10 @@ public enum StandartDeviceValueLabel {
     HUMIDITY("humidity"),
     VOLTAGE("voltage"),
 
+		ILLUMINANCE("illuminance"),
+
+		MOTION("motion"),
+
     OPENED("opened"),
 
     LEAK("leak"),

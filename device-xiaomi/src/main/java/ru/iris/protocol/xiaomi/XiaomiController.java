@@ -280,7 +280,15 @@ public class XiaomiController extends AbstractProtocolService {
                     device.setType(DeviceType.BINARY_SWITCH);
                     device.setProductName("Aqara Wireless Switch 2 Buttons");
                     break;
-                default:
+	              case SENSOR_MOTION:
+			              device.setType(DeviceType.MOTION_SENSOR);
+			              device.setProductName("Generic Motion Sensor");
+	              case SENSOR_AQUARA_MOTION:
+	              	  device.setType(DeviceType.MOTION_SENSOR);
+	              	  device.setProductName("Aqara Motion Sensor");
+                    break;
+
+	              default:
                     device.setProductName("Unknown device");
                     device.setType(DeviceType.UNKNOWN);
             }
@@ -653,6 +661,76 @@ public class XiaomiController extends AbstractProtocolService {
                     }
                 }
                 break;
+	        case SENSOR_MOTION:
+	        case SENSOR_AQUARA_MOTION:
+		        message = notification.getRawMessage();
+
+		        if (message.has("data")) {
+			        JsonObject data = PARSER.parse(message.get("data").getAsString()).getAsJsonObject();
+
+			        if (data.has("lux")) {
+				        Integer lux = data.get("lux").getAsInt();
+				        DeviceValue luxDb = device.getValues().get(StandartDeviceValueLabel.ILLUMINANCE.getName());
+
+				        if ((luxDb != null && luxDb.getCurrentValue() != null && !Objects.equals(Integer.valueOf(luxDb.getCurrentValue()), lux))
+				            || luxDb == null || luxDb.getCurrentValue() == null) {
+					        registry.addChange(device, StandartDeviceValueLabel.ILLUMINANCE.getName(), lux.toString(), ValueType.INT);
+
+					        broadcast("event.device.illuminance", new DeviceChangeEvent(
+							        device.getChannel(),
+							        SourceProtocol.XIAOMI,
+							        StandartDeviceValueLabel.ILLUMINANCE.getName(),
+							        lux.toString(),
+							        ValueType.INT)
+					        );
+
+					        logger.info("Channel: {} Illuminance: {} lux", notification.getSid(), lux);
+				        }
+			        }
+
+			        if (data.has("status")) {
+				        Boolean motion = data.get("status").getAsString().equals("motion");
+				        DeviceValue motionDb = device.getValues().get(StandartDeviceValueLabel.MOTION.getName());
+
+				        if ((motionDb != null && motionDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(motionDb.getCurrentValue()), motion))
+				            || motionDb == null || motionDb.getCurrentValue() == null) {
+					        registry.addChange(device, StandartDeviceValueLabel.MOTION.getName(), motion.toString(), ValueType.BOOL);
+
+					        broadcast("event.device.motion", new DeviceChangeEvent(
+							        device.getChannel(),
+							        SourceProtocol.XIAOMI,
+							        StandartDeviceValueLabel.MOTION.getName(),
+							        motion.toString(),
+							        ValueType.BOOL)
+					        );
+
+					        logger.info("Channel: {} Motion detected", notification.getSid());
+				        }
+			        }
+
+			        if (data.has("voltage")) {
+				        checkBatteryLevelFromVoltage(device.getChannel(), data.get("voltage").getAsInt());
+				        Double voltage = data.get("voltage").getAsDouble() / 1000D;
+				        DeviceValue voltageDb = device.getValues().get(StandartDeviceValueLabel.VOLTAGE.getName());
+
+				        if ((voltageDb != null && voltageDb.getCurrentValue() != null && !Objects.equals(Double.valueOf(voltageDb.getCurrentValue()), voltage))
+				            || voltageDb == null || voltageDb.getCurrentValue() == null) {
+					        registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
+
+					        broadcast("event.device.voltage", new DeviceChangeEvent(
+							        device.getChannel(),
+							        SourceProtocol.XIAOMI,
+							        StandartDeviceValueLabel.VOLTAGE.getName(),
+							        voltage.toString(),
+							        ValueType.DOUBLE)
+					        );
+
+					        logger.info("Channel: {} Voltage {}V", notification.getSid(), voltage);
+				        }
+			        }
+		        }
+
+		        break;
             default:
                 //skip
         }

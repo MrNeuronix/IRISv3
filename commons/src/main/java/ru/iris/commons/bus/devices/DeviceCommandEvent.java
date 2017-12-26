@@ -1,5 +1,6 @@
 package ru.iris.commons.bus.devices;
 
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import ru.iris.commons.protocol.data.DataLevel;
@@ -49,4 +50,14 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.data = new DataSubChannelLevel(subchannel, to, ValueType.UNKNOWN);
         this.clazz = DataSubChannelLevel.class;
     }
+
+    @Builder
+		public DeviceCommandEvent(String channel, SourceProtocol protocol, String eventLabel, Object data, Class clazz) {
+				super();
+				super.channel = channel;
+				super.protocol = protocol;
+				super.eventLabel = eventLabel;
+				super.data = data;
+				super.clazz = clazz;
+		}
 }

@@ -9,7 +9,6 @@ import ru.iris.commons.protocol.enums.SourceProtocol;
 @Getter
 @Setter
 @NoArgsConstructor
-@Builder
 public abstract class AbstractDeviceEvent implements Event {
     protected String channel;
     protected SourceProtocol protocol;
