@@ -690,18 +690,16 @@ public class XiaomiController extends AbstractProtocolService {
 
 			        if (data.has("status")) {
 				        Boolean motion = data.get("status").getAsString().equals("motion");
-				        DeviceValue motionDb = device.getValues().get(StandartDeviceValueLabel.MOTION.getName());
 
-				        if ((motionDb != null && motionDb.getCurrentValue() != null && !Objects.equals(Boolean.valueOf(motionDb.getCurrentValue()), motion))
-				            || motionDb == null || motionDb.getCurrentValue() == null) {
-					        registry.addChange(device, StandartDeviceValueLabel.MOTION.getName(), motion.toString(), ValueType.BOOL);
+				        if (motion) {
+					        registry.addChange(device, StandartDeviceValueLabel.MOTION.getName(), motion.toString(), ValueType.TRIGGER);
 
 					        broadcast("event.device.motion", new DeviceChangeEvent(
 							        device.getChannel(),
 							        SourceProtocol.XIAOMI,
 							        StandartDeviceValueLabel.MOTION.getName(),
 							        motion.toString(),
-							        ValueType.BOOL)
+							        ValueType.TRIGGER)
 					        );
 
 					        logger.info("Channel: {} Motion detected", notification.getSid());

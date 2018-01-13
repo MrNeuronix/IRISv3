@@ -14,6 +14,7 @@ import ru.iris.commons.database.model.Device;
 import ru.iris.commons.protocol.enums.EventLabel;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.facade.model.DeviceInfoRequest;
+import ru.iris.facade.model.DeviceNamingRequest;
 import ru.iris.facade.model.DeviceSetLevelRequest;
 import ru.iris.commons.model.status.ErrorStatus;
 import ru.iris.commons.model.status.OkStatus;
@@ -112,6 +113,28 @@ public class DevicesFacade {
 
         return new OkStatus("message sent");
     }
+
+	/**
+	 * Name device
+	 *
+	 * @param request request
+	 * @return result text
+	 */
+	@RequestMapping(value = "/api/device/name", method = RequestMethod.POST)
+	public Object setNameForDevice(@RequestBody DeviceNamingRequest request) {
+		if (request.getSource() == null || request.getSource() == null || request.getName() == null)
+			return new ErrorStatus("source fields is empty or null");
+
+		Device device = registry.getDevice(request.getSource(), request.getChannel());
+
+		if (device == null)
+			return new ErrorStatus("device not found");
+
+		device.setHumanReadable(request.getName());
+		registry.addOrUpdateDevice(device);
+
+		return new OkStatus("device saved");
+	}
 
     // sent message
     private void setDeviceLevel(Object message) {
