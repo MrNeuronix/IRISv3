@@ -80,11 +80,15 @@ public class EventsController extends AbstractService {
                 String label = e.getLabel() == null ? "" : e.getLabel();
 
                 if (disabled && label.equals("ServiceOn")) {
+                    logger.info("Event engine is enabled by request");
                     disabled = false;
                 }
                 if (!disabled && label.equals("ServiceOff")) {
+                    logger.info("Event engine is disabled by request");
                     disabled = true;
                 }
+
+                return;
             }
 
             // if service disabled at this moment - do nothing

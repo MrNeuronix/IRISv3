@@ -183,14 +183,14 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     public DeviceValue getDeviceValue(String humanReadableIdent, String value) {
-
         String ident = humanReadable.get(humanReadableIdent);
 
         if (ident != null) {
             Device device = registry.get(ident);
             return device.getValues().getOrDefault(value, null);
-        } else
+        } else {
             return null;
+        }
     }
 
     /////////////////////////////////////////////////////////////////

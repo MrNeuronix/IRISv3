@@ -7,15 +7,17 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.bus.Event;
 import reactor.bus.EventBus;
+import ru.iris.commons.bus.service.ServiceEvent;
+import ru.iris.commons.model.status.ErrorStatus;
+import ru.iris.commons.model.status.OkStatus;
 import ru.iris.commons.registry.DeviceRegistry;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 @RestController
@@ -51,7 +53,7 @@ public class SystemFacade {
         return propsConfig;
     }
 
-    @RequestMapping(value = "/api/system", method = RequestMethod.GET)
+    @RequestMapping(value = "/api/system/info", method = RequestMethod.GET)
     public Object getSystemInfo() {
         properties.put("commitMessage", commitMessage);
         properties.put("branch", branch);
@@ -60,5 +62,21 @@ public class SystemFacade {
         properties.put("buildTime", buildtime);
         properties.put("version", version);
         return properties;
+    }
+
+    @RequestMapping(value = "/api/system/scripts/{state}", method = RequestMethod.GET)
+    public Object systemRestart(@PathVariable String state) {
+        switch (state.toLowerCase()) {
+            case "on":
+                r.notify("command.service", Event.wrap(new ServiceEvent("ServiceOn")));
+                break;
+            case "off":
+                r.notify("command.service", Event.wrap(new ServiceEvent("ServiceOff")));
+                break;
+            default:
+                return new ErrorStatus("Arguments unknown");
+        }
+
+        return new OkStatus("Script engine is " + state.toUpperCase());
     }
 }

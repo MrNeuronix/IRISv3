@@ -1,7 +1,6 @@
 package ru.iris.protocol.noolite;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,8 +15,6 @@ import ru.iris.commons.bus.devices.DeviceCommandEvent;
 import ru.iris.commons.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.data.DataLevel;
 import ru.iris.commons.protocol.enums.*;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;

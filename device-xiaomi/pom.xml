@@ -46,7 +46,7 @@
                             <repositoryLayout>default</repositoryLayout>
                             <groupId>ru.iris</groupId>
                             <artifactId>xiaomi4j</artifactId>
-                            <version>1.0.0</version>
+                            <version>1.0.2</version>
                             <packaging>jar</packaging>
                             <generatePom>true</generatePom>
                         </configuration>
