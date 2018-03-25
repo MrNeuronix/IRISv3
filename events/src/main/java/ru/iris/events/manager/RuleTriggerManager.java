@@ -8,9 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-import ru.iris.commons.database.model.Device;
+import ru.iris.models.database.Device;
 import ru.iris.events.types.*;
 
 import java.util.*;

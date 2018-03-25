@@ -7,18 +7,23 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.DeviceChangeEvent;
-import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.Queue;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.protocol.data.DataLevel;
-import ru.iris.commons.protocol.enums.*;
+import ru.iris.models.database.Device;
+import ru.iris.models.protocol.data.DataLevel;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.EventLabel;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.StandartDeviceValue;
+import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
+import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite4j.sender.PC1132;
-
-import static ru.iris.commons.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
 
 @Component
 @Profile("noolite")
@@ -57,7 +62,7 @@ public class NooliteTXController extends AbstractProtocolService {
 
     @Override
     public void subscribe() throws Exception {
-        addSubscription("command.device");
+        addSubscription(Queue.COMMAND_DEVICE);
     }
 
     @Override
@@ -89,7 +94,7 @@ public class NooliteTXController extends AbstractProtocolService {
 			            device.setChannel(channel);
 
 			            device = registry.addOrUpdateDevice(device);
-			            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
+			            broadcast(Queue.EVENT_DEVICE_ADDED, new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
 		            }
 
                 switch (EventLabel.parse(n.getEventLabel())) {
@@ -104,7 +109,7 @@ public class NooliteTXController extends AbstractProtocolService {
 				                    ValueType.BYTE
 		                    );
 
-                        broadcast("command.device.on", new DeviceChangeEvent(
+                        broadcast(Queue.EVENT_DEVICE_ON, new DeviceChangeEvent(
                                 n.getChannel(),
                                 SourceProtocol.NOOLITE,
                                 StandartDeviceValueLabel.LEVEL.getName(),
@@ -123,7 +128,7 @@ public class NooliteTXController extends AbstractProtocolService {
 				                    ValueType.BYTE
 		                    );
 
-                        broadcast("command.device.off", new DeviceChangeEvent(
+                        broadcast(Queue.EVENT_DEVICE_OFF, new DeviceChangeEvent(
                                 n.getChannel(),
                                 SourceProtocol.NOOLITE,
                                 StandartDeviceValueLabel.LEVEL.getName(),
@@ -144,7 +149,7 @@ public class NooliteTXController extends AbstractProtocolService {
 				                        ValueType.BYTE
 		                        );
 
-                            broadcast("command.device.level", new DeviceChangeEvent(
+                            broadcast(Queue.EVENT_DEVICE_LEVEL, new DeviceChangeEvent(
                                     n.getChannel(),
                                     SourceProtocol.NOOLITE,
                                     StandartDeviceValueLabel.LEVEL.getName(),

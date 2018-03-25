@@ -1,6 +1,6 @@
 package ru.iris.events.types;
 
-import ru.iris.commons.database.model.Device;
+import ru.iris.models.database.Device;
 
 public class ChangedEventTrigger implements EventTrigger {
     private String itemName;

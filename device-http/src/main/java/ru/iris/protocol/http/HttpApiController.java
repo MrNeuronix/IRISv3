@@ -11,15 +11,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
-import ru.iris.commons.bus.devices.DeviceChangeEvent;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.model.status.BackendAnswer;
-import ru.iris.commons.model.status.ErrorStatus;
-import ru.iris.commons.model.status.OkStatus;
-import ru.iris.commons.protocol.enums.DeviceType;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.models.bus.Queue;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.database.Device;
+import ru.iris.models.status.BackendAnswer;
+import ru.iris.models.status.ErrorStatus;
+import ru.iris.models.status.OkStatus;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 
 @Component
@@ -58,7 +59,7 @@ public class HttpApiController {
         if (state != null) {
             logger.info("HTTP channel {}: State {}", channel, state);
             deviceRegistry.addChange(device, "state", state.toString(), ValueType.TRIGGER);
-            broadcast("event.device.state", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state.toString(), ValueType.TRIGGER));
+            broadcast(Queue.EVENT_STATE.getString(), new DeviceChangeEvent(channel, SourceProtocol.HTTP, "state", state.toString(), ValueType.TRIGGER));
         } else {
             return new ErrorStatus("No state passed. Only true/false accepted");
         }
@@ -88,7 +89,7 @@ public class HttpApiController {
 
         logger.info("HTTP channel {}: Triggered", channel);
         deviceRegistry.addChange(device, "alarm", "triggered", ValueType.TRIGGER);
-        broadcast("event.device.trigger", new DeviceChangeEvent(channel, SourceProtocol.HTTP, "alarm", "triggered", ValueType.TRIGGER));
+        broadcast(Queue.EVENT_TRIGGER.getString(), new DeviceChangeEvent(channel, SourceProtocol.HTTP, "alarm", "triggered", ValueType.TRIGGER));
 
         return new OkStatus("Received");
     }

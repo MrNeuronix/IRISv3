@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
-import ru.iris.commons.bus.service.ServiceEvent;
-import ru.iris.commons.model.status.ErrorStatus;
-import ru.iris.commons.model.status.OkStatus;
+import ru.iris.models.bus.service.ServiceEvent;
+import ru.iris.models.status.ErrorStatus;
+import ru.iris.models.status.OkStatus;
 import ru.iris.commons.registry.DeviceRegistry;
 
 import java.util.Properties;

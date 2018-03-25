@@ -1,8 +1,8 @@
 package ru.iris.commons.database.dao;
 
 import org.springframework.data.repository.CrudRepository;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.models.database.Device;
+import ru.iris.models.protocol.enums.SourceProtocol;
 
 import javax.transaction.Transactional;
 import java.util.List;

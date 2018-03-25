@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
-import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.protocol.enums.EventLabel;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.database.Device;
+import ru.iris.models.protocol.enums.EventLabel;
 import ru.iris.commons.registry.DeviceRegistry;
 
 @Component

@@ -1,7 +1,7 @@
 package ru.iris.events.types;
 
 import lombok.Getter;
-import ru.iris.commons.database.model.Device;
+import ru.iris.models.database.Device;
 
 @Getter
 public class CommandEventTrigger implements EventTrigger {

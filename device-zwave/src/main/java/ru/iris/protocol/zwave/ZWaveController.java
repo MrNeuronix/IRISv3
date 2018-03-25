@@ -12,15 +12,20 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.DeviceChangeEvent;
-import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.data.DataLevel;
-import ru.iris.commons.protocol.enums.*;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.models.database.Device;
+import ru.iris.models.database.DeviceValue;
+import ru.iris.models.protocol.data.DataLevel;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.EventLabel;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.StandartDeviceValue;
+import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
+import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 
@@ -82,11 +87,11 @@ public class ZWaveController extends AbstractProtocolService {
                         logger.info("Turn ON device on channel {}", z.getChannel());
                         deviceSetLevel(z.getChannel(), 255);
                         broadcast("event.device.on", new DeviceChangeEvent(
-                                z.getChannel(),
-                                SourceProtocol.ZWAVE,
-                                StandartDeviceValueLabel.LEVEL.getName(),
-                                StandartDeviceValue.FULL_ON.getValue(),
-                                ValueType.BYTE)
+		                        z.getChannel(),
+		                        SourceProtocol.ZWAVE,
+		                        StandartDeviceValueLabel.LEVEL.getName(),
+		                        StandartDeviceValue.FULL_ON.getValue(),
+		                        ValueType.BYTE)
                         );
                         break;
                     case TURN_OFF:
@@ -603,7 +608,7 @@ public class ZWaveController extends AbstractProtocolService {
         }
     }
 
-    private ru.iris.commons.protocol.enums.ValueType getValueType(ValueId valueId) {
+    private ValueType getValueType(ValueId valueId) {
         switch (valueId.getType()) {
             case BOOL:
                 return ValueType.BOOL;

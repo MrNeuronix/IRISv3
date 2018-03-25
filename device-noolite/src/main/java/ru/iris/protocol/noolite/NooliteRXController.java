@@ -10,12 +10,19 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.DeviceChangeEvent;
-import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.Queue;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.protocol.enums.*;
+import ru.iris.models.database.Device;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.EventLabel;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.StandartDeviceValue;
+import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
+import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.noolite4j.receiver.RX2164;
@@ -24,7 +31,7 @@ import ru.iris.noolite4j.watchers.Notification;
 import ru.iris.noolite4j.watchers.SensorType;
 import ru.iris.noolite4j.watchers.Watcher;
 
-import static ru.iris.commons.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
+import static ru.iris.models.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
 
 @Component
 @Profile("noolite")
@@ -60,8 +67,8 @@ public class NooliteRXController extends AbstractProtocolService {
 
     @Override
     public void subscribe() throws Exception {
-        addSubscription("command.device");
-        addSubscription("event.device");
+        addSubscription(Queue.EVENT_DEVICE);
+        addSubscription(Queue.COMMAND_DEVICE);
     }
 
     @Override
@@ -147,7 +154,7 @@ public class NooliteRXController extends AbstractProtocolService {
             }
 
             device = registry.addOrUpdateDevice(device);
-            broadcast("event.device.added", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
+            broadcast(Queue.EVENT_DEVICE_ADDED, new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "DeviceAdded"));
         }
 
         // turn off
@@ -162,13 +169,13 @@ public class NooliteRXController extends AbstractProtocolService {
                 }
 
                 registry.addChange(
-                        device,
-                        StandartDeviceValueLabel.LEVEL.getName(),
-                        StandartDeviceValue.FULL_OFF.getValue(),
-                        ValueType.BYTE
+		                device,
+		                StandartDeviceValueLabel.LEVEL.getName(),
+		                StandartDeviceValue.FULL_OFF.getValue(),
+		                ValueType.BYTE
                 );
 
-                broadcast("event.device.off", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_DEVICE_OFF, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.LEVEL.getName(),
@@ -193,7 +200,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.BYTE
                 );
 
-                broadcast("event.device.dim", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_DEVICE_DIM, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.LEVEL.getName(),
@@ -218,7 +225,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.BYTE
                 );
 
-                broadcast("event.device.on", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_DEVICE_ON, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.LEVEL.getName(),
@@ -245,7 +252,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.BYTE
                 );
 
-                broadcast("event.device.bright", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_DEVICE_BRIGHT, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.LEVEL.getName(),
@@ -271,7 +278,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.BYTE
                 );
 
-                broadcast("event.device.level", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_DEVICE_LEVEL, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.LEVEL.getName(),
@@ -283,24 +290,24 @@ public class NooliteRXController extends AbstractProtocolService {
             case STOP_DIM_BRIGHT:
                 logger.info("Channel {}: Got STOPDIMBRIGHT command.", channel);
 
-                broadcast("event.device.stopdimbright", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, EventLabel.STOP_DIM_BRIGHT.getName()));
+                broadcast(Queue.EVENT_DEVICE_STOPDIMBRIGHT, new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, EventLabel.STOP_DIM_BRIGHT.getName()));
                 break;
 
             case TEMP_HUMI:
                 BatteryState battery = (BatteryState) notification.getValue(StandartDeviceValueLabel.BATTERY.getName());
                 logger.info("Channel {}: Got TEMP_HUMI command.", channel);
 
-                ru.iris.commons.protocol.enums.BatteryState batteryState;
+                ru.iris.models.protocol.enums.BatteryState batteryState;
 
                 switch (battery) {
                     case OK:
-                        batteryState = ru.iris.commons.protocol.enums.BatteryState.OK;
+                        batteryState = ru.iris.models.protocol.enums.BatteryState.OK;
                         break;
                     case REPLACE:
-                        batteryState = ru.iris.commons.protocol.enums.BatteryState.LOW;
+                        batteryState = ru.iris.models.protocol.enums.BatteryState.LOW;
                         break;
                     default:
-                        batteryState = ru.iris.commons.protocol.enums.BatteryState.UNKNOWN;
+                        batteryState = ru.iris.models.protocol.enums.BatteryState.UNKNOWN;
                 }
 
                 logger.info("Channel {}: Battery: {}", channel, batteryState);
@@ -324,7 +331,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.STRING
                 );
 
-                broadcast("event.device.temperature", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_TEMPERATURE, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.TEMPERATURE.getName(),
@@ -332,7 +339,7 @@ public class NooliteRXController extends AbstractProtocolService {
                         ValueType.DOUBLE)
                 );
 
-                broadcast("event.device.battery", new DeviceChangeEvent(
+                broadcast(Queue.EVENT_BATTERY_STATUS, new DeviceChangeEvent(
                         channel,
                         SourceProtocol.NOOLITE,
                         StandartDeviceValueLabel.BATTERY.getName(),
@@ -348,7 +355,7 @@ public class NooliteRXController extends AbstractProtocolService {
                             ValueType.DOUBLE
                     );
 
-                    broadcast("event.device.humidity", new DeviceChangeEvent(
+                    broadcast(Queue.EVENT_HUMIDITY, new DeviceChangeEvent(
                             channel,
                             SourceProtocol.NOOLITE,
                             StandartDeviceValueLabel.HUMIDITY.getName(),
@@ -368,13 +375,11 @@ public class NooliteRXController extends AbstractProtocolService {
                     registry.addOrUpdateDevice(device);
                 }
 
-                broadcast("event.device.battery", new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "BatteryLow"));
+                broadcast(Queue.EVENT_BATTERY_STATUS, new DeviceProtocolEvent(channel, SourceProtocol.NOOLITE, "BatteryLow"));
                 break;
 
             default:
                 logger.info("Unknown command: {}", notification.getType().name());
         }
     }
-
-
 }

@@ -8,11 +8,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.dao.DeviceValueDAO;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.database.model.DeviceValueChange;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.models.database.Device;
+import ru.iris.models.database.DeviceValue;
+import ru.iris.models.database.DeviceValueChange;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.ValueType;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;

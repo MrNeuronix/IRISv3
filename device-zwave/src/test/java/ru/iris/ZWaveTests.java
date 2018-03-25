@@ -10,11 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.enums.DeviceType;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.State;
+import ru.iris.models.database.Device;
+import ru.iris.models.database.DeviceValue;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.State;
 import ru.iris.commons.registry.DeviceRegistry;
 
 import java.util.Date;

@@ -3,11 +3,10 @@ package ru.iris.commons.config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import reactor.bus.EventBus;
 import ru.iris.commons.database.dao.ConfigDAO;
-import ru.iris.commons.database.model.Config;
+import ru.iris.models.database.Config;
 
 import java.io.FileInputStream;
 import java.io.IOException;

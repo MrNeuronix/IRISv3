@@ -1,7 +1,7 @@
 package ru.iris.commons.database.dao;
 
 import org.springframework.data.repository.CrudRepository;
-import ru.iris.commons.database.model.Zone;
+import ru.iris.models.database.Zone;
 
 import javax.transaction.Transactional;
 

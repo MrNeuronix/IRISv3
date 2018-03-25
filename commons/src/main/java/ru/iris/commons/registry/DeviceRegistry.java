@@ -1,9 +1,9 @@
 package ru.iris.commons.registry;
 
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.enums.SourceProtocol;
-import ru.iris.commons.protocol.enums.ValueType;
+import ru.iris.models.database.Device;
+import ru.iris.models.database.DeviceValue;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.ValueType;
 
 import java.util.Date;
 import java.util.List;

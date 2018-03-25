@@ -16,6 +16,7 @@
         <module>commons</module>
         <module>facade</module>
         <module>events</module>
+        <module>models</module>
     </modules>
     <packaging>pom</packaging>
 

@@ -187,6 +187,12 @@
                                         <include>**/*.jar</include>
                                     </includes>
                                 </resource>
+                                <resource>
+                                    <directory>../models/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
                             </resources>
                         </configuration>
                     </execution>

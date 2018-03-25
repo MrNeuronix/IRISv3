@@ -3,7 +3,7 @@ package ru.iris.events.types;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import ru.iris.commons.database.model.Device;
+import ru.iris.models.database.Device;
 
 @ToString
 @Getter

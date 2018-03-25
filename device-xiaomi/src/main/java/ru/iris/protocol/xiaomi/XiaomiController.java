@@ -21,15 +21,22 @@ import org.springframework.util.StringUtils;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.commons.bus.devices.DeviceChangeEvent;
-import ru.iris.commons.bus.devices.DeviceCommandEvent;
-import ru.iris.commons.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.Queue;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.commons.database.model.Device;
-import ru.iris.commons.database.model.DeviceValue;
-import ru.iris.commons.protocol.data.DataLevel;
-import ru.iris.commons.protocol.data.DataSubChannelLevel;
-import ru.iris.commons.protocol.enums.*;
+import ru.iris.models.database.Device;
+import ru.iris.models.database.DeviceValue;
+import ru.iris.models.protocol.data.DataLevel;
+import ru.iris.models.protocol.data.DataSubChannelLevel;
+import ru.iris.models.protocol.enums.DeviceType;
+import ru.iris.models.protocol.enums.EventLabel;
+import ru.iris.models.protocol.enums.SourceProtocol;
+import ru.iris.models.protocol.enums.StandartDeviceValue;
+import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
+import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.ValueType;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.xiaomi4j.Discovery;
@@ -42,7 +49,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static ru.iris.commons.protocol.enums.EventLabel.BATTERY_LOW;
+import static ru.iris.models.protocol.enums.EventLabel.BATTERY_LOW;
 
 @Component
 @Profile("xiaomi")
@@ -95,7 +102,7 @@ public class XiaomiController extends AbstractProtocolService {
 
     @Override
     public void subscribe() throws Exception {
-        addSubscription("command.device");
+        addSubscription(Queue.COMMAND_DEVICE);
     }
 
     @Override
@@ -152,7 +159,7 @@ public class XiaomiController extends AbstractProtocolService {
                             logger.info("Turn OFF device on channel {}", x.getChannel());
                             gateway.writeToDevice(x.getChannel(), new String[]{"channel_0"}, new String[]{"off"});
                             broadcast(
-                                    "event.device.off",
+                                    Queue.EVENT_DEVICE_OFF,
                                     new DeviceChangeEvent(
                                             x.getChannel(),
                                             SourceProtocol.XIAOMI,
@@ -165,7 +172,7 @@ public class XiaomiController extends AbstractProtocolService {
                             int subchannel = data.getSubChannel() - 1;
                             gateway.writeToDevice(x.getChannel(), new String[]{"channel_" + subchannel}, new String[]{"off"});
                             broadcast(
-                                    "event.device.off",
+		                            Queue.EVENT_DEVICE_OFF,
                                     new DeviceChangeEvent(
                                             x.getChannel(),
                                             SourceProtocol.XIAOMI,
@@ -600,6 +607,26 @@ public class XiaomiController extends AbstractProtocolService {
 					        );
 
 					        logger.info("Channel: {} Motion detected", notification.getSid());
+				        }
+			        }
+
+			        if (data.has("no_motion")) {
+				        Integer nomotion = data.get("no_motion").getAsInt();
+				        DeviceValue nomotionDb = device.getValues().get(StandartDeviceValueLabel.NO_MOTION.getName());
+
+				        if ((nomotionDb != null && nomotionDb.getCurrentValue() != null && !Objects.equals(Integer.valueOf(nomotionDb.getCurrentValue()), nomotion))
+				            || nomotionDb == null || nomotionDb.getCurrentValue() == null) {
+					        registry.addChange(device, StandartDeviceValueLabel.NO_MOTION.getName(), nomotion.toString(), ValueType.INT);
+
+					        broadcast("event.device.motion.absent", new DeviceChangeEvent(
+							        device.getChannel(),
+							        SourceProtocol.XIAOMI,
+							        StandartDeviceValueLabel.NO_MOTION.getName(),
+							        nomotion.toString(),
+							        ValueType.INT)
+					        );
+
+					        logger.info("Channel: {} No motion detected: {}s", notification.getSid(), nomotion);
 				        }
 			        }
 

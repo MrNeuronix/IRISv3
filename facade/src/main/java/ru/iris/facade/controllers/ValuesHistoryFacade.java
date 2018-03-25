@@ -8,12 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.EventBus;
-import ru.iris.commons.database.model.DeviceValueChange;
-import ru.iris.commons.protocol.enums.SourceProtocol;
+import ru.iris.models.database.DeviceValueChange;
 import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.facade.model.HistoryRequest;
-import ru.iris.facade.model.dto.DeviceValueChangeDTO;
-import ru.iris.commons.model.status.ErrorStatus;
+import ru.iris.models.web.HistoryRequest;
+import ru.iris.models.web.dto.DeviceValueChangeDTO;
+import ru.iris.models.status.ErrorStatus;
 
 import java.text.DateFormat;
 import java.text.ParseException;
