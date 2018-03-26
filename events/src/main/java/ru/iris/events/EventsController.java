@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
@@ -35,6 +36,9 @@ public class EventsController extends AbstractService {
     private ScriptManager scriptManager;
     private SpeakHelper speakHelper;
     private DeviceHelper deviceHelper;
+
+	@Autowired
+	private SimpMessagingTemplate stomp;
 
     @Autowired
     public EventsController(ConfigLoader config, DeviceRegistry registry, RuleTriggerManager triggerManager,
@@ -70,6 +74,9 @@ public class EventsController extends AbstractService {
     @SuppressWarnings("Duplicates")
     public Consumer<Event<?>> handleMessage() throws Exception {
         return event -> {
+        	  // send event to websocket
+        	  stomp.convertAndSend("/topic/event", event);
+
             // skip events while manager not initialized yet
             if (scriptManager == null) {
                 return;

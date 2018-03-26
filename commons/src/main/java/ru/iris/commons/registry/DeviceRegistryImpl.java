@@ -30,7 +30,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     private final Gson gson = new GsonBuilder().create();
     private Map<String, Device> registry = new ConcurrentHashMap<>();
-    private Map<String, String> humanReadable = new ConcurrentHashMap<>();
     private boolean initComplete = false;
 
     @Autowired
@@ -61,10 +60,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
         String ident = device.getSource().name().toLowerCase() + "/channel/" + device.getChannel();
 
-        if (!humanReadable.containsValue(ident))
-            if (device.getHumanReadable() != null && !device.getHumanReadable().isEmpty())
-                humanReadable.put(device.getHumanReadable(), ident);
-
         if (initComplete) {
             device = deviceDAO.save(device);
         }
@@ -83,10 +78,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             }
 
             String ident = device.getSource().name().toLowerCase() + "/channel/" + device.getChannel();
-
-            if (!humanReadable.containsValue(ident))
-                if (device.getHumanReadable() != null && !device.getHumanReadable().isEmpty())
-                    humanReadable.put(device.getHumanReadable(), ident);
 
             if (initComplete) {
                 device = deviceDAO.save(device);
@@ -162,17 +153,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    public Device getDevice(String humanReadableIdent) {
-        String ident = humanReadable.get(humanReadableIdent);
-
-        if (ident != null)
-            return registry.get(ident);
-        else
-            return null;
-    }
-
-    @Override
-    public DeviceValue getDeviceValue(SourceProtocol protocol, Short channel, String value) {
+    public DeviceValue getDeviceValue(SourceProtocol protocol, String channel, String value) {
         Device device = registry.get(protocol.name().toLowerCase() + "/channel/" + channel);
 
         if (device == null)
@@ -181,43 +162,9 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         return device.getValues().getOrDefault(value, null);
     }
 
-    @Override
-    public DeviceValue getDeviceValue(String humanReadableIdent, String value) {
-        String ident = humanReadable.get(humanReadableIdent);
-
-        if (ident != null) {
-            Device device = registry.get(ident);
-            return device.getValues().getOrDefault(value, null);
-        } else {
-            return null;
-        }
-    }
-
     /////////////////////////////////////////////////////////////////
     // HISTORY
     /////////////////////////////////////////////////////////////////
-
-    @Override
-    public List getHistory(String humanReadableIdent, String label, Date start) {
-        String ident = humanReadable.get(humanReadableIdent);
-
-        if (ident != null) {
-            Device device = registry.get(ident);
-            return getHistory(device.getSource(), device.getChannel(), label, start, null);
-        } else
-            return new ArrayList();
-    }
-
-    @Override
-    public List getHistory(String humanReadableIdent, String label, Date start, Date stop) {
-        String ident = humanReadable.get(humanReadableIdent);
-
-        if (ident != null) {
-            Device device = registry.get(ident);
-            return getHistory(device.getSource(), device.getChannel(), label, start, stop);
-        } else
-            return new ArrayList();
-    }
 
     @Override
     public List getHistory(SourceProtocol proto, String channel, String label, Date start) {

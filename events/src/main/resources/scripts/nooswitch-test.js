@@ -14,7 +14,7 @@ var autoOff = new Rule()
     }
 ,
     execute: function (event) {
-        var current = DeviceRegistry.getDeviceValue(event.getDevice().getHumanReadable(), "level");
+        var current = DeviceRegistry.getDeviceValue(event.getDevice().getSource(), event.getDevice().getChannel(), "level");
 
         if (current === null)
             return;
@@ -27,7 +27,7 @@ var autoOff = new Rule()
             timer.schedule(function () {
                 if (lock) {
                     log.info("\nTimes up. Turning off channel " + event.getDevice().getChannel() + "!\n");
-                    DeviceHelper.off(event.getDevice().getHumanReadable())
+                    DeviceHelper.off(event.getDevice().getSource(), event.getDevice().getChannel())
                 }
             }, 1200000);
         }

@@ -89,8 +89,8 @@ public class Script {
                     + "Device 			= Java.type('ru.iris.models.database.Device'),\n"
                     + "DeviceValue 			= Java.type('ru.iris.models.database.DeviceValue'),\n"
                     + "DeviceValueChange 			= Java.type('ru.iris.models.database.DeviceValueChange'),\n"
-                    + "Zone			= Java.type('Zone'),\n"
-                    + "SourceProtocol			= Java.type('SourceProtocol'),\n"
+                    + "Zone			= Java.type('ru.iris.models.protocol.Zone'),\n"
+                    + "SourceProtocol			= Java.type('ru.iris.models.protocol.enums.SourceProtocol'),\n"
 
                     //System
                     + "FileUtils 			= Java.type('org.apache.commons.io.FileUtils'),\n"

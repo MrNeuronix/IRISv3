@@ -27,15 +27,7 @@ public interface DeviceRegistry {
 
     Device getDevice(SourceProtocol protocol, String channel);
 
-    Device getDevice(String humanReadableIdent);
-
-    DeviceValue getDeviceValue(SourceProtocol protocol, Short channel, String value);
-
-    DeviceValue getDeviceValue(String humanReadableIdent, String value);
-
-    List getHistory(String humanReadableIdent, String label, Date start);
-
-    List getHistory(String humanReadableIdent, String label, Date start, Date stop);
+    DeviceValue getDeviceValue(SourceProtocol protocol, String channel, String value);
 
     List getHistory(SourceProtocol proto, String channel, String label, Date start);
 

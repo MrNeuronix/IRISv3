@@ -131,7 +131,7 @@
                         </goals>
 
                         <configuration>
-                            <outputDirectory>/iris/opt/iris-0.0.1-SNAPSHOT/lib</outputDirectory>
+                            <outputDirectory>X:/opt/iris-0.0.1-SNAPSHOT/lib</outputDirectory>
                             <resources>
                                 <resource>
                                     <directory>/target</directory>

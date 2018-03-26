@@ -21,7 +21,8 @@ public class ChangedEventTrigger implements EventTrigger {
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {
-        return type == TriggerType.CHANGE && device.getHumanReadable().equals(itemName);
+    	  String ident = device.getSource().toString().toLowerCase() + "/channel/" + device.getChannel();
+        return type == TriggerType.CHANGE && ident.equals(itemName);
     }
 
     @Override

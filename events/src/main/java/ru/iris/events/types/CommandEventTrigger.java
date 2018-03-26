@@ -5,7 +5,6 @@ import ru.iris.models.database.Device;
 
 @Getter
 public class CommandEventTrigger implements EventTrigger {
-
     private String item;
 
     public CommandEventTrigger(String itemName) {
@@ -14,6 +13,7 @@ public class CommandEventTrigger implements EventTrigger {
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {
-        return (type == TriggerType.COMMAND && this.item.equals(device.getHumanReadable()));
+	      String ident = device.getSource().toString().toLowerCase() + "/channel/" + device.getChannel();
+        return (type == TriggerType.COMMAND && this.item.equals(ident));
     }
 }

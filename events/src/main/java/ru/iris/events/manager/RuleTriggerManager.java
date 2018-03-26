@@ -92,7 +92,7 @@ public class RuleTriggerManager {
 
     private Iterable<Rule> internalGetRules(TriggerType triggerType, Device device) {
         List<Rule> result = Lists.newArrayList();
-        String ident = device == null ? "undef" : device.getHumanReadable();
+        String ident = device == null ? "undef" : device.getSource().toString().toLowerCase() + "/channel/" + device.getChannel();
 
         Iterable<Rule> rules = getAllRules(triggerType, ident);
         if (rules == null) {
@@ -174,7 +174,7 @@ public class RuleTriggerManager {
      *
      * @param rule the rule to add
      */
-    public synchronized void addRule(Rule rule) {
+    private synchronized void addRule(Rule rule) {
         for (EventTrigger t : rule.getEventTrigger()) {
             // add the rule to the lookup map for the trigger kind
             if (t instanceof StartupTrigger) {
@@ -183,20 +183,14 @@ public class RuleTriggerManager {
                 systemShutdownTriggeredRules.add(rule);
             } else if (t instanceof CommandEventTrigger) {
                 CommandEventTrigger ceTrigger = (CommandEventTrigger) t;
-                Set<Rule> rules = commandEventTriggeredRules.get(ceTrigger.getItem());
-                if (rules == null) {
-                    rules = new HashSet<Rule>();
-                    commandEventTriggeredRules.put(ceTrigger.getItem(), rules);
-                }
-                rules.add(rule);
+	            Set<Rule> rules = commandEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<>());
+	            rules.add(rule);
             } else if (t instanceof ChangedEventTrigger) {
                 ChangedEventTrigger ceTrigger = (ChangedEventTrigger) t;
-                Set<Rule> rules = changedEventTriggeredRules.get(ceTrigger.getItem());
-                if (rules == null) {
-                    rules = new HashSet<Rule>();
-                    changedEventTriggeredRules.put(ceTrigger.getItem(), rules);
-                }
-                rules.add(rule);
+	            Set<Rule>
+			            rules =
+			            changedEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<Rule>());
+	            rules.add(rule);
             } else if (t instanceof TimerTrigger) {
                 timerEventTriggeredRules.add(rule);
                 try {
