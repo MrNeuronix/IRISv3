@@ -1,5 +1,8 @@
 package ru.iris.events;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -36,6 +39,9 @@ public class EventsController extends AbstractService {
     private ScriptManager scriptManager;
     private SpeakHelper speakHelper;
     private DeviceHelper deviceHelper;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
 	@Autowired
 	private SimpMessagingTemplate stomp;
@@ -75,9 +81,13 @@ public class EventsController extends AbstractService {
     public Consumer<Event<?>> handleMessage() throws Exception {
         return event -> {
         	  // send event to websocket
-        	  stomp.convertAndSend("/topic/event", event);
+	        try {
+		        stomp.convertAndSend("/topic/event", objectMapper.writeValueAsString(event.getData()));
+	        } catch (JsonProcessingException e) {
+		        logger.error("Error while serialize event to send in STOMP", e);
+	        }
 
-            // skip events while manager not initialized yet
+	        // skip events while manager not initialized yet
             if (scriptManager == null) {
                 return;
             }

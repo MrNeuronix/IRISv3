@@ -9,7 +9,7 @@ import ru.iris.models.protocol.enums.SourceProtocol;
 @Getter
 @Setter
 @NoArgsConstructor
-public abstract class AbstractDeviceEvent implements Event {
+public abstract class AbstractDeviceEvent extends Event {
     protected String channel;
     protected SourceProtocol protocol;
     protected String eventLabel;

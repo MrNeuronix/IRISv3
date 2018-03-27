@@ -1,6 +1,7 @@
 package ru.iris.models.bus.devices;
 
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.data.DataSubChannelLevel;
@@ -9,6 +10,7 @@ import ru.iris.models.protocol.enums.ValueType;
 
 @ToString
 @EqualsAndHashCode(callSuper = false)
+@NoArgsConstructor
 public class DeviceChangeEvent extends AbstractDeviceEvent {
 
     public DeviceChangeEvent(String channel, SourceProtocol protocol, String label, String from, String to, ValueType valueType) {

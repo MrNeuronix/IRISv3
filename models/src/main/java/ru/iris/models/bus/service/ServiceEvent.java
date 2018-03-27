@@ -7,7 +7,8 @@ import ru.iris.models.bus.Event;
 @ToString
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class ServiceEvent implements Event {
+public class ServiceEvent extends Event {
     private String label;
 }
