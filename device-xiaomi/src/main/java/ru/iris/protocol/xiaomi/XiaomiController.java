@@ -276,7 +276,7 @@ public class XiaomiController extends AbstractProtocolService {
                     device.setProductName("Aqara Switch 1 Button");
                     break;
                 case SWITCH_AQARA_2BUTTONS:
-                    device.setType(DeviceType.BINARY_SWITCH);
+                    device.setType(DeviceType.BINARY_SWITCH_TWO_BUTTONS);
                     device.setProductName("Aqara Switch 2 Buttons");
                     break;
                 case SWITCH_AQARA_ZERO_1BUTTON:
@@ -284,7 +284,7 @@ public class XiaomiController extends AbstractProtocolService {
                     device.setProductName("Aqara Wireless Switch 1 Button");
                     break;
                 case SWITCH_AQARA_ZERO_2BUTTONS:
-                    device.setType(DeviceType.BINARY_SWITCH);
+                    device.setType(DeviceType.BINARY_SWITCH_TWO_BUTTONS);
                     device.setProductName("Aqara Wireless Switch 2 Buttons");
                     break;
 	              case SENSOR_MOTION:
