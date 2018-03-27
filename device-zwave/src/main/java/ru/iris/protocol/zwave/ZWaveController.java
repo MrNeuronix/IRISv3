@@ -106,7 +106,7 @@ public class ZWaveController extends AbstractProtocolService {
                         );
                         break;
                     case SET_LEVEL:
-                        if (z.getClazz().equals(DataLevel.class)) {
+                        if (z.getData() instanceof DataLevel) {
                             DataLevel data = (DataLevel) z.getData();
                             logger.info("Set level {} on channel {}", data.getTo(), z.getChannel());
                             deviceSetLevel(z.getChannel(), "Level", data.getTo());

@@ -2,6 +2,7 @@ package ru.iris.models.protocol.data;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ru.iris.models.protocol.enums.ValueType;
 
@@ -12,7 +13,8 @@ import ru.iris.models.protocol.enums.ValueType;
 @Getter
 @Setter
 @AllArgsConstructor
-public class DataLevel {
+@NoArgsConstructor
+public class DataLevel extends EventData {
     private String from;
     private String to;
     private ValueType type;

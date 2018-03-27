@@ -1,10 +1,12 @@
 package ru.iris.models.bus.devices;
 
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.data.DataSubChannelLevel;
+import ru.iris.models.protocol.data.EventData;
 import ru.iris.models.protocol.enums.SourceProtocol;
 import ru.iris.models.protocol.enums.ValueType;
 
@@ -18,7 +20,6 @@ public class DeviceChangeEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = label;
         this.data = new DataLevel(from, to, valueType);
-        this.clazz = DataLevel.class;
     }
 
     public DeviceChangeEvent(String channel, SourceProtocol protocol, String label, String to, ValueType valueType) {
@@ -26,7 +27,6 @@ public class DeviceChangeEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = label;
         this.data = new DataLevel(to, valueType);
-        this.clazz = DataLevel.class;
     }
 
     public DeviceChangeEvent(String channel, SourceProtocol protocol, String label, Integer subchannel, String to) {
@@ -34,7 +34,6 @@ public class DeviceChangeEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = label;
         this.data = new DataSubChannelLevel(subchannel, to, ValueType.UNKNOWN);
-        this.clazz = DataSubChannelLevel.class;
     }
 
     public DeviceChangeEvent(String channel, SourceProtocol protocol, String label, Integer subchannel, String to, ValueType valueType) {
@@ -42,6 +41,14 @@ public class DeviceChangeEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = label;
         this.data = new DataSubChannelLevel(subchannel, to, valueType);
-        this.clazz = DataSubChannelLevel.class;
     }
+
+		@Builder
+		public DeviceChangeEvent(String channel, SourceProtocol protocol, String eventLabel, EventData data) {
+			super();
+			super.channel = channel;
+			super.protocol = protocol;
+			super.eventLabel = eventLabel;
+			super.data = data;
+		}
 }

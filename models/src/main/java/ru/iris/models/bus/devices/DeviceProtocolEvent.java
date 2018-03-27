@@ -27,7 +27,6 @@ public class DeviceProtocolEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = label;
         this.data = new DataLevel(value, type);
-        this.clazz = DataLevel.class;
     }
 
 }

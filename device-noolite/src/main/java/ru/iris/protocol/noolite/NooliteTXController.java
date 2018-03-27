@@ -137,7 +137,7 @@ public class NooliteTXController extends AbstractProtocolService {
                         );
                         break;
                     case SET_LEVEL:
-                        if (n.getClazz().equals(DataLevel.class)) {
+                        if (n.getData() instanceof DataLevel) {
                             DataLevel data = (DataLevel) n.getData();
                             logger.info("Set level {} on channel {}", data.getTo(), n.getChannel());
                             pc.setLevel(Byte.valueOf(n.getChannel()), (Short.valueOf(data.getTo())).byteValue());

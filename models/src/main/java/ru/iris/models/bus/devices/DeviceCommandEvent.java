@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.data.DataSubChannelLevel;
+import ru.iris.models.protocol.data.EventData;
 import ru.iris.models.protocol.enums.EventLabel;
 import ru.iris.models.protocol.enums.SourceProtocol;
 import ru.iris.models.protocol.enums.ValueType;
@@ -20,7 +21,6 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();
         this.data = new DataLevel(to, valueType);
-        this.clazz = DataLevel.class;
     }
 
     public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel, String to) {
@@ -28,7 +28,6 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();
         this.data = new DataLevel(to, ValueType.UNKNOWN);
-        this.clazz = DataLevel.class;
     }
 
     public DeviceCommandEvent(String channel, SourceProtocol protocol, EventLabel eventLabel) {
@@ -42,7 +41,6 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();
         this.data = new DataSubChannelLevel(subchannel, ValueType.UNKNOWN);
-        this.clazz = DataSubChannelLevel.class;
     }
 
     public DeviceCommandEvent(String channel, Integer subchannel, SourceProtocol protocol, EventLabel eventLabel, String to) {
@@ -50,16 +48,14 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
         this.protocol = protocol;
         this.eventLabel = eventLabel.getName();
         this.data = new DataSubChannelLevel(subchannel, to, ValueType.UNKNOWN);
-        this.clazz = DataSubChannelLevel.class;
     }
 
     @Builder
-		public DeviceCommandEvent(String channel, SourceProtocol protocol, String eventLabel, Object data, Class clazz) {
+		public DeviceCommandEvent(String channel, SourceProtocol protocol, String eventLabel, EventData data) {
 				super();
 				super.channel = channel;
 				super.protocol = protocol;
 				super.eventLabel = eventLabel;
 				super.data = data;
-				super.clazz = clazz;
 		}
 }
