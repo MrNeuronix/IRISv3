@@ -8,6 +8,7 @@ import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.models.bus.speak.SpeakEvent;
+import ru.iris.models.bus.terminal.TerminalEvent;
 
 @JsonTypeInfo(
 		use = JsonTypeInfo.Id.NAME,
@@ -19,7 +20,8 @@ import ru.iris.models.bus.speak.SpeakEvent;
 		@JsonSubTypes.Type(value = DeviceProtocolEvent.class, name = "device-protocol"),
 		@JsonSubTypes.Type(value = DeviceCommandEvent.class, name = "device-command"),
 		@JsonSubTypes.Type(value = ServiceEvent.class, name = "service"),
-		@JsonSubTypes.Type(value = SpeakEvent.class, name = "speak")
+		@JsonSubTypes.Type(value = SpeakEvent.class, name = "speak"),
+		@JsonSubTypes.Type(value = TerminalEvent.class, name = "terminal")
 })
 public abstract class Event {
 }
