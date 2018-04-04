@@ -9,6 +9,9 @@ import ru.iris.models.bus.Event;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ServiceEvent extends Event {
     private String label;
+    private String identifier;
+    private Object data;
 }

@@ -7,22 +7,16 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
+import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.commons.config.ConfigLoader;
 import ru.iris.models.database.Device;
 import ru.iris.models.protocol.data.DataLevel;
-import ru.iris.models.protocol.enums.DeviceType;
-import ru.iris.models.protocol.enums.EventLabel;
-import ru.iris.models.protocol.enums.SourceProtocol;
-import ru.iris.models.protocol.enums.StandartDeviceValue;
-import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
-import ru.iris.models.protocol.enums.State;
-import ru.iris.models.protocol.enums.ValueType;
-import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.commons.service.AbstractProtocolService;
+import ru.iris.models.protocol.enums.*;
 import ru.iris.noolite4j.sender.PC1132;
 
 @Component
@@ -68,6 +62,11 @@ public class NooliteTXController extends AbstractProtocolService {
     @Override
     public void run() {
 
+    }
+
+    @Override
+    public String getServiceIdentifier() {
+        return "noolite-tx";
     }
 
     @Override

@@ -10,21 +10,15 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.commons.config.ConfigLoader;
 import ru.iris.models.database.Device;
-import ru.iris.models.protocol.enums.DeviceType;
-import ru.iris.models.protocol.enums.EventLabel;
-import ru.iris.models.protocol.enums.SourceProtocol;
-import ru.iris.models.protocol.enums.StandartDeviceValue;
-import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
-import ru.iris.models.protocol.enums.State;
-import ru.iris.models.protocol.enums.ValueType;
-import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.commons.service.AbstractProtocolService;
+import ru.iris.models.protocol.enums.*;
 import ru.iris.noolite4j.receiver.RX2164;
 import ru.iris.noolite4j.watchers.BatteryState;
 import ru.iris.noolite4j.watchers.Notification;
@@ -118,6 +112,11 @@ public class NooliteRXController extends AbstractProtocolService {
             logger.error("Noolite RX error!");
             t.printStackTrace();
         }
+    }
+
+    @Override
+    public String getServiceIdentifier() {
+        return "noolite-rx";
     }
 
     private void doWork(Notification notification) {

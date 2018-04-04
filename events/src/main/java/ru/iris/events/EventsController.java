@@ -2,7 +2,6 @@ package ru.iris.events;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -12,12 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
-import ru.iris.models.bus.devices.DeviceChangeEvent;
-import ru.iris.models.bus.devices.DeviceCommandEvent;
-import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.commons.config.ConfigLoader;
-import ru.iris.models.database.Device;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
 import ru.iris.commons.registry.DeviceRegistry;
@@ -26,6 +20,11 @@ import ru.iris.events.manager.RuleTriggerManager;
 import ru.iris.events.manager.ScriptManager;
 import ru.iris.events.types.Rule;
 import ru.iris.events.types.TriggerType;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
+import ru.iris.models.bus.devices.DeviceCommandEvent;
+import ru.iris.models.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.service.ServiceEvent;
+import ru.iris.models.database.Device;
 
 @Component
 @Qualifier("events")
@@ -96,13 +95,15 @@ public class EventsController extends AbstractService {
                 ServiceEvent e = (ServiceEvent) event.getData();
                 String label = e.getLabel() == null ? "" : e.getLabel();
 
-                if (disabled && label.equals("ServiceOn")) {
-                    logger.info("Event engine is enabled by request");
-                    disabled = false;
-                }
-                if (!disabled && label.equals("ServiceOff")) {
-                    logger.info("Event engine is disabled by request");
-                    disabled = true;
+                if (e.getIdentifier().equals(getServiceIdentifier())) {
+                    if (disabled && label.equals("ServiceOn")) {
+                        logger.info("Event engine is enabled by request");
+                        disabled = false;
+                    }
+                    if (!disabled && label.equals("ServiceOff")) {
+                        logger.info("Event engine is disabled by request");
+                        disabled = true;
+                    }
                 }
 
                 return;
@@ -153,6 +154,11 @@ public class EventsController extends AbstractService {
 		    logger.info("EventsController running startup scripts");
 		    runStartupRules();
 		    logger.info("EventsController done running startup scripts");
+    }
+
+    @Override
+    public String getServiceIdentifier() {
+        return "event";
     }
 
     private void runStartupRules() {

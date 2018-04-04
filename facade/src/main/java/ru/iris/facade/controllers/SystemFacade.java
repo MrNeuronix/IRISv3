@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.models.status.ErrorStatus;
 import ru.iris.models.status.OkStatus;
-import ru.iris.commons.registry.DeviceRegistry;
 
 import java.util.Properties;
 
@@ -68,10 +68,18 @@ public class SystemFacade {
     public Object systemRestart(@PathVariable String state) {
         switch (state.toLowerCase()) {
             case "on":
-                r.notify("command.service", Event.wrap(new ServiceEvent("ServiceOn")));
+                r.notify("command.service", Event.wrap(ServiceEvent.builder()
+                        .label("ServiceOn")
+                        .identifier("event")
+                        .build())
+                );
                 break;
             case "off":
-                r.notify("command.service", Event.wrap(new ServiceEvent("ServiceOff")));
+                r.notify("command.service", Event.wrap(ServiceEvent.builder()
+                        .label("ServiceOff")
+                        .identifier("event")
+                        .build())
+                );
                 break;
             default:
                 return new ErrorStatus("Arguments unknown");

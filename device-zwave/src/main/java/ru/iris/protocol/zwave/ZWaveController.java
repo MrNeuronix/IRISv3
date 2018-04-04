@@ -12,22 +12,17 @@ import org.zwave4j.*;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.commons.config.ConfigLoader;
 import ru.iris.models.database.Device;
 import ru.iris.models.database.DeviceValue;
 import ru.iris.models.protocol.data.DataLevel;
-import ru.iris.models.protocol.enums.DeviceType;
-import ru.iris.models.protocol.enums.EventLabel;
-import ru.iris.models.protocol.enums.SourceProtocol;
-import ru.iris.models.protocol.enums.StandartDeviceValue;
-import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
-import ru.iris.models.protocol.enums.State;
+import ru.iris.models.protocol.enums.*;
 import ru.iris.models.protocol.enums.ValueType;
-import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.commons.service.AbstractProtocolService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -417,6 +412,11 @@ public class ZWaveController extends AbstractProtocolService {
             }
             logger.info("Still waiting for ZWave controller ready");
         }
+    }
+
+    @Override
+    public String getServiceIdentifier() {
+        return "zwave";
     }
 
     private Device addZWaveDeviceOrValue(DeviceType type, Notification notification) {

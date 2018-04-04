@@ -21,24 +21,19 @@ import org.springframework.util.StringUtils;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.config.ConfigLoader;
+import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.commons.config.ConfigLoader;
 import ru.iris.models.database.Device;
 import ru.iris.models.database.DeviceValue;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.data.DataSubChannelLevel;
-import ru.iris.models.protocol.enums.DeviceType;
-import ru.iris.models.protocol.enums.EventLabel;
-import ru.iris.models.protocol.enums.SourceProtocol;
-import ru.iris.models.protocol.enums.StandartDeviceValue;
-import ru.iris.models.protocol.enums.StandartDeviceValueLabel;
-import ru.iris.models.protocol.enums.State;
-import ru.iris.models.protocol.enums.ValueType;
-import ru.iris.commons.registry.DeviceRegistry;
-import ru.iris.commons.service.AbstractProtocolService;
+import ru.iris.models.protocol.enums.*;
+import ru.iris.models.service.ServiceState;
 import ru.iris.xiaomi4j.Discovery;
 import ru.iris.xiaomi4j.Gateway;
 import ru.iris.xiaomi4j.model.GatewayModel;
@@ -79,7 +74,13 @@ public class XiaomiController extends AbstractProtocolService {
     }
 
     @Override
+    public String getServiceIdentifier() {
+        return "xiaomi";
+    }
+
+    @Override
     public void onStartup() {
+        setServiceState(ServiceState.STARTING);
         logger.info("XiaomiController started");
         if (!config.loadPropertiesFormCfgDirectory("xiaomi"))
             logger.error("Cant load xiaomi-specific configs. Check xiaomi.property if exists");
@@ -97,7 +98,9 @@ public class XiaomiController extends AbstractProtocolService {
 
     @Override
     public void onShutdown() {
+        setServiceState(ServiceState.STOPPING);
         logger.info("XiaomiController stopping");
+        setServiceState(ServiceState.STOPPED);
     }
 
     @Override
@@ -109,6 +112,9 @@ public class XiaomiController extends AbstractProtocolService {
     public Consumer<Event<?>> handleMessage() {
         return event -> {
             if (event.getData() instanceof DeviceCommandEvent) {
+                if (!getServiceState().equals(ServiceState.RUNNING)) {
+                    setServiceState(ServiceState.RUNNING);
+                }
                 DeviceCommandEvent x = (DeviceCommandEvent) event.getData();
 
                 if (!x.getProtocol().equals(SourceProtocol.XIAOMI)) {
@@ -191,10 +197,15 @@ public class XiaomiController extends AbstractProtocolService {
         if (gateway == null) {
             logger.error("No gateways found, specified in xiaomi.properties");
         }
+
+        setServiceState(ServiceState.STARTED);
     }
 
     @SuppressWarnings("Duplicates")
     private void doWork(Notification notification) {
+        if (!getServiceState().equals(ServiceState.RUNNING)) {
+            setServiceState(ServiceState.RUNNING);
+        }
 
         String sid = notification.getSid();
         Device device = registry.getDevice(SourceProtocol.XIAOMI, sid);
