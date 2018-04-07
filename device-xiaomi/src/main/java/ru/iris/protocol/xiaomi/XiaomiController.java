@@ -654,7 +654,9 @@ public class XiaomiController extends AbstractProtocolService {
 
     @Scheduled(fixedDelay = 3600000, initialDelay = 10000)
     void searchDevices() {
-        gateway.discoverItems();
+    	if(gateway != null) {
+		    gateway.discoverItems();
+	    }
     }
 
     @Getter

@@ -10,7 +10,7 @@ import ru.iris.models.bus.terminal.TerminalEvent;
 
 @Slf4j
 @Controller
-public class WSFacade {
+public class STOMPFacade {
 
 	@Autowired
 	private EventBus r;
