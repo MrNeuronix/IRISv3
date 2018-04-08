@@ -42,9 +42,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     @Autowired
     private DeviceValueDAO deviceValueDAO;
 
-    @Autowired
-    private DeviceValueHistoryDAO deviceValueHistoryDAO;
-
     @PersistenceContext
     private EntityManager em;
 
@@ -60,16 +57,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         initComplete = true;
     }
 
-    @Scheduled(fixedRate = 60_000, initialDelay = 60_000)
-    @PreDestroy
-    void saveData() {
-        if(initComplete) {
-            List<Device> copyOfDevices = getDevices();
-            logger.info("Saving state of {} devices to database", copyOfDevices.size());
-            copyOfDevices.forEach(this::saveDeviceToDatabase);
-        }
-    }
-
     @Override
     @Transactional
     public Device saveDeviceToDatabase(Device device) {
@@ -78,26 +65,9 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             return null;
         }
 
-        boolean success = false;
-        Lock lock = getLock(device);
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if(!success) {
-                logger.error("saveDeviceToDatabase: Can't accuire lock for device {}!", getIdent(device));
-            }
-        } catch (InterruptedException e) {
-            logger.error("Interrupted", e);
-        }
-        try {
-            device = deviceDAO.save(device);
-            registry.put(getIdent(device), device);
-            return device;
-        }
-        finally {
-            if(success) {
-                lock.unlock();
-            }
-        }
+        device = deviceDAO.save(device);
+        registry.put(getIdent(device), device);
+        return device;
     }
 
     @Override
@@ -111,7 +81,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         boolean success = false;
         Lock lock = getLock(device);
         try {
-            success = lock.tryLock(15, TimeUnit.SECONDS);
+            success = lock.tryLock(5, TimeUnit.SECONDS);
             if(!success) {
                 logger.error("addOrUpdateDevice: Can't accuire lock for device {}!", getIdent(device));
             }
@@ -119,7 +89,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             logger.error("Interrupted", e);
         }
         try {
-            registry.put(getIdent(device), device);
+            device = saveDeviceToDatabase(device);
             return device;
         }
         finally {
@@ -195,7 +165,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             }
 
             device.getValues().put(key, value);
-            addOrUpdateDevice(device);
+            saveDeviceToDatabase(device);
 
             return value;
         } finally {
