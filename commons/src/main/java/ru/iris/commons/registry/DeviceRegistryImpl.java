@@ -3,12 +3,14 @@ package ru.iris.commons.registry;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
 import ru.iris.commons.database.dao.DeviceValueDAO;
+import ru.iris.commons.database.dao.DeviceValueHistoryDAO;
 import ru.iris.models.database.Device;
 import ru.iris.models.database.DeviceValue;
 import ru.iris.models.database.DeviceValueChange;
@@ -39,6 +41,9 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Autowired
     private DeviceValueDAO deviceValueDAO;
+
+    @Autowired
+    private DeviceValueHistoryDAO deviceValueHistoryDAO;
 
     @PersistenceContext
     private EntityManager em;
@@ -268,6 +273,47 @@ public class DeviceRegistryImpl implements DeviceRegistry {
                     .setParameter("stDate", startDate)
                     .setParameter("enDate", stopDate)
                     .getResultList();
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteHistory(SourceProtocol proto, String channel, String label, Date from) {
+        Device device = getDevice(proto, channel);
+
+        if (device == null) {
+            logger.error("Device, passed into registry is null!");
+            return;
+        }
+
+        boolean success = false;
+        Lock lock = getLock(device);
+        try {
+            success = lock.tryLock(15, TimeUnit.SECONDS);
+            if(!success) {
+                logger.error("addChange: Can't accuire lock for device {}!", getIdent(device));
+            }
+        } catch (InterruptedException e) {
+            logger.error("Interrupted", e);
+        }
+        try {
+            for (String key : device.getValues().keySet()) {
+                if (key.equals(label)) {
+                    String SQL = "DELETE FROM DeviceValueChange AS c WHERE c.deviceValue.id = :id AND c.date BETWEEN :stDate AND :enDate";
+                    em.createQuery(SQL)
+                            .setParameter("id", device.getValues().get(key).getId())
+                            .setParameter("stDate", new DateTime(from).minusYears(100).toDate())
+                            .setParameter("enDate", from)
+                            .executeUpdate();
+
+                    device = deviceDAO.findOne(device.getId());
+                    registry.put(getIdent(device), device);
+                }
+            }
+        } finally {
+            if(success) {
+                lock.unlock();
+            }
         }
     }
 

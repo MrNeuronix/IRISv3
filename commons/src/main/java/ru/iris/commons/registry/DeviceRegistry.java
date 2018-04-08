@@ -34,4 +34,6 @@ public interface DeviceRegistry {
     List getHistory(SourceProtocol proto, String channel, String label, Date start);
 
     List getHistory(SourceProtocol proto, String channel, String label, Date start, Date stop);
+
+    void deleteHistory(SourceProtocol proto, String channel, String label, Date start);
 }

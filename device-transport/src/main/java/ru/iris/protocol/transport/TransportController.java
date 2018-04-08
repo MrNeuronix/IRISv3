@@ -3,10 +3,14 @@ package ru.iris.protocol.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
@@ -20,10 +24,14 @@ import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.database.Device;
 import ru.iris.models.protocol.enums.*;
 
+import javax.annotation.PreDestroy;
+import java.util.List;
+
 @Component
 @Profile("transport")
 @Qualifier("transport")
 @Slf4j
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class TransportController extends AbstractProtocolService {
 	@Autowired
     private EventBus r;
@@ -42,6 +50,20 @@ public class TransportController extends AbstractProtocolService {
         logger.info("TransportController started");
         if (!config.loadPropertiesFormCfgDirectory("transport"))
             logger.error("Cant load transport-specific configs. Check transport.property if exists");
+    }
+
+    @Scheduled(fixedRate = 6 * 60 * 60 * 1000, initialDelay = 20_000) // 6 hours
+    @PreDestroy
+    public void cleanDatabase() {
+        logger.info("Clean transport GPS history");
+        List<Device> transports = registry.getDevicesByProto(SourceProtocol.TRANSPORT);
+        transports.forEach(transport ->
+                registry.deleteHistory(
+                        SourceProtocol.TRANSPORT,
+                        transport.getChannel(),
+                        StandartDeviceValueLabel.GPS_DATA.getName(),
+                        new DateTime().minusDays(3).toDate())
+        );
     }
 
     @Override
