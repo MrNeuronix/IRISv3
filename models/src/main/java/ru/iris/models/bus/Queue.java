@@ -30,6 +30,8 @@ public enum Queue {
 
 	EVENT_BATTERY_STATUS("event.device.battery"),
 
+	EVENT_TRANSPORT("event.transport"),
+
 	EVENT_BUTTON(""),
 
 	COMMAND_DEVICE("command.device"),

@@ -3,7 +3,7 @@ package ru.iris.models.protocol.enums;
 public enum DeviceType {
 
     CONTROLLER("controller"),
-		BINARY_SWITCH("switch"),
+    BINARY_SWITCH("switch"),
     BINARY_SWITCH_TWO_BUTTONS("switch2"),
     MULTILEVEL_SWITCH("dimmer"),
     ALARM_SENSOR("alarmsensor"),
@@ -18,6 +18,7 @@ public enum DeviceType {
     FLOOD_SENSOR("floodsensor"),
     MOTION_SENSOR("motionsensor"),
     UNKNOWN_SENSOR("unknownsensor"),
+    TRANSPORT("transport"),
     BUTTON("button"),
     UNKNOWN("unknown");
 

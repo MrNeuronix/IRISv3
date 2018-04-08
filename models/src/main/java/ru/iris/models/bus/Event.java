@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.models.bus.scooter.GPSDataEvent;
+import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.models.bus.speak.SpeakEvent;
 import ru.iris.models.bus.terminal.TerminalEvent;

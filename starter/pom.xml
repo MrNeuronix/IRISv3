@@ -36,6 +36,11 @@
         </dependency>
         <dependency>
             <groupId>ru.iris</groupId>
+            <artifactId>device-transport</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ru.iris</groupId>
             <artifactId>commons</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
@@ -147,6 +152,12 @@
                                 </resource>
                                 <resource>
                                     <directory>../device-http/target</directory>
+                                    <includes>
+                                        <include>**/*.jar</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>../device-transport/target</directory>
                                     <includes>
                                         <include>**/*.jar</include>
                                     </includes>

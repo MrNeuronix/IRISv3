@@ -13,6 +13,8 @@ import java.util.List;
  */
 public interface DeviceRegistry {
 
+    Device saveDeviceToDatabase(Device device);
+
     Device addOrUpdateDevice(Device device);
 
     void addOrUpdateDevices(List<Device> devices);

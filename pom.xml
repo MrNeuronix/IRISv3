@@ -12,6 +12,7 @@
         <module>device-noolite</module>
         <module>device-xiaomi</module>
         <module>device-http</module>
+        <module>device-transport</module>
         <module>starter</module>
         <module>commons</module>
         <module>facade</module>

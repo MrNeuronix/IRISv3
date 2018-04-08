@@ -15,16 +15,23 @@ public enum StandartDeviceValueLabel {
     HUMIDITY("humidity"),
     VOLTAGE("voltage"),
 
-		ILLUMINANCE("illuminance"),
+    ILLUMINANCE("illuminance"),
 
-		MOTION("motion"),
-		NO_MOTION("nomotion"),
+    MOTION("motion"),
+    NO_MOTION("nomotion"),
 
     OPENED("opened"),
 
     LEAK("leak"),
 
-    BEAMING("beaming");
+    BEAMING("beaming"),
+
+    LATITUDE("latitude"),
+    LONGITUDE("longitude"),
+    SPEED("speed"),
+
+    GPS_DATA("gps")
+    ;
 
     @Getter
     private String name;

@@ -3,9 +3,7 @@ package ru.iris.models.database;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import ru.iris.models.protocol.enums.DeviceType;
 import ru.iris.models.protocol.enums.SourceProtocol;
@@ -15,12 +13,15 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Entity
 @Table(name = "devices")
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Device {
     @Id
@@ -54,7 +55,7 @@ public class Device {
     @OrderBy("name ASC")
     @MapKey(name = "name")
     @JsonManagedReference
-    private Map<String, DeviceValue> values = new HashMap<>();
+    private Map<String, DeviceValue> values = new ConcurrentHashMap<>();
 
     // State will be get in runtime runtime
 }

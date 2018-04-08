@@ -6,6 +6,7 @@ public enum SourceProtocol {
     NOOLITE("noolite"),
     XIAOMI("xiaomi"),
     HTTP("http"),
+    TRANSPORT("transport"),
     UNKNOWN("unknown");
 
     private final String name;

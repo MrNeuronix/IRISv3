@@ -82,6 +82,14 @@
                 <include>httpdevices.properties.default</include>
             </includes>
         </fileSet>
+        <!-- transport -->
+        <fileSet>
+            <directory>${project.basedir}/../device-transport/src/main/resources</directory>
+            <outputDirectory>config</outputDirectory>
+            <includes>
+                <include>transport.properties.default</include>
+            </includes>
+        </fileSet>
         <!-- speak -->
         <fileSet>
             <directory>${project.basedir}/../speak/src/main/resources</directory>

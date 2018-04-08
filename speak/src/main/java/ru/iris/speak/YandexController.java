@@ -163,6 +163,11 @@ public class YandexController extends AbstractService implements Speak {
     }
 
     @Override
+    public String getServiceIdentifier() {
+        return "yandex-speak";
+    }
+
+    @Override
     public void setLanguage(String language) {
         this.language = language;
     }

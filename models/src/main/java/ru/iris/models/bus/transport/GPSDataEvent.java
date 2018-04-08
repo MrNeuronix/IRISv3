@@ -1,4 +1,4 @@
-package ru.iris.models.bus.scooter;
+package ru.iris.models.bus.transport;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
