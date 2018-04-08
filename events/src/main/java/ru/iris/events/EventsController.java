@@ -24,6 +24,7 @@ import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.models.bus.service.ServiceEvent;
+import ru.iris.models.bus.transport.AbstractTransportEvent;
 import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.database.Device;
 import ru.iris.models.protocol.enums.SourceProtocol;
@@ -131,8 +132,8 @@ public class EventsController extends AbstractService {
                 Device device = registry.getDevice(e.getProtocol(), e.getChannel());
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.COMMAND, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.COMMAND, device, event.getKey().toString()));
-            } else if (event.getData() instanceof GPSDataEvent) {
-                GPSDataEvent e = (GPSDataEvent) event.getData();
+            } else if (event.getData() instanceof AbstractTransportEvent) {
+                AbstractTransportEvent e = (AbstractTransportEvent) event.getData();
                 Device device = registry.getDevice(SourceProtocol.TRANSPORT, String.valueOf(e.getTransportId()));
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.CHANGE, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.CHANGE, device, event.getKey().toString()));

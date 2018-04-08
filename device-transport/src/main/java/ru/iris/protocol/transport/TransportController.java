@@ -20,7 +20,9 @@ import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.transport.AbstractTransportEvent;
 import ru.iris.models.bus.transport.GPSDataEvent;
+import ru.iris.models.bus.transport.TransportConnectEvent;
 import ru.iris.models.database.Device;
 import ru.iris.models.protocol.enums.*;
 
@@ -57,12 +59,13 @@ public class TransportController extends AbstractProtocolService {
     public void cleanDatabase() {
         logger.info("Clean transport GPS history");
         List<Device> transports = registry.getDevicesByProto(SourceProtocol.TRANSPORT);
+        int days = Integer.parseInt(config.get("data.gps.days"));
         transports.forEach(transport ->
                 registry.deleteHistory(
                         SourceProtocol.TRANSPORT,
                         transport.getChannel(),
                         StandartDeviceValueLabel.GPS_DATA.getName(),
-                        new DateTime().minusDays(3).toDate())
+                        new DateTime().minusDays(days).toDate())
         );
     }
 
@@ -79,30 +82,24 @@ public class TransportController extends AbstractProtocolService {
     @Override
     public Consumer<Event<?>> handleMessage() {
         return event -> {
-            if (event.getData() instanceof GPSDataEvent) {
+            if (event.getData() instanceof TransportConnectEvent) {
+                handleConnect((TransportConnectEvent) event.getData());
+            }
+            else if (event.getData() instanceof GPSDataEvent) {
                 handleGPSData((GPSDataEvent) event.getData());
+            } else {
+                logger.error("Unknown request come to transport controller. Class: {}", event.getData().getClass());
             }
         };
     }
 
+    private void handleConnect(TransportConnectEvent data) {
+        Device device = getDevice(data);
+        broadcast(Queue.EVENT_DEVICE_CONNECTED, new DeviceProtocolEvent(device.getChannel(), SourceProtocol.TRANSPORT, "DeviceOnline"));
+    }
+
     private void handleGPSData(GPSDataEvent data) {
-        Device device = registry.getDevice(SourceProtocol.TRANSPORT, String.valueOf(data.getTransportId()));
-
-        if(device == null) {
-            String channel = String.valueOf(data.getTransportId());
-            device = Device.builder()
-                    .channel(channel)
-                    .manufacturer("Not supported")
-                    .productName("Not supported")
-                    .humanReadable("transport/channel/"+channel)
-                    .source(SourceProtocol.TRANSPORT)
-                    .type(DeviceType.TRANSPORT)
-                    .state(State.ACTIVE)
-                    .build();
-
-            device = registry.addOrUpdateDevice(device);
-            broadcast(Queue.EVENT_DEVICE_ADDED, new DeviceProtocolEvent(channel, SourceProtocol.TRANSPORT, "DeviceAdded"));
-        }
+        Device device = getDevice(data);
 
         try {
             registry.addChange(
@@ -125,5 +122,27 @@ public class TransportController extends AbstractProtocolService {
     @Override
     public String getServiceIdentifier() {
         return "transport";
+    }
+
+    private Device getDevice(AbstractTransportEvent data) {
+        Device device = registry.getDevice(SourceProtocol.TRANSPORT, String.valueOf(data.getTransportId()));
+
+        if(device == null) {
+            String channel = String.valueOf(data.getTransportId());
+            device = Device.builder()
+                    .channel(channel)
+                    .manufacturer("Not supported")
+                    .productName("Not supported")
+                    .humanReadable("transport/channel/"+channel)
+                    .source(SourceProtocol.TRANSPORT)
+                    .type(DeviceType.TRANSPORT)
+                    .state(State.ACTIVE)
+                    .build();
+
+            device = registry.addOrUpdateDevice(device);
+            broadcast(Queue.EVENT_DEVICE_ADDED, new DeviceProtocolEvent(channel, SourceProtocol.TRANSPORT, "DeviceAdded"));
+        }
+
+        return device;
     }
 }

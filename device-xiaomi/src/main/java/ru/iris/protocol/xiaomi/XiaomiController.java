@@ -166,19 +166,21 @@ public class XiaomiController extends AbstractProtocolService {
     public void run() throws InterruptedException {
         logger.info("Gateways: {}", gateways);
 
-        Discovery discovery = new Discovery();
-        discovery.startScan();
+        List<GatewayModel> discoveredGateways = new ArrayList<>();
 
-        Thread.sleep(3000L);
+        while (discoveredGateways.size() == 0) {
+            logger.info("Searching for Xiaomi gateway");
 
-        List<GatewayModel> discoveredGateways = discovery.getGatewayModels();
-        logger.info("Gateways found: " + discoveredGateways.size());
+            Discovery discovery = new Discovery();
+            discovery.startScan();
 
-        discovery.stopScan();
+            discoveredGateways = discovery.getGatewayModels();
 
-        if (discoveredGateways.size() == 0) {
-            logger.error("No Xiaomi gateways found!");
-            return;
+            Thread.sleep(10_000L);
+
+            logger.info("Gateways found: " + discoveredGateways.size());
+
+            discovery.stopScan();
         }
 
         for (GatewayModel model : discoveredGateways) {

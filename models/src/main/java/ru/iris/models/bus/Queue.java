@@ -16,6 +16,9 @@ public enum Queue {
 	EVENT_STATE("event.device.state"),
 	EVENT_TRIGGER("event.device.trigger"),
 
+	EVENT_DEVICE_CONNECTED("event.device.connected"),
+	EVENT_DEVICE_DISCONNECTED("event.device.disconnected"),
+
 	EVENT_DEVICE_ADDED("event.device.added"),
 
 	EVENT_DEVICE_OFF("event.device.off"),

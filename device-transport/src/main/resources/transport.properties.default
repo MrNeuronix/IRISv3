@@ -1,3 +1,6 @@
 # ===============================
 # = IRIS Transport
 # ===============================
+
+# How many days to store GPS data
+data.gps.days = 1
