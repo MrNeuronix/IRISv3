@@ -33,8 +33,6 @@ import java.util.stream.Collectors;
 public class DeviceRegistryImpl implements DeviceRegistry {
     private final Gson gson = new GsonBuilder().create();
     private Map<String, Device> registry = new ConcurrentHashMap<>();
-    private Map<String, Lock> locks = new ConcurrentHashMap<>();
-    private boolean initComplete = false;
 
     @Autowired
     private DeviceDAO deviceDAO;
@@ -52,9 +50,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         addOrUpdateDevices(devices);
         registry.values().forEach(device -> {
             device.getValues().values().forEach(deviceValue -> deviceValue.setCurrentValue(null));
-            locks.put(getIdent(device), new ReentrantLock(true));
         });
-        initComplete = true;
     }
 
     @Override
@@ -72,39 +68,22 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public Device addOrUpdateDevice(Device device) {
+    public synchronized Device addOrUpdateDevice(Device device) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return null;
         }
 
-        boolean success = false;
-        Lock lock = getLock(device);
-        try {
-            success = lock.tryLock(5, TimeUnit.SECONDS);
-            if(!success) {
-                logger.error("addOrUpdateDevice: Can't accuire lock for device {}!", getIdent(device));
-            }
-        } catch (InterruptedException e) {
-            logger.error("Interrupted", e);
-        }
-        try {
-            device = saveDeviceToDatabase(device);
-            return device;
-        }
-        finally {
-            if(success) {
-                lock.unlock();
-            }
-        }
+        device = saveDeviceToDatabase(device);
+        return device;
     }
 
     @Override
     @Transactional
-    public void addOrUpdateDevices(List<Device> devices) {
+    public synchronized void addOrUpdateDevices(List<Device> devices) {
         devices.forEach(device -> {
             if (device != null) {
-                registry.put(getIdent(device), device);
+                saveDeviceToDatabase(device);
             }
         });
     }
@@ -124,55 +103,39 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    public DeviceValue addChange(Device device, String key, String level, ValueType type) {
+    public synchronized DeviceValue addChange(Device device, String key, String level, ValueType type) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return null;
         }
 
-        boolean success = false;
-        Lock lock = getLock(device);
-        try {
-            success = lock.tryLock(15, TimeUnit.SECONDS);
-            if(!success) {
-                logger.error("addChange: Can't accuire lock for device {}!", getIdent(device));
-            }
-        } catch (InterruptedException e) {
-            logger.error("Interrupted", e);
+        DeviceValue value = device.getValues().get(key);
+
+        if (value == null) {
+            value = new DeviceValue();
+            value.setDevice(device);
+            value.setName(key);
+            value.setType(type);
+            value.setUnits("unknown");
+            value.setReadOnly(false);
+
+            value = deviceValueDAO.save(value);
         }
-        try {
-            DeviceValue value = device.getValues().get(key);
 
-            if (value == null) {
-                value = new DeviceValue();
-                value.setDevice(device);
-                value.setName(key);
-                value.setType(type);
-                value.setUnits("unknown");
-                value.setReadOnly(false);
-
-                value = deviceValueDAO.save(value);
-            }
-
-            if (value.getCurrentValue() != null) {
-                if (!value.getCurrentValue().equals(level) || type.equals(ValueType.TRIGGER)) {
-                    value.setCurrentValue(level);
-                    value = addChange(value);
-                }
-            } else {
+        if (value.getCurrentValue() != null) {
+            if (!value.getCurrentValue().equals(level) || type.equals(ValueType.TRIGGER)) {
                 value.setCurrentValue(level);
                 value = addChange(value);
             }
-
-            device.getValues().put(key, value);
-            saveDeviceToDatabase(device);
-
-            return value;
-        } finally {
-            if(success) {
-                lock.unlock();
-            }
+        } else {
+            value.setCurrentValue(level);
+            value = addChange(value);
         }
+
+        device.getValues().put(key, value);
+        saveDeviceToDatabase(device);
+
+        return value;
     }
 
     @Override
@@ -248,41 +211,24 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public void deleteHistory(SourceProtocol proto, String channel, String label, Date from) {
+    public synchronized void deleteHistory(SourceProtocol proto, String channel, String label, Date from) {
         Device device = getDevice(proto, channel);
 
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return;
         }
+        for (String key : device.getValues().keySet()) {
+            if (key.equals(label)) {
+                String SQL = "DELETE FROM DeviceValueChange AS c WHERE c.deviceValue.id = :id AND c.date BETWEEN :stDate AND :enDate";
+                em.createQuery(SQL)
+                        .setParameter("id", device.getValues().get(key).getId())
+                        .setParameter("stDate", new DateTime(from).minusYears(100).toDate())
+                        .setParameter("enDate", from)
+                        .executeUpdate();
 
-        boolean success = false;
-        Lock lock = getLock(device);
-        try {
-            success = lock.tryLock(15, TimeUnit.SECONDS);
-            if(!success) {
-                logger.error("addChange: Can't accuire lock for device {}!", getIdent(device));
-            }
-        } catch (InterruptedException e) {
-            logger.error("Interrupted", e);
-        }
-        try {
-            for (String key : device.getValues().keySet()) {
-                if (key.equals(label)) {
-                    String SQL = "DELETE FROM DeviceValueChange AS c WHERE c.deviceValue.id = :id AND c.date BETWEEN :stDate AND :enDate";
-                    em.createQuery(SQL)
-                            .setParameter("id", device.getValues().get(key).getId())
-                            .setParameter("stDate", new DateTime(from).minusYears(100).toDate())
-                            .setParameter("enDate", from)
-                            .executeUpdate();
-
-                    device = deviceDAO.findOne(device.getId());
-                    registry.put(getIdent(device), device);
-                }
-            }
-        } finally {
-            if(success) {
-                lock.unlock();
+                device = deviceDAO.findOne(device.getId());
+                saveDeviceToDatabase(device);
             }
         }
     }
@@ -290,15 +236,4 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     private String getIdent(Device device) {
         return device.getSource().name().toLowerCase() + "/channel/" + device.getChannel();
     }
-
-    private Lock getLock(Device device) {
-        Lock lock = locks.get(getIdent(device));
-
-        if(lock == null) {
-            lock = new ReentrantLock(true);
-            locks.put(getIdent(device), lock);
-        }
-        return lock;
-    }
-
 }

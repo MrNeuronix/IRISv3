@@ -58,5 +58,5 @@ public class DeviceValue {
     @OrderBy(clause = "date desc")
     @BatchSize(size = 30)
     @JsonIgnore
-    private List<DeviceValueChange> changes = new ArrayList<>();
+    private List<DeviceValueChange> changes = new CopyOnWriteArrayList<>();
 }
