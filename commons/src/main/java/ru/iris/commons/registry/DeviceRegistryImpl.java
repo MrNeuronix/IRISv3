@@ -1,11 +1,10 @@
 package ru.iris.commons.registry;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
@@ -18,27 +17,31 @@ import ru.iris.models.protocol.enums.SourceProtocol;
 import ru.iris.models.protocol.enums.ValueType;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 @Component
 @Slf4j
 public class DeviceRegistryImpl implements DeviceRegistry {
-    private final Gson gson = new GsonBuilder().create();
     private Map<String, Device> registry = new ConcurrentHashMap<>();
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private DeviceDAO deviceDAO;
 
     @Autowired
     private DeviceValueDAO deviceValueDAO;
+
+    @Autowired
+    private DeviceValueHistoryDAO deviceValueHistoryDAO;
 
     @PersistenceContext
     private EntityManager em;
@@ -68,7 +71,19 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public synchronized Device addOrUpdateDevice(Device device) {
+    public DeviceValueChange saveDeviceChangeToDatabase(DeviceValueChange change) {
+        if (change == null) {
+            logger.error("Device change, passed into registry is null!");
+            return null;
+        }
+
+        change = deviceValueHistoryDAO.save(change);
+        return change;
+    }
+
+    @Override
+    @Transactional
+    public Device addOrUpdateDevice(Device device) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return null;
@@ -80,7 +95,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public synchronized void addOrUpdateDevices(List<Device> devices) {
+    public void addOrUpdateDevices(List<Device> devices) {
         devices.forEach(device -> {
             if (device != null) {
                 saveDeviceToDatabase(device);
@@ -93,17 +108,22 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         DeviceValueChange add = new DeviceValueChange();
         add.setDeviceValue(value);
         add.setValue(value.getCurrentValue());
-        add.setAdditionalData(gson.toJson(value.getAdditionalData()));
+        try {
+            add.setAdditionalData(objectMapper.writeValueAsString(value.getAdditionalData()));
+        } catch (JsonProcessingException ignored) {
+        }
         add.setDate(new Date());
 
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
 
+        saveDeviceChangeToDatabase(add);
+
         return value;
     }
 
     @Override
-    public synchronized DeviceValue addChange(Device device, String key, String level, ValueType type) {
+    public DeviceValue addChange(Device device, String key, String level, ValueType type) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
             return null;
@@ -133,7 +153,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         }
 
         device.getValues().put(key, value);
-        saveDeviceToDatabase(device);
 
         return value;
     }
