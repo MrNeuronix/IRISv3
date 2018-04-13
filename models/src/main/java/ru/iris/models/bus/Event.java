@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.transport.BatteryDataEvent;
 import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.models.bus.speak.SpeakEvent;
@@ -24,6 +25,7 @@ import ru.iris.models.bus.transport.TransportConnectEvent;
 		@JsonSubTypes.Type(value = ServiceEvent.class, name = "service"),
 		@JsonSubTypes.Type(value = SpeakEvent.class, name = "speak"),
 		@JsonSubTypes.Type(value = GPSDataEvent.class, name = "gps"),
+		@JsonSubTypes.Type(value = BatteryDataEvent.class, name = "battery"),
 		@JsonSubTypes.Type(value = TransportConnectEvent.class, name = "transport-connect"),
 		@JsonSubTypes.Type(value = TerminalEvent.class, name = "terminal")
 })

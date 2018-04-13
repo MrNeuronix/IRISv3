@@ -19,11 +19,15 @@ import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
+import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.models.bus.transport.AbstractTransportEvent;
+import ru.iris.models.bus.transport.BatteryDataEvent;
 import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.bus.transport.TransportConnectEvent;
 import ru.iris.models.database.Device;
+import ru.iris.models.protocol.data.DataGPS;
+import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
 
 import javax.annotation.PreDestroy;
@@ -87,10 +91,35 @@ public class TransportController extends AbstractProtocolService {
             }
             else if (event.getData() instanceof GPSDataEvent) {
                 handleGPSData((GPSDataEvent) event.getData());
+            } else if(event.getData() instanceof BatteryDataEvent) {
+                handleBatteryData((BatteryDataEvent) event.getData());
             } else {
                 logger.error("Unknown request come to transport controller. Class: {}", event.getData().getClass());
             }
         };
+    }
+
+    private void handleBatteryData(BatteryDataEvent data) {
+        Device device = getDevice(data);
+
+        try {
+            registry.addChange(
+                    device,
+                    StandartDeviceValueLabel.VOLTAGE.getName(),
+                    objectMapper.writeValueAsString(data),
+                    ValueType.JSON
+            );
+
+            broadcast(Queue.EVENT_VOLTAGE, DeviceChangeEvent.builder()
+                    .channel(device.getChannel())
+                    .protocol(SourceProtocol.TRANSPORT)
+                    .eventLabel("VoltageChange")
+                    .data(new DataLevel(data.getVoltage().toString(), ValueType.DOUBLE))
+                    .build()
+            );
+        } catch (JsonProcessingException e) {
+            logger.error("Can't serailize data: ", e);
+        }
     }
 
     private void handleConnect(TransportConnectEvent data) {
@@ -111,6 +140,14 @@ public class TransportController extends AbstractProtocolService {
         } catch (JsonProcessingException e) {
             logger.error("Can't serailize data: ", e);
         }
+
+        broadcast(Queue.EVENT_GPS_DATA, DeviceChangeEvent.builder()
+                .channel(device.getChannel())
+                .protocol(SourceProtocol.TRANSPORT)
+                .eventLabel("GPSChange")
+                .data(new DataGPS(data.getLatitude(), data.getLongitude(), data.getSpeed()))
+                .build()
+        );
     }
 
     @Override

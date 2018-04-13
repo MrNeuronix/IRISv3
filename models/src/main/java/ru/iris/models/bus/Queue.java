@@ -31,8 +31,10 @@ public enum Queue {
 	EVENT_TEMPERATURE("event.device.temperature"),
 	EVENT_HUMIDITY("event.device.humidity"),
 
+	EVENT_VOLTAGE("event.device.voltage"),
 	EVENT_BATTERY_STATUS("event.device.battery"),
 
+	EVENT_GPS_DATA("event.device.gps"),
 	EVENT_TRANSPORT("event.transport"),
 
 	EVENT_BUTTON(""),

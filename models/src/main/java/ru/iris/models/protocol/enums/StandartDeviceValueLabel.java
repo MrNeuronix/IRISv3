@@ -30,7 +30,8 @@ public enum StandartDeviceValueLabel {
     LONGITUDE("longitude"),
     SPEED("speed"),
 
-    GPS_DATA("gps")
+    GPS_DATA("gps"),
+
     ;
 
     @Getter

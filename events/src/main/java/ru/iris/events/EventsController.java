@@ -133,10 +133,11 @@ public class EventsController extends AbstractService {
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.COMMAND, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.COMMAND, device, event.getKey().toString()));
             } else if (event.getData() instanceof AbstractTransportEvent) {
-                AbstractTransportEvent e = (AbstractTransportEvent) event.getData();
-                Device device = registry.getDevice(SourceProtocol.TRANSPORT, String.valueOf(e.getTransportId()));
-                Iterable<Rule> rules = triggerManager.getRules(TriggerType.CHANGE, device);
-                scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.CHANGE, device, event.getKey().toString()));
+	            // do nothing
+                //AbstractTransportEvent e = (AbstractTransportEvent) event.getData();
+                //Device device = registry.getDevice(SourceProtocol.TRANSPORT, String.valueOf(e.getTransportId()));
+                //Iterable<Rule> rules = triggerManager.getRules(TriggerType.CHANGE, device);
+                //scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.CHANGE, device, event.getKey().toString()));
             } else {
                 // We received unknown request message. Lets make generic log entry.
                 logger.info("Received unknown request for events service! Class: {}", event.getData().getClass());

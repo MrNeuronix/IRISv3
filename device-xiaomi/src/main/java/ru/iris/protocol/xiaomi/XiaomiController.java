@@ -630,7 +630,7 @@ public class XiaomiController extends AbstractProtocolService {
                 || voltageDb == null || voltageDb.getCurrentValue() == null) {
             registry.addChange(device, StandartDeviceValueLabel.VOLTAGE.getName(), voltage.toString(), ValueType.DOUBLE);
 
-            broadcast("event.device.voltage", new DeviceChangeEvent(
+            broadcast(Queue.EVENT_VOLTAGE, new DeviceChangeEvent(
                     device.getChannel(),
                     SourceProtocol.XIAOMI,
                     StandartDeviceValueLabel.VOLTAGE.getName(),

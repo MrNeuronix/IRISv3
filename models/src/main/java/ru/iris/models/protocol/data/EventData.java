@@ -24,6 +24,7 @@ import ru.iris.models.protocol.enums.ValueType;
 @JsonSubTypes({
 		@JsonSubTypes.Type(value = DataLevel.class, name = "data-level"),
 		@JsonSubTypes.Type(value = DataId.class, name = "data-id"),
+		@JsonSubTypes.Type(value = DataGPS.class, name = "data-gps"),
 		@JsonSubTypes.Type(value = DataSubChannelLevel.class, name = "data-subchannel")
 })
 public abstract class EventData {
