@@ -31,6 +31,21 @@
         <relativePath/>
     </parent>
 
+    <profiles>
+        <profile>
+            <id>home</id>
+            <properties>
+                <target.dir>Z:/opt/iris-0.0.1-SNAPSHOT/lib</target.dir>
+            </properties>
+        </profile>
+        <profile>
+            <id>work</id>
+            <properties>
+                <target.dir>/iris/opt/iris-0.0.1-SNAPSHOT/lib</target.dir>
+            </properties>
+        </profile>
+    </profiles>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
