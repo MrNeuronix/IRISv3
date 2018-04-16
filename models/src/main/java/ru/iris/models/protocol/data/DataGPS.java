@@ -17,4 +17,5 @@ public class DataGPS extends EventData {
     private Double latitude;
     private Double longitude;
     private Double speed;
+    private Double elevation;
 }

@@ -211,7 +211,7 @@ public class TransportController extends AbstractProtocolService {
                 .channel(device.getChannel())
                 .protocol(SourceProtocol.TRANSPORT)
                 .eventLabel("GPSChange")
-                .data(new DataGPS(data.getLatitude(), data.getLongitude(), data.getSpeed()))
+                .data(new DataGPS(data.getLatitude(), data.getLongitude(), data.getSpeed(), data.getElevation()))
                 .build()
         );
     }
