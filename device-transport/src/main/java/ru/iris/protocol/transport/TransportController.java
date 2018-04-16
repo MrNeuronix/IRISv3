@@ -157,24 +157,20 @@ public class TransportController extends AbstractProtocolService {
     private void handleBatteryData(BatteryDataEvent data) {
         Device device = getDevice(data);
 
-        try {
-            registry.addChange(
-                    device,
-                    StandartDeviceValueLabel.VOLTAGE.getName(),
-                    objectMapper.writeValueAsString(data),
-                    ValueType.JSON
-            );
+        registry.addChange(
+                device,
+                StandartDeviceValueLabel.VOLTAGE.getName(),
+                data.getVoltage().toString(),
+                ValueType.DOUBLE
+        );
 
-            broadcast(Queue.EVENT_VOLTAGE, DeviceChangeEvent.builder()
-                    .channel(device.getChannel())
-                    .protocol(SourceProtocol.TRANSPORT)
-                    .eventLabel("VoltageChange")
-                    .data(new DataLevel(data.getVoltage().toString(), ValueType.DOUBLE))
-                    .build()
-            );
-        } catch (JsonProcessingException e) {
-            logger.error("Can't serailize data: ", e);
-        }
+        broadcast(Queue.EVENT_VOLTAGE, DeviceChangeEvent.builder()
+                .channel(device.getChannel())
+                .protocol(SourceProtocol.TRANSPORT)
+                .eventLabel("VoltageChange")
+                .data(new DataLevel(data.getVoltage().toString(), ValueType.DOUBLE))
+                .build()
+        );
     }
 
     private void handleConnect(TransportConnectEvent data) {
