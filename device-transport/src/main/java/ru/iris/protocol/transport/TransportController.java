@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
+import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
@@ -21,16 +22,16 @@ import ru.iris.commons.service.AbstractProtocolService;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
-import ru.iris.models.bus.transport.AbstractTransportEvent;
-import ru.iris.models.bus.transport.BatteryDataEvent;
-import ru.iris.models.bus.transport.GPSDataEvent;
-import ru.iris.models.bus.transport.TransportConnectEvent;
+import ru.iris.models.bus.transport.*;
 import ru.iris.models.database.Device;
 import ru.iris.models.protocol.data.DataGPS;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
 
 import javax.annotation.PreDestroy;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 
 @Component
@@ -93,10 +94,33 @@ public class TransportController extends AbstractProtocolService {
                 handleGPSData((GPSDataEvent) event.getData());
             } else if(event.getData() instanceof BatteryDataEvent) {
                 handleBatteryData((BatteryDataEvent) event.getData());
-            } else {
+            } else if(event.getData() instanceof GPXDataEvent) {
+                handleGPXData((GPXDataEvent) event.getData());
+            }else {
                 logger.error("Unknown request come to transport controller. Class: {}", event.getData().getClass());
             }
         };
+    }
+
+    private void handleGPXData(GPXDataEvent data) {
+        logger.info("GPX data is come!");
+        Device device = getDevice(data);
+        String xml = data.getXml();
+        String path = "data/track-" + Instant.now().getMillis() + ".gpx";
+
+        try (PrintStream out = new PrintStream(new FileOutputStream(path))) {
+            out.print(xml);
+        } catch (FileNotFoundException e) {
+            logger.error("GPX file error", e);
+        }
+
+        broadcast(Queue.EVENT_GPX_DATA, DeviceChangeEvent.builder()
+                .channel(device.getChannel())
+                .protocol(SourceProtocol.TRANSPORT)
+                .eventLabel("GPXData")
+                .data(new DataLevel(path, ValueType.STRING))
+                .build()
+        );
     }
 
     private void handleBatteryData(BatteryDataEvent data) {

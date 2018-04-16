@@ -35,7 +35,7 @@
         <profile>
             <id>home</id>
             <properties>
-                <target.dir>Z:/opt/iris-0.0.1-SNAPSHOT/lib</target.dir>
+                <target.dir>X:/opt/iris-0.0.1-SNAPSHOT/lib</target.dir>
             </properties>
         </profile>
         <profile>
