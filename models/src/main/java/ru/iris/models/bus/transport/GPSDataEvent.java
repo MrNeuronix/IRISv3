@@ -15,18 +15,19 @@ import ru.iris.models.bus.Event;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class GPSDataEvent extends AbstractTransportEvent {
     private Double latitude;
     private Double longitude;
+    private Double elevation;
     private Double speed;
 
     @Builder
-    public GPSDataEvent(Double latitude, Double longitude, Double speed, int id) {
+    public GPSDataEvent(Double latitude, Double longitude, Double speed, Double elevation, int id) {
         super(id);
         this.latitude = latitude;
         this.longitude = longitude;
         this.speed = speed;
+        this.elevation = elevation;
         this.transportId = id;
     }
 }

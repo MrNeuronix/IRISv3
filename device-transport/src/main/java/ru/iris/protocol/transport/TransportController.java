@@ -2,6 +2,7 @@ package ru.iris.protocol.transport;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jenetics.jpx.GPX;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
@@ -29,6 +30,7 @@ import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,7 +59,7 @@ public class TransportController extends AbstractProtocolService {
     private final double minSpeed = 5D;
     private Map<Integer, Integer> speedStale = new HashMap<>();
     private Map<Integer, Long> lastPing = new HashMap<>();
-    private Map<Integer, List<GPSDataEvent>> track = new HashMap<>();
+    private Map<Integer, List<GPSDataEvent>> tracks = new HashMap<>();
 
     @Override
     public void onStartup() {
@@ -91,19 +93,19 @@ public class TransportController extends AbstractProtocolService {
     @Scheduled(fixedRate = 15 * 60 * 1000, initialDelay = 30_000) // 15 minutes
     @PreDestroy
     public void saveTrack() {
-        logger.info("Looking for GPS track save");
+        logger.info("Looking for GPS tracks save");
         for (Integer id : lastPing.keySet()) {
             long delta = (Instant.now().getMillis() - lastPing.get(id)) * 1000 * 60; // in minutes
             int stale = speedStale.get(id);
-            int trackSize = track.get(id) == null ? 0 : track.get(id).size();
+            int trackSize = tracks.get(id) == null ? 0 : tracks.get(id).size();
 
-            if (delta >= noActivityMinutes || stale >= 12 * noActivityMinutes) { // no info or speed stale - save track
+            if (delta >= noActivityMinutes || stale >= 12 * noActivityMinutes) { // no info or speed stale - save tracks
                 if (trackSize > 0) {
-                    logger.info("Saving GPS track for transport {}", id);
+                    logger.info("Saving GPS tracks for transport {}", id);
 
-                    // todo
+                    writeTrack(id);
 
-                    track.remove(id);
+                    tracks.remove(id);
                     lastPing.remove(id);
                     speedStale.remove(id);
                 }
@@ -194,11 +196,7 @@ public class TransportController extends AbstractProtocolService {
             logger.error("Can't serailize data: ", e);
         }
 
-        track.computeIfAbsent(data.getTransportId(), k -> new ArrayList<>());
-
-        if (data.getSpeed() >= minSpeed) {
-            track.get(data.getTransportId()).add(data);
-        }
+        tracks.computeIfAbsent(data.getTransportId(), k -> new ArrayList<>());
 
         int stale = speedStale.get(data.getTransportId());
         if (data.getSpeed() <= staleSpeed) {
@@ -207,6 +205,10 @@ public class TransportController extends AbstractProtocolService {
 
         if (data.getSpeed() >= minSpeed) {
             speedStale.put(data.getTransportId(), 0);
+        }
+
+        if (data.getSpeed() >= minSpeed || stale <= 12) {
+            tracks.get(data.getTransportId()).add(data);
         }
 
         broadcast(Queue.EVENT_GPS_DATA, DeviceChangeEvent.builder()
@@ -227,6 +229,29 @@ public class TransportController extends AbstractProtocolService {
     @Override
     public String getServiceIdentifier() {
         return "transport";
+    }
+
+    private void writeTrack(Integer id) {
+        final GPX gpx = GPX.builder()
+                .addTrack(track -> track
+                        .addSegment(segment ->
+                                tracks.get(id).forEach(point -> {
+                                    segment.addPoint(p ->
+                                            p
+                                                    .lat(point.getLatitude())
+                                                    .lon(point.getLongitude())
+                                                    .ele(point.getElevation())
+                                                    .speed(point.getSpeed())
+                                    );
+                                })
+                        ))
+                .build();
+
+        try {
+            GPX.write(gpx, "gpx/track.gpx");
+        } catch (IOException e) {
+            logger.error("IOException while writing GPX track file", e);
+        }
     }
 
     private Device getDevice(AbstractTransportEvent data) {
