@@ -29,10 +29,10 @@ import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
 
 import javax.annotation.PreDestroy;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @Profile("transport")
@@ -51,6 +51,13 @@ public class TransportController extends AbstractProtocolService {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    private final int noActivityMinutes = 10;
+    private final double staleSpeed = 2D;
+    private final double minSpeed = 5D;
+    private Map<Integer, Integer> speedStale = new HashMap<>();
+    private Map<Integer, Long> lastPing = new HashMap<>();
+    private Map<Integer, List<GPSDataEvent>> track = new HashMap<>();
 
     @Override
     public void onStartup() {
@@ -72,6 +79,36 @@ public class TransportController extends AbstractProtocolService {
                         StandartDeviceValueLabel.GPS_DATA.getName(),
                         new DateTime().minusDays(days).toDate())
         );
+        transports.forEach(transport ->
+                registry.deleteHistory(
+                        SourceProtocol.TRANSPORT,
+                        transport.getChannel(),
+                        StandartDeviceValueLabel.VOLTAGE.getName(),
+                        new DateTime().minusDays(days).toDate())
+        );
+    }
+
+    @Scheduled(fixedRate = 15 * 60 * 1000, initialDelay = 30_000) // 15 minutes
+    @PreDestroy
+    public void saveTrack() {
+        logger.info("Looking for GPS track save");
+        for (Integer id : lastPing.keySet()) {
+            long delta = (Instant.now().getMillis() - lastPing.get(id)) * 1000 * 60; // in minutes
+            int stale = speedStale.get(id);
+            int trackSize = track.get(id) == null ? 0 : track.get(id).size();
+
+            if (delta >= noActivityMinutes || stale >= 12 * noActivityMinutes) { // no info or speed stale - save track
+                if (trackSize > 0) {
+                    logger.info("Saving GPS track for transport {}", id);
+
+                    // todo
+
+                    track.remove(id);
+                    lastPing.remove(id);
+                    speedStale.remove(id);
+                }
+            }
+        }
     }
 
     @Override
@@ -94,31 +131,23 @@ public class TransportController extends AbstractProtocolService {
                 handleGPSData((GPSDataEvent) event.getData());
             } else if(event.getData() instanceof BatteryDataEvent) {
                 handleBatteryData((BatteryDataEvent) event.getData());
-            } else if(event.getData() instanceof GPXDataEvent) {
-                handleGPXData((GPXDataEvent) event.getData());
+            } else if (event.getData() instanceof TransportPingEvent) {
+                handlePing((TransportPingEvent) event.getData());
             }else {
                 logger.error("Unknown request come to transport controller. Class: {}", event.getData().getClass());
             }
         };
     }
 
-    private void handleGPXData(GPXDataEvent data) {
-        logger.info("GPX data is come!");
+    private void handlePing(TransportPingEvent data) {
         Device device = getDevice(data);
-        String xml = data.getXml();
-        String path = "data/track-" + Instant.now().getMillis() + ".gpx";
 
-        try (PrintStream out = new PrintStream(new FileOutputStream(path))) {
-            out.print(xml);
-        } catch (FileNotFoundException e) {
-            logger.error("GPX file error", e);
-        }
+        lastPing.put(data.getTransportId(), Instant.now().getMillis());
 
-        broadcast(Queue.EVENT_GPX_DATA, DeviceChangeEvent.builder()
+        broadcast(Queue.EVENT_DEVICE_PING, DeviceChangeEvent.builder()
                 .channel(device.getChannel())
                 .protocol(SourceProtocol.TRANSPORT)
-                .eventLabel("GPXData")
-                .data(new DataLevel(path, ValueType.STRING))
+                .eventLabel("Ping")
                 .build()
         );
     }
@@ -163,6 +192,21 @@ public class TransportController extends AbstractProtocolService {
             );
         } catch (JsonProcessingException e) {
             logger.error("Can't serailize data: ", e);
+        }
+
+        track.computeIfAbsent(data.getTransportId(), k -> new ArrayList<>());
+
+        if (data.getSpeed() >= minSpeed) {
+            track.get(data.getTransportId()).add(data);
+        }
+
+        int stale = speedStale.get(data.getTransportId());
+        if (data.getSpeed() <= staleSpeed) {
+            speedStale.put(data.getTransportId(), ++stale);
+        }
+
+        if (data.getSpeed() >= minSpeed) {
+            speedStale.put(data.getTransportId(), 0);
         }
 
         broadcast(Queue.EVENT_GPS_DATA, DeviceChangeEvent.builder()

@@ -35,7 +35,7 @@ public enum Queue {
 	EVENT_BATTERY_STATUS("event.device.battery"),
 
 	EVENT_GPS_DATA("event.device.gps"),
-	EVENT_GPX_DATA("event.device.gpx"),
+    EVENT_DEVICE_PING("event.device.ping"),
 	EVENT_TRANSPORT("event.transport"),
 
 	EVENT_BUTTON(""),
