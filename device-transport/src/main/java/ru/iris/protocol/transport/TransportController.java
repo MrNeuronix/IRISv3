@@ -194,7 +194,7 @@ public class TransportController extends AbstractProtocolService {
 
         tracks.computeIfAbsent(data.getTransportId(), k -> new ArrayList<>());
 
-        int stale = speedStale.get(data.getTransportId());
+        int stale = speedStale.get(data.getTransportId()) == null ? 0 : speedStale.get(data.getTransportId());
         if (data.getSpeed() <= staleSpeed) {
             speedStale.put(data.getTransportId(), ++stale);
         }
@@ -228,6 +228,10 @@ public class TransportController extends AbstractProtocolService {
     }
 
     private void writeTrack(Integer id) {
+        if (tracks.get(id) == null || tracks.get(id).size() == 0) {
+            return;
+        }
+
         final GPX gpx = GPX.builder()
                 .addTrack(track -> track
                         .addSegment(segment ->
@@ -238,13 +242,14 @@ public class TransportController extends AbstractProtocolService {
                                                     .lon(point.getLongitude())
                                                     .ele(point.getElevation())
                                                     .speed(point.getSpeed())
+                                                    .time(point.getTime())
                                     );
                                 })
                         ))
                 .build();
 
         try {
-            GPX.write(gpx, "gpx/track.gpx");
+            GPX.write(gpx, "gpx/track-" + Instant.now().getMillis() + ".gpx");
         } catch (IOException e) {
             logger.error("IOException while writing GPX track file", e);
         }
