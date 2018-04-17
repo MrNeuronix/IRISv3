@@ -26,7 +26,7 @@ public class GPSDataEvent extends AbstractTransportEvent {
         this.longitude = longitude;
         this.speed = speed;
         this.elevation = elevation;
-        this.time = time;
+        this.time = time == null ? Instant.now() : time;
         this.satellites = satellites;
         this.transportId = id;
     }

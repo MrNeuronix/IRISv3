@@ -100,15 +100,14 @@ public class TransportController extends AbstractProtocolService {
             int trackSize = tracks.get(id) == null ? 0 : tracks.get(id).size();
 
             if (delta >= noActivityMinutes || stale >= 12 * noActivityMinutes) { // no info or speed stale - save tracks
-                if (trackSize > 0) {
+                if (trackSize > 10) {
                     logger.info("Saving GPS tracks for transport {}", id);
-
                     writeTrack(id);
-
-                    tracks.remove(id);
-                    lastPing.remove(id);
-                    speedStale.remove(id);
                 }
+
+                tracks.remove(id);
+                lastPing.remove(id);
+                speedStale.remove(id);
             }
         }
     }
@@ -181,10 +180,10 @@ public class TransportController extends AbstractProtocolService {
     private void handleGPSData(GPSDataEvent data) {
         Device device = getDevice(data);
 
-        if (data.getSatellites() <= 2) {
-            logger.warn("Skip GPS data, because not enough visible satellites: {}", data.getSatellites());
-            return;
-        }
+        //if (data.getSatellites() <= 2) {
+        //    logger.warn("Skip GPS data, because not enough visible satellites: {}", data.getSatellites());
+        //    return;
+        //}
 
         try {
             registry.addChange(
