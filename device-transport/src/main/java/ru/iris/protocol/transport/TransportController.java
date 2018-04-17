@@ -181,6 +181,11 @@ public class TransportController extends AbstractProtocolService {
     private void handleGPSData(GPSDataEvent data) {
         Device device = getDevice(data);
 
+        if (data.getSatellites() <= 2) {
+            logger.warn("Skip GPS data, because not enough visible satellites: {}", data.getSatellites());
+            return;
+        }
+
         try {
             registry.addChange(
                     device,
