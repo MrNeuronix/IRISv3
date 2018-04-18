@@ -15,10 +15,10 @@ public class GPSDataEvent extends AbstractTransportEvent {
     private Double longitude;
     private Double elevation;
     private Double speed;
-    private Instant time;
+    private Long time;
 
     @Builder
-    public GPSDataEvent(Double latitude, Double longitude, Double speed, Double elevation, Instant time, int id) {
+    public GPSDataEvent(Double latitude, Double longitude, Double speed, Double elevation, Long time, int id) {
         super(id);
         this.latitude = latitude;
         this.longitude = longitude;
