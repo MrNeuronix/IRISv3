@@ -263,7 +263,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
                         .setParameter("enDate", from)
                         .executeUpdate();
 
-                device = deviceDAO.findOne(device.getId());
+                device = deviceDAO.findById(device.getId()).get();
                 saveDeviceToDatabase(device);
             }
         }

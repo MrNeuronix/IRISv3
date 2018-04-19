@@ -80,7 +80,7 @@ public class TransportController extends AbstractProtocolService {
     @Scheduled(fixedRate = 6 * 60 * 60 * 1000, initialDelay = 20_000) // 6 hours
     @PreDestroy
     public void cleanDatabase() {
-        logger.info("Clean transport GPS history");
+        logger.info("Clean transport GPS and voltage history");
         List<Device> transports = registry.getDevicesByProto(SourceProtocol.TRANSPORT);
         int days = Integer.parseInt(config.get("data.gps.days"));
         int daysVoltage = Integer.parseInt(config.get("data.voltage.days"));
@@ -199,7 +199,7 @@ public class TransportController extends AbstractProtocolService {
                     ValueType.JSON
             );
         } catch (JsonProcessingException e) {
-            logger.error("Can't serailize data: ", e);
+            logger.error("Can't serialize data: ", e);
         }
 
         tracks.computeIfAbsent(data.getTransportId(), k -> new ArrayList<>());
@@ -270,6 +270,7 @@ public class TransportController extends AbstractProtocolService {
         }
 
         if (config.get("strava.export").equals("true")) {
+            logger.info("Exporting GPS track to Strava ({})", filename);
             Token token = getValidTokenWithFullAccess();
             Strava strava = new Strava(token);
 
@@ -284,6 +285,8 @@ public class TransportController extends AbstractProtocolService {
                     null,
                     new File(filename)
             );
+
+            logger.info("Exported ({})", filename);
         }
     }
 
@@ -326,6 +329,5 @@ public class TransportController extends AbstractProtocolService {
             }
         }
         return token;
-
     }
 }

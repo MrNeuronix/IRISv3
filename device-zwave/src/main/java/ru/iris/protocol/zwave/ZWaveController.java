@@ -1,7 +1,7 @@
 package ru.iris.protocol.zwave;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,6 +24,7 @@ import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
 import ru.iris.models.protocol.enums.ValueType;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -37,9 +38,11 @@ public class ZWaveController extends AbstractProtocolService {
     private final EventBus r;
     private final ConfigLoader config;
     private final DeviceRegistry registry;
-    private final Gson gson = new GsonBuilder().create();
     private Long homeId;
     private boolean ready = false;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     public ZWaveController(EventBus r,
@@ -370,7 +373,11 @@ public class ZWaveController extends AbstractProtocolService {
                     value.setUnits(Manager.get().getValueUnits(valueId));
                     value.setReadOnly(Manager.get().isValueReadOnly(valueId));
                     value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
-                    value.setAdditionalData(gson.toJson(valueId));
+                    try {
+                        value.setAdditionalData(objectMapper.writeValueAsString(valueId));
+                    } catch (JsonProcessingException e) {
+                        logger.error("", e);
+                    }
 
                     registry.addChange(value);
                     device.getValues().put(label, value);
@@ -460,7 +467,11 @@ public class ZWaveController extends AbstractProtocolService {
             value.setUnits(Manager.get().getValueUnits(valueId));
             value.setReadOnly(Manager.get().isValueReadOnly(valueId));
             value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
-            value.setAdditionalData(gson.toJson(valueId));
+            try {
+                value.setAdditionalData(objectMapper.writeValueAsString((valueId)));
+            } catch (JsonProcessingException e) {
+                logger.error("", e);
+            }
 
             // Check if it is beaming device
             DeviceValue beaming = new DeviceValue();
@@ -509,7 +520,11 @@ public class ZWaveController extends AbstractProtocolService {
             value.setUnits(Manager.get().getValueUnits(valueId));
             value.setReadOnly(Manager.get().isValueReadOnly(valueId));
             value.setCurrentValue(getValue(valueId) != null ? getValue(valueId).toString() : "unknown");
-            value.setAdditionalData(gson.toJson(valueId));
+            try {
+                value.setAdditionalData(objectMapper.writeValueAsString(valueId));
+            } catch (JsonProcessingException e) {
+                logger.error("", e);
+            }
 
             value = registry.addChange(value);
             device.getValues().put(label, value);
@@ -650,8 +665,15 @@ public class ZWaveController extends AbstractProtocolService {
         if (!device.getState().equals(State.DEAD) && device.getValues().get(label) != null) {
             logger.info("Node {}: Setting value: {} for label \"{}\"", node, level, label);
 
-            if (!Manager.get().isValueReadOnly(gson.fromJson(device.getValues().get(label).getAdditionalData(), ValueId.class))) {
-                setTypedValue(gson.fromJson(device.getValues().get(label).getAdditionalData(), ValueId.class), level);
+            ValueId valueId = null;
+            try {
+                valueId = objectMapper.readValue(device.getValues().get(label).getAdditionalData(), ValueId.class);
+            } catch (IOException e) {
+                logger.error("", e);
+            }
+
+            if (!Manager.get().isValueReadOnly(valueId)) {
+                setTypedValue(valueId, level);
             } else {
                 logger.info("Node {}: Value \"{}\" is read-only! Skip.", node, label);
             }
