@@ -3,6 +3,13 @@ package ru.iris.protocol.transport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jenetics.jpx.GPX;
+import javastrava.api.v3.auth.TokenManager;
+import javastrava.api.v3.auth.model.Token;
+import javastrava.api.v3.auth.ref.AuthorisationScope;
+import javastrava.api.v3.model.reference.StravaActivityType;
+import javastrava.api.v3.service.Strava;
+import javastrava.api.v3.service.exception.BadRequestException;
+import javastrava.api.v3.service.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
@@ -28,8 +35,10 @@ import ru.iris.models.database.Device;
 import ru.iris.models.protocol.data.DataGPS;
 import ru.iris.models.protocol.data.DataLevel;
 import ru.iris.models.protocol.enums.*;
+import ru.iris.protocol.transport.utils.StravaHttpUtils;
 
 import javax.annotation.PreDestroy;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -254,10 +263,30 @@ public class TransportController extends AbstractProtocolService {
                         ))
                 .build();
 
+        String filename;
         try {
-            GPX.write(gpx, "gpx/track-" + id + "-" + Instant.now().getMillis() + ".gpx");
+            filename = "gpx/track-" + id + "-" + Instant.now().getMillis() + ".gpx";
+            GPX.write(gpx, filename);
         } catch (IOException e) {
             logger.error("IOException while writing GPX track file", e);
+            return;
+        }
+
+        if (config.get("strava.export").equals("true")) {
+            Token token = getValidTokenWithFullAccess();
+            Strava strava = new Strava(token);
+
+            strava.upload(
+                    StravaActivityType.EBIKE_RIDE,
+                    "GPS track integration upload - " + Instant.now().toString(),
+                    "GPS track exported from IRIS smart home system",
+                    false,
+                    false,
+                    false,
+                    "gpx",
+                    null,
+                    new File(filename)
+            );
         }
     }
 
@@ -281,5 +310,24 @@ public class TransportController extends AbstractProtocolService {
         }
 
         return device;
+    }
+
+    public Token getValidTokenWithFullAccess() {
+        return tokenWithExactScope(AuthorisationScope.WRITE, AuthorisationScope.VIEW_PRIVATE);
+    }
+
+    private Token tokenWithExactScope(final AuthorisationScope... scopes) {
+        Token token = TokenManager.instance().retrieveTokenWithExactScope(config.get("strava.username"), scopes);
+        if (token == null) {
+            try {
+                StravaHttpUtils utils = new StravaHttpUtils(config.get("strava.client.id"), config.get("strava.client.secret"));
+                token = utils.getStravaAccessToken(config.get("strava.username"), config.get("strava.password"), scopes);
+                TokenManager.instance().storeToken(token);
+            } catch (BadRequestException | UnauthorizedException e) {
+                return null;
+            }
+        }
+        return token;
+
     }
 }

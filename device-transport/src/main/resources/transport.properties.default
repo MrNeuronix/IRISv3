@@ -4,3 +4,10 @@
 
 # How many days to store GPS data
 data.gps.days = 1
+
+strava.export = false
+
+strava.username = test@test.com
+strava.password = changeme
+strava.client.id = 24500
+strava.client.secret = testclientsecret
