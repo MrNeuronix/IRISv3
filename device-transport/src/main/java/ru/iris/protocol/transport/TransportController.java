@@ -240,14 +240,16 @@ public class TransportController extends AbstractProtocolService {
                 .addTrack(track -> track
                         .addSegment(segment ->
                                 tracks.get(id).forEach(point -> {
-                                    segment.addPoint(p ->
-                                            p
-                                                    .lat(point.getLatitude())
-                                                    .lon(point.getLongitude())
-                                                    .ele(point.getElevation())
-                                                    .speed(point.getSpeed())
-                                                    .time(point.getTime())
-                                    );
+                                    if (point != null) {
+                                        segment.addPoint(p ->
+                                                p
+                                                        .lat(point.getLatitude())
+                                                        .lon(point.getLongitude())
+                                                        .ele(point.getElevation())
+                                                        .speed(point.getSpeed())
+                                                        .time(point.getTime() * 1000L)
+                                        );
+                                    }
                                 })
                         ))
                 .build();

@@ -199,27 +199,44 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     public List getHistory(SourceProtocol proto, String channel, String label, Date start, Date stop) {
+        return getHistory(proto, channel, label, start, stop, true);
+    }
+
+    @Override
+    public List getHistory(SourceProtocol proto, String channel, String label, Date start, Date stop, boolean desc) {
         Device device = getDevice(proto, channel);
 
         for (String key : device.getValues().keySet()) {
             if (key.equals(label))
-                return getHistory(device.getValues().get(label).getId(), start, stop);
+                return getHistory(device.getValues().get(label).getId(), start, stop, desc);
         }
 
         return new ArrayList();
     }
 
-    private List getHistory(long id, Date startDate, Date stopDate) {
+    private List getHistory(long id, Date startDate, Date stopDate, boolean desc) {
         String SQL = "FROM DeviceValueChange AS c WHERE c.deviceValue.id = :id AND c.date BETWEEN :stDate AND";
 
         if (stopDate == null) {
-            SQL += " current_date order by c.date desc";
+            SQL += " current_date order by c.date";
+            if (desc) {
+                SQL += " desc";
+            } else {
+                SQL += " asc";
+            }
+
             return em.createQuery(SQL)
                     .setParameter("id", id)
                     .setParameter("stDate", startDate)
                     .getResultList();
         } else {
-            SQL += " :enDate order by c.date desc";
+            SQL += " :enDate order by c.date";
+            if (desc) {
+                SQL += " desc";
+            } else {
+                SQL += " asc";
+            }
+
             return em.createQuery(SQL)
                     .setParameter("id", id)
                     .setParameter("stDate", startDate)

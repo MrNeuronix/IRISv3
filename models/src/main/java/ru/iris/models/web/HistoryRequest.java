@@ -16,4 +16,6 @@ public class HistoryRequest {
     private String endDate;
     @NotEmpty
     private String label;
+
+    private boolean desc = true;
 }

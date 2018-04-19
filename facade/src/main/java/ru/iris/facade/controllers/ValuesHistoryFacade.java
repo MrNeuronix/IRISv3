@@ -8,11 +8,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.EventBus;
-import ru.iris.models.database.DeviceValueChange;
 import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.models.database.DeviceValueChange;
+import ru.iris.models.status.ErrorStatus;
 import ru.iris.models.web.HistoryRequest;
 import ru.iris.models.web.dto.DeviceValueChangeDTO;
-import ru.iris.models.status.ErrorStatus;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -64,7 +64,7 @@ public class ValuesHistoryFacade {
         }
 
         List<DeviceValueChange> dbList = registry.getHistory(request.getSource(), request.getChannel(), request.getLabel(),
-                startDate, stopDate);
+                startDate, stopDate, request.isDesc());
 
         List<Object> ret = new ArrayList<>();
         dbList.forEach(element -> {
