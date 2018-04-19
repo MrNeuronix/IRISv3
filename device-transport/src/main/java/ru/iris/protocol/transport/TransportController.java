@@ -83,6 +83,8 @@ public class TransportController extends AbstractProtocolService {
         logger.info("Clean transport GPS history");
         List<Device> transports = registry.getDevicesByProto(SourceProtocol.TRANSPORT);
         int days = Integer.parseInt(config.get("data.gps.days"));
+        int daysVoltage = Integer.parseInt(config.get("data.voltage.days"));
+
         transports.forEach(transport ->
                 registry.deleteHistory(
                         SourceProtocol.TRANSPORT,
@@ -95,7 +97,7 @@ public class TransportController extends AbstractProtocolService {
                         SourceProtocol.TRANSPORT,
                         transport.getChannel(),
                         StandartDeviceValueLabel.VOLTAGE.getName(),
-                        new DateTime().minusDays(days).toDate())
+                        new DateTime().minusDays(daysVoltage).toDate())
         );
     }
 
@@ -189,11 +191,6 @@ public class TransportController extends AbstractProtocolService {
     private void handleGPSData(GPSDataEvent data) {
         Device device = getDevice(data);
 
-        //if (data.getSatellites() <= 2) {
-        //    logger.warn("Skip GPS data, because not enough visible satellites: {}", data.getSatellites());
-        //    return;
-        //}
-
         try {
             registry.addChange(
                     device,
@@ -241,7 +238,7 @@ public class TransportController extends AbstractProtocolService {
     }
 
     private void writeTrack(Integer id) {
-        if (tracks.get(id) == null || tracks.get(id).size() == 0) {
+        if (tracks.get(id) == null || tracks.get(id).size() <= 10) {
             return;
         }
 
@@ -312,7 +309,7 @@ public class TransportController extends AbstractProtocolService {
         return device;
     }
 
-    public Token getValidTokenWithFullAccess() {
+    private Token getValidTokenWithFullAccess() {
         return tokenWithExactScope(AuthorisationScope.WRITE, AuthorisationScope.VIEW_PRIVATE);
     }
 
@@ -324,6 +321,7 @@ public class TransportController extends AbstractProtocolService {
                 token = utils.getStravaAccessToken(config.get("strava.username"), config.get("strava.password"), scopes);
                 TokenManager.instance().storeToken(token);
             } catch (BadRequestException | UnauthorizedException e) {
+                logger.error("Strava error: ", e);
                 return null;
             }
         }

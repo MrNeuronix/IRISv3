@@ -2,8 +2,9 @@
 # = IRIS Transport
 # ===============================
 
-# How many days to store GPS data
+# How many days to store GPS and voltage data
 data.gps.days = 1
+data.voltage.days = 2
 
 strava.export = false
 
