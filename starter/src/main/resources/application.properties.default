@@ -22,3 +22,7 @@ logging.config=file:config/logback-spring.xml
 # ===============================
 # Available modules - (yandex OR google), zwave, noolite, xiaomi, httpapi, transport, weather, facade, ai, events
 spring.profiles.active=yandex, zwave, noolite, xiaomi, httpapi, transport, facade, events
+
+# unused
+strava.client_id=111
+strava.client_secret=111

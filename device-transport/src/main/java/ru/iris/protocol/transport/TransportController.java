@@ -111,14 +111,16 @@ public class TransportController extends AbstractProtocolService {
             int trackSize = tracks.get(id) == null ? 0 : tracks.get(id).size();
 
             if (delta >= noActivityMinutes || stale >= 60 * noActivityMinutes) { // no info or speed stale - save tracks
-                if (trackSize > 10) {
-                    logger.info("Saving GPS tracks for transport {}", id);
-                    writeTrack(id);
+                try {
+                    if (trackSize > 10) {
+                        logger.info("Saving GPS tracks for transport {}", id);
+                        writeTrack(id);
+                    }
+                } finally {
+                    tracks.remove(id);
+                    lastPing.remove(id);
+                    speedStale.remove(id);
                 }
-
-                tracks.remove(id);
-                lastPing.remove(id);
-                speedStale.remove(id);
             }
         }
     }
