@@ -63,7 +63,7 @@ public class TransportController extends AbstractProtocolService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final int noActivityMinutes = 10;
+    private final double noActivityMinutes = 10D;
     private final double staleSpeed = 2D;
     private final double minSpeed = 5D;
     private Map<Integer, Integer> speedStale = new HashMap<>();
@@ -106,7 +106,7 @@ public class TransportController extends AbstractProtocolService {
     public void saveTrack() {
         logger.info("Looking for GPS tracks save");
         for (Integer id : lastPing.keySet()) {
-            long delta = (Instant.now().getMillis() - lastPing.get(id)) * 1000 * 60; // in minutes
+            double delta = ((Instant.now().getMillis() - lastPing.get(id)) * 1000D) / 60D; // in minutes
             int stale = speedStale.get(id) == null ? 0 : speedStale.get(id);
             int trackSize = tracks.get(id) == null ? 0 : tracks.get(id).size();
 
