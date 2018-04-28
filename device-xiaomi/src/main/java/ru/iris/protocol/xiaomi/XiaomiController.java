@@ -21,6 +21,7 @@ import org.springframework.util.StringUtils;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -49,6 +50,7 @@ import static ru.iris.models.protocol.enums.EventLabel.BATTERY_LOW;
 @Component
 @Profile("xiaomi")
 @Qualifier("xiaomi")
+@RunOnStartup
 @Slf4j
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class XiaomiController extends AbstractProtocolService {

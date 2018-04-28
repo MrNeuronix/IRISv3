@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -49,6 +50,7 @@ import java.util.Map;
 @Component
 @Profile("transport")
 @Qualifier("transport")
+@RunOnStartup
 @Slf4j
 @Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 public class TransportController extends AbstractProtocolService {

@@ -2,46 +2,30 @@ package ru.iris;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.JpaConfig;
 import ru.iris.commons.config.ReactorConfig;
 import ru.iris.commons.config.SchedulerConfig;
-import ru.iris.commons.service.ProtocolService;
-import ru.iris.commons.service.Service;
-import ru.iris.commons.service.Speak;
-
-import javax.annotation.PostConstruct;
+import ru.iris.commons.service.RunnableService;
 
 @SpringBootApplication
 @Component
 @Slf4j
 public class CoreApplication {
 
-    @Autowired(required = false)
-    private Speak speak;
-    @Autowired(required = false)
-    @Qualifier("events")
-    private Service events;
-    @Autowired(required = false)
-    @Qualifier("zwave")
-    private ProtocolService zwave;
-    @Autowired(required = false)
-    @Qualifier("nooliterx")
-    private ProtocolService nooliteRx;
-    @Autowired(required = false)
-    @Qualifier("noolitetx")
-    private ProtocolService nooliteTx;
-    @Autowired(required = false)
-    @Qualifier("xiaomi")
-    private ProtocolService xiaomi;
-    @Autowired(required = false)
-    @Qualifier("httpapi")
-    private ProtocolService httpapi;
+    @Autowired
+    private ApplicationContext context;
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
+        CoreApplication application = new CoreApplication();
+        application.start(args);
+    }
+
+    private void start(String[] args) {
         SpringApplication.run(new Class<?>[]{
                 CoreApplication.class,
                 JpaConfig.class,
@@ -49,23 +33,16 @@ public class CoreApplication {
                 SchedulerConfig.class
         }, args);
 
-    }
+        context.getBeansWithAnnotation(RunOnStartup.class).forEach((name, bean) -> {
+            RunnableService service = (RunnableService) bean;
 
-    @PostConstruct
-    private void init() throws Exception {
-        if (speak != null)
-            speak.run();
-		    if (xiaomi != null)
-			      xiaomi.run();
-        if (zwave != null)
-            zwave.run();
-        if (nooliteRx != null)
-            nooliteRx.run();
-        if (nooliteTx != null)
-            nooliteTx.run();
-        if (httpapi != null)
-            httpapi.run();
-		    if (events != null)
-			      events.run();
+            if (service != null) {
+                try {
+                    service.run();
+                } catch (Exception e) {
+                    logger.error("Error while starting up service {}", name, e);
+                }
+            }
+        });
     }
 }

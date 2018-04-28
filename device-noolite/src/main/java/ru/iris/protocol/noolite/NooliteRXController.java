@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -30,6 +31,7 @@ import static ru.iris.models.protocol.enums.DeviceType.TEMP_HUMI_SENSOR;
 @Component
 @Profile("noolite")
 @Qualifier("nooliterx")
+@RunOnStartup
 @Slf4j
 public class NooliteRXController extends AbstractProtocolService {
 

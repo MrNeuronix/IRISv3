@@ -9,13 +9,14 @@ import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
 import reactor.fn.Consumer;
-import ru.iris.models.bus.service.ServiceEvent;
-import ru.iris.models.bus.speak.SpeakEvent;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.database.dao.SpeakDAO;
-import ru.iris.models.database.Speaks;
 import ru.iris.commons.service.AbstractService;
 import ru.iris.commons.service.Speak;
+import ru.iris.models.bus.service.ServiceEvent;
+import ru.iris.models.bus.speak.SpeakEvent;
+import ru.iris.models.database.Speaks;
 import ru.iris.speak.player.AudioPlayer;
 
 import javax.annotation.PostConstruct;
@@ -28,6 +29,7 @@ import java.util.concurrent.*;
 
 @Component
 @Profile("yandex")
+@RunOnStartup
 @Slf4j
 public class YandexController extends AbstractService implements Speak {
 

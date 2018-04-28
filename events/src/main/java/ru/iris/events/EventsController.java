@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.helpers.DeviceHelper;
 import ru.iris.commons.helpers.SpeakHelper;
@@ -24,14 +25,12 @@ import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
 import ru.iris.models.bus.service.ServiceEvent;
-import ru.iris.models.bus.transport.AbstractTransportEvent;
-import ru.iris.models.bus.transport.GPSDataEvent;
 import ru.iris.models.database.Device;
-import ru.iris.models.protocol.enums.SourceProtocol;
 
 @Component
 @Qualifier("events")
 @Profile("events")
+@RunOnStartup
 @Slf4j
 public class EventsController extends AbstractService {
 

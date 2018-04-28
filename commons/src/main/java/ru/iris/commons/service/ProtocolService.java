@@ -5,16 +5,13 @@ import reactor.fn.Consumer;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.service.ServiceState;
 
-public interface ProtocolService {
-    void onStartup() throws InterruptedException;
-    void onShutdown();
+public interface ProtocolService extends RunnableService {
     Consumer<Event<?>> handleMessage() throws Exception;
     void subscribe() throws Exception;
     void broadcast(String queue, Object object);
-		void broadcast(Queue queue, Object object);
-    void run() throws Exception;
+
+    void broadcast(Queue queue, Object object);
 
     String getServiceIdentifier();
-
     ServiceState getServiceStatus();
 }

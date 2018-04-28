@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import reactor.bus.Event;
 import reactor.fn.Consumer;
+import ru.iris.commons.annotations.RunOnStartup;
 import ru.iris.commons.config.ConfigLoader;
 import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.commons.service.AbstractProtocolService;
@@ -22,6 +23,7 @@ import ru.iris.noolite4j.sender.PC1132;
 @Component
 @Profile("noolite")
 @Qualifier("noolitetx")
+@RunOnStartup
 @Slf4j
 public class NooliteTXController extends AbstractProtocolService {
 
