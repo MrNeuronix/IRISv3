@@ -11,6 +11,7 @@ import javastrava.api.v3.service.Strava;
 import javastrava.api.v3.service.exception.BadRequestException;
 import javastrava.api.v3.service.exception.UnauthorizedException;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Instant;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,7 +80,7 @@ public class TransportController extends AbstractProtocolService {
 
     @Scheduled(fixedRate = 6 * 60 * 60 * 1000, initialDelay = 20_000) // 6 hours
     @PreDestroy
-    public void cleanDatabase() {
+    public void cleanDatabase() throws IOException {
         logger.info("Clean transport GPS and voltage history");
         List<Device> transports = registry.getDevicesByProto(SourceProtocol.TRANSPORT);
         int days = Integer.parseInt(config.get("data.gps.days"));
@@ -99,6 +100,9 @@ public class TransportController extends AbstractProtocolService {
                         StandartDeviceValueLabel.VOLTAGE.getName(),
                         new DateTime().minusDays(daysVoltage).toDate())
         );
+
+        logger.info("Clean transport GPX folder");
+        FileUtils.cleanDirectory(new File("gpx/"));
     }
 
     @Scheduled(fixedRate = 15 * 60 * 1000, initialDelay = 30_000) // 15 minutes
@@ -121,6 +125,8 @@ public class TransportController extends AbstractProtocolService {
                     lastPing.remove(id);
                     speedStale.remove(id);
                 }
+            } else {
+                logger.info("No data to save for transport {}", id);
             }
         }
     }
