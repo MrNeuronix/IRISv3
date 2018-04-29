@@ -12,37 +12,38 @@ import ru.iris.commons.config.ReactorConfig;
 import ru.iris.commons.config.SchedulerConfig;
 import ru.iris.commons.service.RunnableService;
 
+import java.util.Map;
+
 @SpringBootApplication
 @Component
 @Slf4j
 public class CoreApplication {
-
-    @Autowired
-    private ApplicationContext context;
-
     public static void main(String[] args) {
-        CoreApplication application = new CoreApplication();
-        application.start(args);
-    }
-
-    private void start(String[] args) {
-        SpringApplication.run(new Class<?>[]{
+        ApplicationContext context = SpringApplication.run(new Class<?>[]{
                 CoreApplication.class,
                 JpaConfig.class,
                 ReactorConfig.class,
                 SchedulerConfig.class
         }, args);
 
-        context.getBeansWithAnnotation(RunOnStartup.class).forEach((name, bean) -> {
-            RunnableService service = (RunnableService) bean;
+        Map<String, Object> mapOfBeans = context.getBeansWithAnnotation(RunOnStartup.class);
 
-            if (service != null) {
-                try {
-                    service.run();
-                } catch (Exception e) {
-                    logger.error("Error while starting up service {}", name, e);
-                }
-            }
-        });
+        mapOfBeans
+                .entrySet()
+                .stream()
+                .filter(entry -> !mapOfBeans.containsKey("scopedTarget."+entry.getKey()))
+                .forEach(entry -> {
+                    String name = entry.getKey();
+                    RunnableService service = (RunnableService) entry.getValue();
+
+                    if (service != null) {
+                        try {
+                            logger.info("Starting up {}", name);
+                            service.run();
+                        } catch (Exception e) {
+                            logger.error("Error while starting up service {}", name, e);
+                        }
+                    }
+                });
     }
 }

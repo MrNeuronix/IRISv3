@@ -27,3 +27,4 @@ nbdist/
 *.zip
 
 *.properties
+!device-transport/src/main/resources/application.properties
