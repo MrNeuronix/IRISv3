@@ -46,6 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Profile("transport")
@@ -70,7 +71,7 @@ public class TransportController extends AbstractProtocolService {
     private final double staleSpeed = 2D;
     private final double minSpeed = 5D;
     private Map<Integer, Integer> speedStale = new HashMap<>();
-    private Map<Integer, Long> lastPing = new HashMap<>();
+    private Map<Integer, Long> lastPing = new ConcurrentHashMap<>();
     private Map<Integer, List<GPSDataEvent>> tracks = new HashMap<>();
 
     @Override
@@ -163,8 +164,6 @@ public class TransportController extends AbstractProtocolService {
 
     private void handlePing(TransportPingEvent data) {
         Device device = getDevice(data);
-
-        lastPing.put(data.getTransportId(), Instant.now().getMillis());
 
         broadcast(Queue.EVENT_DEVICE_PING, DeviceChangeEvent.builder()
                 .channel(device.getChannel())
@@ -318,6 +317,8 @@ public class TransportController extends AbstractProtocolService {
             device = registry.addOrUpdateDevice(device);
             broadcast(Queue.EVENT_DEVICE_ADDED, new DeviceProtocolEvent(channel, SourceProtocol.TRANSPORT, "DeviceAdded"));
         }
+
+        lastPing.put(data.getTransportId(), Instant.now().getMillis());
 
         return device;
     }
