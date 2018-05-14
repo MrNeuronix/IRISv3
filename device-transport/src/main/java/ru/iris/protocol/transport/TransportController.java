@@ -120,7 +120,7 @@ public class TransportController extends AbstractProtocolService {
             if (delta >= noActivityMinutes || stale >= 60 * noActivityMinutes) { // no info or speed stale - save tracks
                 try {
                     if (trackSize > 10) {
-                        logger.info("Saving GPS tracks for transport {}", id);
+                        logger.info("Saving GPS tracks for transport {}. Delta is: {}, stale is: {}", id, delta, stale);
                         writeTrack(id);
                     }
                 } finally {
