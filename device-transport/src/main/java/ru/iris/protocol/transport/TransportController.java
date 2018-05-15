@@ -113,7 +113,7 @@ public class TransportController extends AbstractProtocolService {
     public void saveTrack() {
         logger.info("Looking for GPS tracks save");
         for (Integer id : lastPing.keySet()) {
-            double delta = ((Instant.now().getMillis() - lastPing.get(id)) * 1000D) / 60D; // in minutes
+            double delta = ((Instant.now().getMillis() - lastPing.get(id)) / 1000D) / 60D; // in minutes
             int stale = speedStale.get(id) == null ? 0 : speedStale.get(id);
             int trackSize = tracks.get(id) == null ? 0 : tracks.get(id).size();
 
