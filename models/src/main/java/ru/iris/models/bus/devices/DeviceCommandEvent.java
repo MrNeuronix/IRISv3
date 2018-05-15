@@ -51,11 +51,11 @@ public class DeviceCommandEvent extends AbstractDeviceEvent {
     }
 
     @Builder
-		public DeviceCommandEvent(String channel, SourceProtocol protocol, String eventLabel, EventData data) {
-				super();
-				super.channel = channel;
-				super.protocol = protocol;
-				super.eventLabel = eventLabel;
-				super.data = data;
-		}
+    public DeviceCommandEvent(String channel, SourceProtocol protocol, String eventLabel, EventData data) {
+        super();
+        super.channel = channel;
+        super.protocol = protocol;
+        super.eventLabel = eventLabel;
+        super.data = data;
+    }
 }

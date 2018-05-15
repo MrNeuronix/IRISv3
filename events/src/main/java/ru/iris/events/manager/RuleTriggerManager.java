@@ -9,8 +9,8 @@ import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.stereotype.Component;
-import ru.iris.models.database.Device;
 import ru.iris.events.types.*;
+import ru.iris.models.database.Device;
 
 import java.util.*;
 
@@ -23,6 +23,7 @@ public class RuleTriggerManager {
     // lookup maps for different triggering conditions
     private Map<String, Set<Rule>> changedEventTriggeredRules = Maps.newHashMap();
     private Map<String, Set<Rule>> commandEventTriggeredRules = Maps.newHashMap();
+    private Map<String, Set<Rule>> runEventTriggeredRules = Maps.newHashMap();
     private List<Rule> systemStartupTriggeredRules = Lists.newArrayList();
     private List<Rule> systemShutdownTriggeredRules = Lists.newArrayList();
     private List<Rule> timerEventTriggeredRules = Lists.newArrayList();
@@ -64,6 +65,9 @@ public class RuleTriggerManager {
             case COMMAND:
                 result = Iterables.concat(commandEventTriggeredRules.values());
                 break;
+            case RUN:
+                result = Iterables.concat(runEventTriggeredRules.values());
+                break;
             default:
                 result = Sets.newHashSet();
         }
@@ -74,6 +78,27 @@ public class RuleTriggerManager {
         return internalGetRules(triggerType, device);
     }
 
+    public Iterable<Rule> getRules(TriggerType triggerType, String param) {
+        List<Rule> result = Lists.newArrayList();
+        Iterable<Rule> rules = getAllRules(triggerType, param);
+        if (rules == null) {
+            rules = Lists.newArrayList();
+        }
+        switch (triggerType) {
+            case RUN:
+                for (Rule rule : rules) {
+                    for (EventTrigger t : rule.getEventTrigger()) {
+                        if (t.evaluate(param, triggerType)) {
+                            result.add(rule);
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+
+        return result;
+    }
 
     private Iterable<Rule> getAllRules(TriggerType type, String itemName) {
         switch (type) {
@@ -85,6 +110,8 @@ public class RuleTriggerManager {
                 return changedEventTriggeredRules.get(itemName);
             case COMMAND:
                 return commandEventTriggeredRules.get(itemName);
+            case RUN:
+                return runEventTriggeredRules.get(itemName);
             default:
                 return Sets.newHashSet();
         }
@@ -149,6 +176,9 @@ public class RuleTriggerManager {
             case COMMAND:
                 commandEventTriggeredRules.clear();
                 break;
+            case RUN:
+                runEventTriggeredRules.clear();
+                break;
             case TIMER:
                 for (Rule rule : timerEventTriggeredRules) {
                     removeTimerRule(rule);
@@ -167,6 +197,7 @@ public class RuleTriggerManager {
         clear(TriggerType.CHANGE);
         clear(TriggerType.COMMAND);
         clear(TriggerType.TIMER);
+        clear(TriggerType.RUN);
     }
 
     /**
@@ -183,14 +214,16 @@ public class RuleTriggerManager {
                 systemShutdownTriggeredRules.add(rule);
             } else if (t instanceof CommandEventTrigger) {
                 CommandEventTrigger ceTrigger = (CommandEventTrigger) t;
-	            Set<Rule> rules = commandEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<>());
-	            rules.add(rule);
+                Set<Rule> rules = commandEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<>());
+                rules.add(rule);
+            } else if (t instanceof RunCommandTrigger) {
+                RunCommandTrigger runTrigger = (RunCommandTrigger) t;
+                Set<Rule> rules = runEventTriggeredRules.computeIfAbsent(runTrigger.getItem(), k -> new HashSet<>());
+                rules.add(rule);
             } else if (t instanceof ChangedEventTrigger) {
                 ChangedEventTrigger ceTrigger = (ChangedEventTrigger) t;
-	            Set<Rule>
-			            rules =
-			            changedEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<Rule>());
-	            rules.add(rule);
+                Set<Rule> rules = changedEventTriggeredRules.computeIfAbsent(ceTrigger.getItem(), k -> new HashSet<>());
+                rules.add(rule);
             } else if (t instanceof TimerTrigger) {
                 timerEventTriggeredRules.add(rule);
                 try {
@@ -222,6 +255,9 @@ public class RuleTriggerManager {
             case COMMAND:
                 commandEventTriggeredRules.remove(rule);
                 break;
+            case RUN:
+                runEventTriggeredRules.remove(rule);
+                break;
             case TIMER:
                 timerEventTriggeredRules.remove(rule);
                 removeTimerRule(rule);
@@ -243,6 +279,7 @@ public class RuleTriggerManager {
     public void removeRuleModel(List<Rule> rules) {
         removeRules(TriggerType.CHANGE, changedEventTriggeredRules.values(), rules);
         removeRules(TriggerType.COMMAND, commandEventTriggeredRules.values(), rules);
+        removeRules(TriggerType.RUN, runEventTriggeredRules.values(), rules);
         removeRules(TriggerType.STARTUP, Collections.singletonList(systemStartupTriggeredRules), rules);
         removeRules(TriggerType.SHUTDOWN, Collections.singletonList(systemShutdownTriggeredRules), rules);
         removeRules(TriggerType.TIMER, Collections.singletonList(timerEventTriggeredRules), rules);

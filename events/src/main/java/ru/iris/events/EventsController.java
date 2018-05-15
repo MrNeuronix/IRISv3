@@ -24,6 +24,7 @@ import ru.iris.events.types.TriggerType;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.bus.devices.DeviceCommandEvent;
 import ru.iris.models.bus.devices.DeviceProtocolEvent;
+import ru.iris.models.bus.event.CommandEvent;
 import ru.iris.models.bus.service.ServiceEvent;
 import ru.iris.models.database.Device;
 
@@ -58,7 +59,7 @@ public class EventsController extends AbstractService {
     }
 
     @Override
-    public void onStartup() throws InterruptedException {
+    public void onStartup() {
         logger.info("EventsController starting");
 
 	      if (!config.loadPropertiesFormCfgDirectory("events"))
@@ -131,6 +132,10 @@ public class EventsController extends AbstractService {
                 Device device = registry.getDevice(e.getProtocol(), e.getChannel());
                 Iterable<Rule> rules = triggerManager.getRules(TriggerType.COMMAND, device);
                 scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.COMMAND, device, event.getKey().toString()));
+            } else if (event.getData() instanceof CommandEvent) {
+                CommandEvent e = (CommandEvent) event.getData();
+                Iterable<Rule> rules = triggerManager.getRules(TriggerType.RUN, e.getFilename());
+                scriptManager.executeRules(rules, new ru.iris.events.types.Event(TriggerType.RUN, null, event.getKey().toString()));
             } else {
                 // We received unknown request message. Lets make generic log entry.
                 //logger.info("Received unknown request for events service! Class: {}", event.getData().getClass());

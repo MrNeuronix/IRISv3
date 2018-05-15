@@ -13,7 +13,7 @@ public class CommandEventTrigger implements EventTrigger {
 
     @Override
     public boolean evaluate(Device device, TriggerType type) {
-	      String ident = device.getSource().toString().toLowerCase() + "/channel/" + device.getChannel();
+        String ident = device.getSource().toString().toLowerCase() + "/channel/" + device.getChannel();
         return (type == TriggerType.COMMAND && this.item.equals(ident));
     }
 }

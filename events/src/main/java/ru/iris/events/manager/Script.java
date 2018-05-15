@@ -77,6 +77,7 @@ public class Script {
                     + "Rule 					= Java.type('ru.iris.events.types.Rule'),\n"
                     + "ChangedEventTrigger 	= Java.type('ru.iris.events.types.ChangedEventTrigger'),\n"
                     + "CommandEventTrigger 	= Java.type('ru.iris.events.types.CommandEventTrigger'),\n"
+                    + "RunCommandTrigger 	= Java.type('ru.iris.events.types.RunCommandTrigger'),\n"
                     + "Event 				= Java.type('ru.iris.events.types.Event'),\n"
                     + "EventTrigger			= Java.type('ru.iris.events.types.EventTrigger'),\n"
                     + "ShutdownTrigger 		= Java.type('ru.iris.events.types.ShutdownTrigger'),\n"
