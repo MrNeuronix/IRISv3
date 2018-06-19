@@ -2,7 +2,6 @@ package ru.iris.protocol.http;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,21 +10,20 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.bus.Event;
 import reactor.bus.EventBus;
+import ru.iris.commons.registry.DeviceRegistry;
 import ru.iris.models.bus.Queue;
 import ru.iris.models.bus.devices.DeviceChangeEvent;
 import ru.iris.models.database.Device;
-import ru.iris.models.status.BackendAnswer;
-import ru.iris.models.status.ErrorStatus;
-import ru.iris.models.status.OkStatus;
 import ru.iris.models.protocol.enums.DeviceType;
 import ru.iris.models.protocol.enums.SourceProtocol;
 import ru.iris.models.protocol.enums.State;
 import ru.iris.models.protocol.enums.ValueType;
-import ru.iris.commons.registry.DeviceRegistry;
+import ru.iris.models.status.BackendAnswer;
+import ru.iris.models.status.ErrorStatus;
+import ru.iris.models.status.OkStatus;
 
 @Component
 @Profile("httpapi")
-@Qualifier("httpapi")
 @RestController
 @Slf4j
 public class HttpApiController {

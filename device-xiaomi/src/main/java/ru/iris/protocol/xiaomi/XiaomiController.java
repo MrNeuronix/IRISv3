@@ -1,7 +1,6 @@
 package ru.iris.protocol.xiaomi;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
@@ -57,10 +56,12 @@ public class XiaomiController extends AbstractProtocolService {
     private final EventBus r;
     private final ConfigLoader config;
     private final DeviceRegistry registry;
-    private final Gson gson = new GsonBuilder().create();
     private static final JsonParser PARSER = new JsonParser();
     private List<GatewayController> gateways;
     private Gateway gateway = null;
+
+    @Autowired
+    private Gson gson;
 
     private static final int VOLTAGE_MAX_MILLIVOLTS = 3100;
     private static final int VOLTAGE_MIN_MILLIVOLTS = 2700;

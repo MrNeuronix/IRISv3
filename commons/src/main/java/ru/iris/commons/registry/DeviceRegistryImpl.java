@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class DeviceRegistryImpl implements DeviceRegistry {
-    private Map<String, Device> registry = new ConcurrentHashMap<>();
+    private final Map<String, Device> registry = new ConcurrentHashMap<>();
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -71,18 +71,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Override
     @Transactional
-    public DeviceValueChange saveDeviceChangeToDatabase(DeviceValueChange change) {
-        if (change == null) {
-            logger.error("Device change, passed into registry is null!");
-            return null;
-        }
-
-        change = deviceValueHistoryDAO.save(change);
-        return change;
-    }
-
-    @Override
-    @Transactional
     public Device addOrUpdateDevice(Device device) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");
@@ -104,6 +92,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
+    @Transactional
     public DeviceValue addChange(DeviceValue value) {
         DeviceValueChange add = new DeviceValueChange();
         add.setDeviceValue(value);
@@ -117,12 +106,13 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
 
-        saveDeviceChangeToDatabase(add);
+        deviceValueHistoryDAO.save(add);
 
         return value;
     }
 
     @Override
+    @Transactional
     public DeviceValue addChange(Device device, String key, String level, ValueType type) {
         if (device == null) {
             logger.error("Device, passed into registry is null!");

@@ -1,3 +1,5 @@
 # ===============================
 # = IRIS http point for devices
 # ===============================
+
+httpdevices = [ { "id": "relay1", "url": "http://192.168.0.10", "name": "relay1", "min": 0, "max": 1 }, { "id": "relay2", "url": "http://192.168.0.190", "name": "relay2", "min": 0, "max": 1 } ]

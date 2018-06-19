@@ -1,9 +1,7 @@
 package ru.iris.commons.registry;
 
-import org.springframework.transaction.annotation.Transactional;
 import ru.iris.models.database.Device;
 import ru.iris.models.database.DeviceValue;
-import ru.iris.models.database.DeviceValueChange;
 import ru.iris.models.protocol.enums.SourceProtocol;
 import ru.iris.models.protocol.enums.ValueType;
 
@@ -16,9 +14,6 @@ import java.util.List;
 public interface DeviceRegistry {
 
     Device saveDeviceToDatabase(Device device);
-
-    @Transactional
-    DeviceValueChange saveDeviceChangeToDatabase(DeviceValueChange change);
 
     Device addOrUpdateDevice(Device device);
 
