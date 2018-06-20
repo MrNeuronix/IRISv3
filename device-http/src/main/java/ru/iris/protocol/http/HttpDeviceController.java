@@ -110,37 +110,50 @@ public class HttpDeviceController extends AbstractProtocolService {
                     return;
                 }
 
+                Optional<HTTPDevice> deviceOptional = httpDevices.stream()
+                        .filter(d -> d.getId().equals(x.getChannel()))
+                        .findFirst();
+
                 switch (EventLabel.parse(x.getEventLabel())) {
                     case TURN_ON:
-                        if (x.getData() instanceof DataLevel) {
-                            logger.info("Turn ON device on channel {}", x.getChannel());
+                        logger.info("Turn ON device on channel {}", x.getChannel());
 
-                            Optional<HTTPDevice> deviceOptional = httpDevices.stream()
-                                    .filter(d -> d.getId().equals(x.getChannel()))
-                                    .findFirst();
-
-                            if (deviceOptional.isPresent()) {
-                                HTTPDevice httpDevice = deviceOptional.get();
-                                HttpRequest.get(httpDevice.getUrl() + "/" + httpDevice.getName().toLowerCase() + "/on").send();
-                            }
+                        if (deviceOptional.isPresent()) {
+                            HTTPDevice httpDevice = deviceOptional.get();
+                            HttpRequest.get(httpDevice.getUrl() + "/" + httpDevice.getName().toLowerCase() + "/on").send();
                         } else {
-                            logger.error("Unknown data class!");
+                            logger.error("Device not found!");
                         }
                         break;
                     case TURN_OFF:
-                        if (x.getData() instanceof DataLevel) {
-                            logger.info("Turn OFF device on channel {}", x.getChannel());
+                        logger.info("Turn OFF device on channel {}", x.getChannel());
 
-                            Optional<HTTPDevice> deviceOptional = httpDevices.stream()
-                                    .filter(d -> d.getId().equals(x.getChannel()))
-                                    .findFirst();
+                        if (deviceOptional.isPresent()) {
+                            HTTPDevice httpDevice = deviceOptional.get();
+                            HttpRequest.get(httpDevice.getUrl() + "/" + httpDevice.getName().toLowerCase() + "/off").send();
+                        } else {
+                            logger.error("Device not found!");
+                        }
+                        break;
+                    case SET_LEVEL:
+                        logger.info("Set level device on channel {}", x.getChannel());
+
+                        if(x.getData() instanceof DataLevel) {
+                            DataLevel dataLevel = (DataLevel) x.getData();
+                            String action;
+
+                            if(Integer.valueOf(dataLevel.getTo()) > 0) {
+                                action = "on";
+                            } else {
+                                action = "off";
+                            }
 
                             if (deviceOptional.isPresent()) {
                                 HTTPDevice httpDevice = deviceOptional.get();
-                                HttpRequest.get(httpDevice.getUrl() + "/" + httpDevice.getName().toLowerCase() + "/off").send();
+                                HttpRequest.get(httpDevice.getUrl() + "/" + httpDevice.getName().toLowerCase() + "/" + action).send();
+                            } else {
+                                logger.error("Device not found!");
                             }
-                        } else {
-                            logger.error("Unknown data class!");
                         }
                         break;
                     default:
@@ -166,8 +179,6 @@ public class HttpDeviceController extends AbstractProtocolService {
         if (getServiceState().equals(ServiceState.STOPPED)) {
             return;
         }
-
-        logger.debug("Check HTTP devices");
 
         httpDevices.forEach(deviceFromCfg -> {
             Device device = registry.getDevice(SourceProtocol.HTTP, deviceFromCfg.getId());
