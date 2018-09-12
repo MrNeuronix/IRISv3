@@ -178,8 +178,13 @@ public class DeviceRegistryImpl implements DeviceRegistry {
 
     @Scheduled(initialDelay = 60_000L, fixedDelay = 60_000L)
     void saveChangesJob() {
-        logger.debug("Saving {} changes to database", changes.size());
-        changes.forEach(change -> deviceValueHistoryDAO.save(change));
+        synchronized (changes) {
+            if(changes.size() > 0) {
+                logger.debug("Saving {} changes to database", changes.size());
+                changes.forEach(change -> deviceValueHistoryDAO.save(change));
+                changes.clear();
+            }
+        }
     }
 
     /////////////////////////////////////////////////////////////////
