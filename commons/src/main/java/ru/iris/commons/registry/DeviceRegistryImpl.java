@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.iris.commons.database.dao.DeviceDAO;
@@ -19,10 +20,7 @@ import ru.iris.models.protocol.enums.ValueType;
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -30,6 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DeviceRegistryImpl implements DeviceRegistry {
     private final Map<String, Device> registry = new ConcurrentHashMap<>();
+    private final Set<DeviceValueChange> changes = ConcurrentHashMap.newKeySet();
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -92,7 +91,6 @@ public class DeviceRegistryImpl implements DeviceRegistry {
     }
 
     @Override
-    @Transactional
     public DeviceValue addChange(DeviceValue value) {
         DeviceValueChange add = new DeviceValueChange();
         add.setDeviceValue(value);
@@ -106,7 +104,7 @@ public class DeviceRegistryImpl implements DeviceRegistry {
         value.setLastUpdated(new Date());
         value.getChanges().add(add);
 
-        deviceValueHistoryDAO.save(add);
+        changes.add(add);
 
         return value;
     }
@@ -176,6 +174,12 @@ public class DeviceRegistryImpl implements DeviceRegistry {
             return null;
 
         return device.getValues().getOrDefault(value, null);
+    }
+
+    @Scheduled(initialDelay = 60_000L, fixedDelay = 60_000L)
+    void saveChangesJob() {
+        logger.debug("Saving {} changes to database", changes.size());
+        changes.forEach(change -> deviceValueHistoryDAO.save(change));
     }
 
     /////////////////////////////////////////////////////////////////
